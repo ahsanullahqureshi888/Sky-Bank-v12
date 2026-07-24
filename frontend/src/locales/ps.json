@@ -1,0 +1,43 @@
+{
+  "receipt": {
+    "document_title": "د پیسو د لېږد رسید",
+    "document_subtitle": "د تادیې / حوالې / بانکي لېږد رسمي سند",
+    "transaction_summary": "د راکړې ورکړې لنډیز",
+    "receipt_no": "د رسید شمېره",
+    "date": "نېټه",
+    "status": "حالت",
+    "amount": "مبلغ",
+    "equivalent": "معادل مبلغ",
+    "payment_method": "د تادیې طریقه",
+    "party_details": "د معاملې د اړخ معلومات",
+    "payment_information": "د تادیې معلومات",
+    "customer": "پېرودونکی",
+    "company": "شرکت",
+    "subject": "موضوع",
+    "receiver": "ترلاسه کوونکی",
+    "bank_account": "بانکي حساب",
+    "currency": "اسعار",
+    "equivalent_currency": "معادل اسعار",
+    "description_notes": "تشریح / یادښتونه",
+    "no_description": "هیڅ تشریح نه ده ثبت شوې.",
+    "no_bank_account": "بانکي حساب نه دی ټاکل شوی",
+    "authorization": "تایید او لاسلیکونه",
+    "prepared_by": "چمتو کوونکی",
+    "received_by": "ترلاسه کوونکی",
+    "authorized_signature": "مجاز لاسلیک",
+    "company_stamp": "د شرکت مهر",
+    "date_line": "نېټه: __________________",
+    "official_seal": "د رسمي مهر ځای",
+    "system_note": "دا رسید د سیستم له خوا جوړ شوی او د ثبت شوې معاملې جزئیات څرګندوي.",
+    "generated_by": "رسمي رسید د {{company}} له خوا جوړ شوی.",
+    "page_one": "۱ له ۱ پاڼه",
+    "type": "د لیږد ډول"
+  },
+  "transaction": {
+    "import_payment": "د وارداتو تادیه",
+    "export_receipt": "د صادراتو رسید"
+  },
+  "common": {
+    "logout": "وتل"
+  }
+}
