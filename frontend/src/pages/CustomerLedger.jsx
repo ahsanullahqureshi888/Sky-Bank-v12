@@ -727,7 +727,7 @@ export default function CustomerLedger() {
 
                     {/* Desktop Table View */}
                     <div className="hidden md:block overflow-x-auto app-scrollbar rounded-2xl border border-sky-100 bg-white/50">
-                      <table className="w-full min-w-[760px] text-left border-collapse">
+                      <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="bg-slate-50/80 border-b border-sky-100 text-[11px] font-black text-sky-600 uppercase tracking-[0.15em]">
                             <th className="py-3.5 pl-5 pr-4">{t('customerLedger.date')}</th>

@@ -354,9 +354,9 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* Desktop Table View (Hidden on mobile, visible on desktop) */}
-            <div className="hidden md:block app-scrollbar overflow-x-auto">
-              <table className="min-w-[760px] w-full text-left">
+  {/* Desktop Table View (Hidden on mobile, visible on desktop) */}
+  <div className="hidden md:block app-scrollbar overflow-x-auto">
+    <table className="w-full text-left">
                 <thead>
                   <tr className="border-b-2 border-sky-100/70 text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
                     <th className="py-4 pr-3">{LABELS.receiptNo}</th>

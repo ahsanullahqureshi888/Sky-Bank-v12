@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import i18n from '../i18n';
+import { useReceiptStyles } from '../hooks/useReceiptStyles';
 
 const FALLBACK_LOGO = '/sky-bbb-logo.png';
 const DEFAULT_COMPANY = 'Sky Ariana Limited';
@@ -108,6 +109,9 @@ export default function ReceiptDocument({
   settings = null,
   language = i18n.resolvedLanguage || i18n.language || 'en',
 }) {
+  // Dynamically load receipt print styles on demand
+  useReceiptStyles();
+  
   const secondaryLanguage = String(language).toLowerCase().startsWith('ps') ? 'ps' : 'fa';
   const tEn = i18n.getFixedT('en');
   const tSecondary = i18n.getFixedT(secondaryLanguage);
