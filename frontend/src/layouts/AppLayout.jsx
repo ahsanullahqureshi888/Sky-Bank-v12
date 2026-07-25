@@ -185,6 +185,11 @@ export default function AppLayout({ children }) {
   return (
     <div className="h-screen overflow-hidden print:h-auto print:overflow-visible bg-gradient-to-br from-[#f7fbff] via-[#eaf4ff] to-[#f8fbff] text-slate-900 flex flex-col">
       
+      {/* Skip to content link for keyboard accessibility */}
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-sky-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg">
+        Skip to main content
+      </a>
+      
       {/* Mobile Header Banner */}
       <header className="md:hidden w-full flex items-center justify-between px-4 bg-white/80 backdrop-blur-xl border-b border-sky-100 sticky top-0 z-40 pt-[env(safe-area-inset-top)] h-[calc(64px+env(safe-area-inset-top))] print:hidden">
         <div className="flex min-w-0 items-center gap-3">
@@ -330,7 +335,7 @@ export default function AppLayout({ children }) {
         </div>
       </aside>
       {/* Main content body */}
-      <main className={`app-scrollbar flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 sm:p-6 xl:p-8 print:overflow-visible print:p-0 ${
+      <main id="main-content" className={`app-scrollbar flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 sm:p-6 xl:p-8 print:overflow-visible print:p-0 ${
         isFormOrDetailView 
           ? 'pb-[calc(112px+env(safe-area-inset-bottom))] md:pb-8 print:pb-0' 
           : 'pb-[calc(92px+env(safe-area-inset-bottom))] md:pb-8 print:pb-0'
