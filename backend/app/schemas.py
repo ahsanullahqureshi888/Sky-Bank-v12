@@ -250,7 +250,7 @@ class ExtractedReceipt(BaseModel):
 
 class OCRTransactionSave(BaseModel):
     receipt_no: str
-    date: date
+    date: dt_date
     type: str = "Received"
     customer_id: Optional[int] = None
     customer_name: Optional[str] = None
