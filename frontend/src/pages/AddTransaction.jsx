@@ -73,15 +73,6 @@ export default function AddTransaction() {
             status: tx.status || 'Completed',
             description: tx.description || '',
           });
-        } else if (location.state && location.state.ocrData) {
-          // If we redirected from OCR page with extracted fields
-          const ocr = location.state.ocrData;
-          setForm((prev) => ({
-            ...prev,
-            ...ocr,
-            receipt_no: ocr.receipt_no || prev.receipt_no,
-            date: ocr.date || prev.date,
-          }));
         } else {
           try {
             const nextRes = await settingsAPI.getNextReceiptNo();

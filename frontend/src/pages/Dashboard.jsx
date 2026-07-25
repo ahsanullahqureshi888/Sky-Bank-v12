@@ -172,13 +172,6 @@ export default function Dashboard() {
               </div>
               <span className="text-[9px] font-black text-slate-700">{LABELS.newTx}</span>
             </Link>
-            
-            <Link to="/upload" className="flex flex-col items-center justify-center gap-2 p-2 bg-white border border-sky-100/70 rounded-2xl active:scale-95 transition-all shadow-sm min-h-[52px]">
-              <div className="h-11 w-11 bg-indigo-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/15">
-                <UploadCloud size={20} />
-              </div>
-              <span className="text-[9px] font-black text-slate-700">{LABELS.ocrImport}</span>
-            </Link>
 
             <Link to="/customer-ledger" className="flex flex-col items-center justify-center gap-2 p-2 bg-white border border-sky-100/70 rounded-2xl active:scale-95 transition-all shadow-sm min-h-[52px]">
               <div className="h-11 w-11 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/15">

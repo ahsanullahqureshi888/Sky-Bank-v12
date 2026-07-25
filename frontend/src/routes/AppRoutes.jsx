@@ -7,7 +7,6 @@ import AddTransaction from '../pages/AddTransaction';
 import TransactionHistory from '../pages/TransactionHistory';
 import CustomerLedger from '../pages/CustomerLedger';
 import BankLedger from '../pages/BankLedger';
-import ReceiptUpload from '../pages/ReceiptUpload';
 import TransactionDetail from '../pages/TransactionDetail';
 import Reports from '../pages/Reports';
 import Settings from '../pages/Settings';
@@ -55,19 +54,6 @@ export default function AppRoutes() {
                 <Route path="/customer-ledger" element={<CustomerLedger />} />
                 <Route path="/sarafi-ledger" element={<SarafiLedger />} />
                 <Route path="/bank-ledger" element={<BankLedger />} />
-                <Route
-                  path="/upload"
-                  element={
-                    <RoleRoute allowedRoles={['Admin', 'Accountant']}>
-                      <RouteErrorBoundary
-                        title="Receipt Upload / OCR could not load"
-                        message="The OCR workspace hit a temporary problem. You can retry without losing your session."
-                      >
-                        <ReceiptUpload />
-                      </RouteErrorBoundary>
-                    </RoleRoute>
-                  }
-                />
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/settings" element={<RoleRoute allowedRoles={['Admin']}><Settings /></RoleRoute>} />
                 <Route

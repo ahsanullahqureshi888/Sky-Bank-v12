@@ -126,6 +126,7 @@ export const transactionAPI = {
     });
   },
   getPDFUrl: (id) => `/api/transactions/${id}/pdf`,
+  getAttachmentUrl: (id) => `/api/transactions/${id}/attachment`,
   downloadPDF: (id, filename = `transaction-${id}.pdf`) =>
     downloadClientBlob(`/transactions/${id}/pdf`, filename),
   openPDF: (id, filename = `transaction-${id}.pdf`) =>
@@ -169,26 +170,6 @@ export const settingsAPI = {
     });
   },
   getNextReceiptNo: () => client.get('/settings/next-receipt-no'),
-};
-
-export const ocrAPI = {
-  upload: (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    return client.post('/ocr/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  },
-  extract: (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    return client.post('/ocr/extract', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  },
-  saveTransaction: (data) => client.post('/ocr/save-transaction', data),
-  getTempPreviewUrl: (path) => `/api/ocr/temp-preview?path=${encodeURIComponent(path)}`,
-  getAttachmentUrl: (id) => `/api/transactions/${id}/attachment`,
 };
 
 

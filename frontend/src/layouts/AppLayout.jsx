@@ -72,7 +72,7 @@ export default function AppLayout({ children }) {
     { name: t('nav.customer_ledger'), path: '/customer-ledger', icon: Users, roles: ['Admin', 'Accountant', 'Viewer'] },
     { name: 'Sarafi Ledger', path: '/sarafi-ledger', icon: Users, roles: ['Admin', 'Accountant', 'Viewer'] },
     { name: t('nav.bank_ledger'), path: '/bank-ledger', icon: Building, roles: ['Admin', 'Accountant', 'Viewer'] },
-    { name: t('nav.upload'), path: '/upload', icon: UploadCloud, roles: ['Admin', 'Accountant'] },
+
     { name: t('nav.reports'), path: '/reports', icon: FileSpreadsheet, roles: ['Admin', 'Accountant', 'Viewer'] },
     { name: t('nav.users'), path: '/users', icon: UserCheck, roles: ['Admin'] },
     { name: t('nav.backup'), path: '/backup', icon: Database, roles: ['Admin'] },
@@ -165,7 +165,7 @@ export default function AppLayout({ children }) {
   const isFormOrDetailView = 
     location.pathname.startsWith('/add-transaction') ||
     location.pathname.startsWith('/edit-transaction') ||
-    location.pathname.startsWith('/upload') ||
+
     /^\/transactions\/\d+/.test(location.pathname);
 
   const bottomTabs = [];
