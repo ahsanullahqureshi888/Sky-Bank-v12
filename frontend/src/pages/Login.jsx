@@ -7,6 +7,19 @@ const BRAND_NAME = 'SKY ARIANA GROUP OF COMPANIES';
 const BRAND_SUBTITLE = 'Money Transaction & Hawala Receipt Management System';
 const BRAND_LOGO = '/sky-bbb-logo.png';
 
+// Layered sweeping golden lines: mixed thickness, speed, delay and angle
+const GOLDEN_LINES = [
+  { top: '9%', duration: '11s', delay: '-1s', angle: '-9deg' },
+  { top: '19%', duration: '15s', delay: '-6s', angle: '-14deg', hair: true },
+  { top: '29%', duration: '13s', delay: '-9s', angle: '-6deg', hair: true },
+  { top: '40%', duration: '9s', delay: '-3s', angle: '-12deg' },
+  { top: '51%', duration: '16s', delay: '-11s', angle: '-8deg', hair: true },
+  { top: '62%', duration: '12s', delay: '-5s', angle: '-15deg' },
+  { top: '73%', duration: '14s', delay: '-2s', angle: '-7deg', hair: true },
+  { top: '84%', duration: '10s', delay: '-7s', angle: '-11deg' },
+  { top: '93%', duration: '17s', delay: '-13s', angle: '-13deg', hair: true },
+];
+
 export default function Login() {
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -55,32 +68,56 @@ export default function Login() {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.03)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:linear-gradient(to_bottom,black,transparent_88%)]" />
       
       {/* Animated Golden Lines Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-90">
-        <div className="golden-line-1" />
-        <div className="golden-line-2" />
-        <div className="golden-line-3" />
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="golden-glow left-[-6rem] top-[-4rem] h-72 w-72" />
+        <div
+          className="golden-glow right-[-8rem] bottom-[-5rem] h-80 w-80"
+          style={{ animationDelay: '4s' }}
+        />
+        {GOLDEN_LINES.map((line, index) => (
+          <div
+            key={index}
+            className={`golden-line${line.hair ? ' golden-line--hair' : ''}`}
+            style={{
+              top: line.top,
+              '--gl-duration': line.duration,
+              '--gl-delay': line.delay,
+              '--gl-angle': line.angle,
+            }}
+          />
+        ))}
       </div>
 
       {/* Centered Login Card - Zoomed out via max-w-[380px] */}
       <div className="relative z-10 w-full max-w-[380px] transition-all duration-300">
-        <section className="glass-panel w-full transition-all duration-500">
+        <section className="glass-panel w-full ring-1 ring-amber-300/30 transition-all duration-500">
+          {/* Golden top rule with shimmer */}
+          <div className="golden-rule" />
+
           <div className="relative flex flex-col p-6 sm:p-8">
             {/* Header Brand lockup */}
             <div className="flex items-center gap-3">
-              <div className="flex h-16 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[14px] border border-sky-100 bg-white shadow-md shadow-sky-500/10">
+              <div className="flex h-16 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[14px] border border-amber-300/50 bg-white shadow-md shadow-amber-500/10">
                 <img src={BRAND_LOGO} alt={BRAND_NAME} className="h-full w-full object-contain p-1" />
               </div>
               <div className="min-w-0">
                 <h1 className="text-sm font-black leading-tight tracking-tight text-slate-900">{BRAND_NAME}</h1>
-                <p className="mt-0.5 text-[10px] font-bold leading-snug text-slate-500">{BRAND_SUBTITLE}</p>
+                <p className="mt-1 text-[10px] font-bold leading-snug text-slate-500">{BRAND_SUBTITLE}</p>
+                <span className="mt-2 block h-px w-16 bg-gradient-to-r from-amber-400 to-transparent" />
               </div>
             </div>
 
             {step === 'login' ? (
               <>
-                <div className="mt-8 space-y-1">
+                <div className="mt-7 space-y-1.5">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/60 bg-amber-50/70 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-amber-700">
+                    <ShieldCheck className="h-3 w-3" />
+                    Verified Access
+                  </span>
                   <h2 className="text-xl font-black tracking-tight text-slate-900">Welcome Back</h2>
-                  <p className="text-[11px] font-bold text-slate-500">Sign in to access your money history workspace</p>
+                  <p className="text-[11px] font-bold leading-relaxed text-slate-500">
+                    Sign in to access your money history workspace
+                  </p>
                 </div>
 
                 <form onSubmit={handleLogin} className="mt-6 space-y-4">
@@ -171,9 +208,13 @@ export default function Login() {
                   </button>
                 </form>
 
-                <p className="mt-5 text-center text-[10px] font-extrabold tracking-wide text-slate-400">
-                  SECURE ACCOUNTING CONSOLE
-                </p>
+                <div className="mt-6 flex items-center gap-3">
+                  <span className="h-px flex-1 bg-gradient-to-r from-transparent to-amber-300/70" />
+                  <p className="text-[9px] font-extrabold uppercase tracking-[0.22em] text-amber-700/70">
+                    Secure Accounting Console
+                  </p>
+                  <span className="h-px flex-1 bg-gradient-to-l from-transparent to-amber-300/70" />
+                </div>
               </>
             ) : (
               <>

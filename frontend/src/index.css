@@ -329,37 +329,93 @@
 }
 
 /* Golden Lines Animation for Login */
-.golden-line-1, .golden-line-2, .golden-line-3 {
+.golden-line {
   position: absolute;
-  background: linear-gradient(90deg, transparent, rgba(217, 119, 6, 0.6), rgba(251, 191, 36, 0.9), rgba(217, 119, 6, 0.6), transparent);
-  height: 2px;
-  width: 150vw;
-  box-shadow: 0 0 15px 3px rgba(217, 119, 6, 0.3);
+  left: -65vw;
+  width: 60vw;
+  height: var(--gl-thickness, 2px);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(217, 119, 6, 0.35) 22%,
+    rgba(251, 191, 36, 0.95) 50%,
+    rgba(217, 119, 6, 0.35) 78%,
+    transparent 100%
+  );
+  box-shadow: 0 0 14px 2px rgba(217, 119, 6, 0.28);
   transform-origin: center;
+  animation: sweep-golden var(--gl-duration, 12s) ease-in-out infinite;
+  animation-delay: var(--gl-delay, 0s);
+  opacity: 0;
 }
 
-.golden-line-1 {
-  top: 20%;
-  left: -150%;
-  animation: sweep-golden 10s ease-in-out infinite;
-}
-
-.golden-line-2 {
-  top: 55%;
-  left: -150%;
-  animation: sweep-golden 14s ease-in-out infinite 3s;
-}
-
-.golden-line-3 {
-  top: 85%;
-  left: -150%;
-  animation: sweep-golden 12s ease-in-out infinite 6s;
+/* Thin hairlines: softer, faster, less glow */
+.golden-line--hair {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(217, 119, 6, 0.2) 25%,
+    rgba(253, 224, 71, 0.7) 50%,
+    rgba(217, 119, 6, 0.2) 75%,
+    transparent 100%
+  );
+  box-shadow: 0 0 8px 1px rgba(251, 191, 36, 0.22);
 }
 
 @keyframes sweep-golden {
-  0% { transform: rotate(-30deg) translateX(0); opacity: 0; }
-  25% { opacity: 1; }
-  75% { opacity: 1; }
-  100% { transform: rotate(-30deg) translateX(250%); opacity: 0; }
+  0% { transform: rotate(var(--gl-angle, -12deg)) translate3d(0, 0, 0); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: rotate(var(--gl-angle, -12deg)) translate3d(215vw, 0, 0); opacity: 0; }
+}
+
+/* Slow drifting golden glow orbs behind the card */
+.golden-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.35) 0%, rgba(217, 119, 6, 0.12) 45%, transparent 70%);
+  animation: golden-drift 16s ease-in-out infinite alternate;
+}
+
+@keyframes golden-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); opacity: 0.55; }
+  to { transform: translate3d(24px, -18px, 0) scale(1.12); opacity: 0.85; }
+}
+
+/* Golden shimmer sweep used on the card top rule */
+.golden-rule {
+  position: relative;
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, rgba(217, 119, 6, 0.45), rgba(251, 191, 36, 0.85), rgba(217, 119, 6, 0.45), transparent);
+  overflow: hidden;
+}
+
+.golden-rule::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+  transform: translateX(-100%);
+  animation: golden-rule-shimmer 4.5s ease-in-out infinite;
+}
+
+@keyframes golden-rule-shimmer {
+  0%, 60% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .golden-line,
+  .golden-glow,
+  .golden-rule::after {
+    animation: none !important;
+  }
+  .golden-line {
+    opacity: 0.45;
+    transform: rotate(var(--gl-angle, -12deg)) translate3d(90vw, 0, 0);
+  }
 }
 
