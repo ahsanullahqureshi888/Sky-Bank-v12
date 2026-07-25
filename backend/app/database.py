@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
@@ -36,6 +37,39 @@ if not DATABASE_URL:
 # SQLAlchemy requires postgresql:// instead of postgres://
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# Managed Postgres providers (e.g. the Supabase pooler) append vendor-specific
+# query params such as `?supa=base-pooler.x`, which psycopg2 rejects with
+# `invalid dsn: invalid connection option "supa"`. Keep only the options libpq
+# actually understands.
+_ALLOWED_PG_OPTIONS = {
+    "sslmode",
+    "sslrootcert",
+    "sslcert",
+    "sslkey",
+    "channel_binding",
+    "connect_timeout",
+    "application_name",
+    "options",
+    "target_session_attrs",
+}
+
+
+def _clean_postgres_url(url: str) -> str:
+    if not url.startswith("postgresql"):
+        return url
+    parsed = urlsplit(url)
+    if not parsed.query:
+        return url
+    kept = [
+        (key, value)
+        for key, value in parse_qsl(parsed.query, keep_blank_values=True)
+        if key.lower() in _ALLOWED_PG_OPTIONS
+    ]
+    return urlunsplit(parsed._replace(query=urlencode(kept)))
+
+
+DATABASE_URL = _clean_postgres_url(DATABASE_URL)
 
 is_sqlite = DATABASE_URL.startswith("sqlite")
 connect_args = {"check_same_thread": False} if is_sqlite else {"connect_timeout": 10}
