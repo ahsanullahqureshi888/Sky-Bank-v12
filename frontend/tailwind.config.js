@@ -6,6 +6,10 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        // Extra-small breakpoint used by the ledger and table UIs
+        xs: '480px',
+      },
       colors: {
         sky: {
           50: '#f5f9ff',

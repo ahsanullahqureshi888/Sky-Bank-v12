@@ -1,40 +1,149 @@
 import React, { useMemo, useState } from 'react';
 import { LedgerTransaction } from '../types/ledger';
-import { ArrowDownLeft, ArrowUpRight, TrendingUp, TrendingDown, DollarSign, Printer, Plus, Minus, X, CheckCircle2 } from 'lucide-react';
+import {
+  ArrowDownLeft,
+  ArrowUpRight,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Printer,
+  X,
+  CheckCircle2,
+  Search,
+  Wallet,
+  Users,
+  ArrowUpDown,
+  ListFilter,
+  FileDown,
+} from 'lucide-react';
 
 interface CustomerLedgerTableProps {
   transactions: LedgerTransaction[];
 }
 
-export const CustomerLedgerTable: React.FC<CustomerLedgerTableProps> = ({ transactions: initialTransactions }) => {
+type DirectionFilter = 'all' | 'in' | 'out';
+
+const currencyFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+
+const numberFormatter = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+
+const formatCurrency = (amount: number) => currencyFormatter.format(amount);
+const formatAmount = (amount: number) => numberFormatter.format(amount);
+
+/** Deterministic accent per entity so the same name always gets the same chip color. */
+const ENTITY_ACCENTS = [
+  'bg-sky-100 text-sky-700',
+  'bg-emerald-100 text-emerald-700',
+  'bg-amber-100 text-amber-700',
+  'bg-rose-100 text-rose-700',
+  'bg-teal-100 text-teal-700',
+  'bg-slate-200 text-slate-700',
+];
+
+const entityAccent = (name: string) => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i += 1) {
+    hash = (hash * 31 + name.charCodeAt(i)) % 9973;
+  }
+  return ENTITY_ACCENTS[hash % ENTITY_ACCENTS.length];
+};
+
+const entityInitials = (name: string) =>
+  name
+    .replace(/[^A-Za-z\s/]/g, ' ')
+    .split(/[\s/]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? '')
+    .join('') || '?';
+
+export const CustomerLedgerTable: React.FC<CustomerLedgerTableProps> = ({
+  transactions: initialTransactions,
+}) => {
   const [transactions, setTransactions] = useState<LedgerTransaction[]>(initialTransactions);
   const [showAddModal, setShowAddModal] = useState<'cash-in' | 'cash-out' | null>(null);
   const [newTx, setNewTx] = useState({ entity: '', amount: '' });
+  const [query, setQuery] = useState('');
+  const [direction, setDirection] = useState<DirectionFilter>('all');
+  const [newestFirst, setNewestFirst] = useState(true);
 
-  // Calculate summary totals
+  // Totals always reflect the full ledger, never the filtered view.
   const summary = useMemo(() => {
-    return transactions.reduce(
-      (acc, tx) => ({
-        totalCashIn: acc.totalCashIn + tx.cashIn,
-        totalCashOut: acc.totalCashOut + tx.cashOut,
-        finalBalance: tx.runningBalance, // Takes the last row's running balance
-      }),
-      { totalCashIn: 0, totalCashOut: 0, finalBalance: 0 }
+    const totals = transactions.reduce(
+      (acc, tx) => {
+        acc.totalCashIn += tx.cashIn;
+        acc.totalCashOut += tx.cashOut;
+        acc.entities.add(tx.associatedEntity);
+        return acc;
+      },
+      { totalCashIn: 0, totalCashOut: 0, entities: new Set<string>() }
     );
+
+    return {
+      totalCashIn: totals.totalCashIn,
+      totalCashOut: totals.totalCashOut,
+      entityCount: totals.entities.size,
+      finalBalance:
+        transactions.length > 0 ? transactions[transactions.length - 1].runningBalance : 0,
+    };
   }, [transactions]);
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  const visibleTransactions = useMemo(() => {
+    const needle = query.trim().toLowerCase();
 
-  const handlePrint = () => {
-    window.print();
+    const filtered = transactions.filter((tx) => {
+      if (direction === 'in' && tx.cashIn <= 0) return false;
+      if (direction === 'out' && tx.cashOut <= 0) return false;
+      if (!needle) return true;
+      return (
+        tx.associatedEntity.toLowerCase().includes(needle) ||
+        String(tx.serialNumber).includes(needle)
+      );
+    });
+
+    return newestFirst ? [...filtered].reverse() : filtered;
+  }, [transactions, query, direction, newestFirst]);
+
+  const filteredTotals = useMemo(
+    () =>
+      visibleTransactions.reduce(
+        (acc, tx) => ({
+          cashIn: acc.cashIn + tx.cashIn,
+          cashOut: acc.cashOut + tx.cashOut,
+        }),
+        { cashIn: 0, cashOut: 0 }
+      ),
+    [visibleTransactions]
+  );
+
+  const isFiltered = query.trim().length > 0 || direction !== 'all';
+
+  const handlePrint = () => window.print();
+
+  const handleExportCsv = () => {
+    const header = ['S.No', 'Entity / Sarafi', 'Cash In', 'Cash Out', 'Balance'];
+    const rows = visibleTransactions.map((tx) => [
+      tx.serialNumber,
+      `"${tx.associatedEntity.replace(/"/g, '""')}"`,
+      tx.cashIn,
+      tx.cashOut,
+      tx.runningBalance,
+    ]);
+    const csv = [header, ...rows].map((row) => row.join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'customer-sarafi-ledger.csv';
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleAddTransaction = (e: React.FormEvent) => {
@@ -42,16 +151,18 @@ export const CustomerLedgerTable: React.FC<CustomerLedgerTableProps> = ({ transa
     if (!newTx.entity || !newTx.amount) return;
 
     const amountNum = parseFloat(newTx.amount);
-    if (isNaN(amountNum) || amountNum <= 0) return;
+    if (Number.isNaN(amountNum) || amountNum <= 0) return;
 
-    const lastBalance = transactions.length > 0 ? transactions[transactions.length - 1].runningBalance : 0;
-    
+    const lastBalance =
+      transactions.length > 0 ? transactions[transactions.length - 1].runningBalance : 0;
+
     const newRecord: LedgerTransaction = {
       serialNumber: transactions.length + 1,
       associatedEntity: newTx.entity,
       cashIn: showAddModal === 'cash-in' ? amountNum : 0,
       cashOut: showAddModal === 'cash-out' ? amountNum : 0,
-      runningBalance: showAddModal === 'cash-in' ? lastBalance + amountNum : lastBalance - amountNum
+      runningBalance:
+        showAddModal === 'cash-in' ? lastBalance + amountNum : lastBalance - amountNum,
     };
 
     setTransactions([...transactions, newRecord]);
@@ -59,121 +170,241 @@ export const CustomerLedgerTable: React.FC<CustomerLedgerTableProps> = ({ transa
     setNewTx({ entity: '', amount: '' });
   };
 
+  const filterTabs: Array<{ id: DirectionFilter; label: string; activeClass: string }> = [
+    { id: 'all', label: 'All', activeClass: 'bg-slate-800 text-white shadow-sm' },
+    { id: 'in', label: 'Cash In', activeClass: 'bg-emerald-500 text-white shadow-sm' },
+    { id: 'out', label: 'Cash Out', activeClass: 'bg-rose-500 text-white shadow-sm' },
+  ];
+
   return (
-    <div className="flex flex-col h-full w-full mx-auto p-2 md:p-4 lg:p-6 pb-20">
-      
-      {/* Header section */}
-      <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-6 print:hidden">
+    <div className="mx-auto flex h-full w-full flex-col gap-4 p-2 pb-20 md:p-4 lg:p-6">
+      {/* Header */}
+      <header className="flex flex-col gap-4 print:hidden lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-800 tracking-tight drop-shadow-sm line-clamp-2">
-            Customer & Sarafi Ledger
+          <h2 className="text-2xl font-black tracking-tight text-slate-800 sm:text-3xl">
+            Customer &amp; Sarafi Ledger
           </h2>
-          <p className="text-slate-500 font-bold mt-1 sm:mt-2 text-xs sm:text-sm uppercase tracking-widest">
+          <p className="mt-1 text-xs font-semibold text-slate-500 sm:text-sm">
             Historical transaction records and running balances
           </p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col xs:flex-row flex-wrap items-stretch xs:items-center gap-2 sm:gap-3">
-          <button 
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={handleExportCsv}
+            className="group inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 shadow-sm transition-all hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 hover:shadow-md sm:text-sm"
+          >
+            <FileDown size={15} className="flex-shrink-0 transition-transform group-hover:scale-110" />
+            <span className="hidden sm:inline">Export</span>
+          </button>
+
+          <button
             onClick={handlePrint}
-            className="group flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 min-h-[44px] bg-white border border-slate-200 rounded-xl hover:border-sky-300 hover:bg-sky-50 transition-all shadow-sm hover:shadow-md text-slate-600 hover:text-sky-700 font-bold text-xs sm:text-sm whitespace-nowrap"
+            className="group inline-flex min-h-[40px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 shadow-sm transition-all hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 hover:shadow-md sm:text-sm"
             aria-label="Print ledger"
           >
-            <Printer size={16} className="group-hover:scale-110 transition-transform flex-shrink-0" />
-            <span className="hidden xs:inline">Print</span>
+            <Printer size={15} className="flex-shrink-0 transition-transform group-hover:scale-110" />
+            <span className="hidden sm:inline">Print</span>
           </button>
-          
-          <button 
+
+          <button
             onClick={() => setShowAddModal('cash-in')}
-            className="group flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 min-h-[44px] bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5 transition-all font-bold text-xs sm:text-sm whitespace-nowrap"
-            aria-label="Add cash in transaction"
+            className="inline-flex min-h-[40px] items-center gap-2 rounded-xl bg-emerald-600 px-3 text-xs font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:-translate-y-0.5 hover:bg-emerald-500 sm:px-4 sm:text-sm"
           >
-            <div className="bg-white/20 p-1 rounded-md flex-shrink-0">
-              <ArrowDownLeft size={14} strokeWidth={3} />
-            </div>
-            <span className="hidden xs:inline">Cash In</span>
-            <span className="xs:hidden">In</span>
+            <ArrowDownLeft size={15} strokeWidth={3} className="flex-shrink-0" />
+            Cash In
           </button>
-          
-          <button 
+
+          <button
             onClick={() => setShowAddModal('cash-out')}
-            className="group flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 min-h-[44px] bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 text-white rounded-xl shadow-lg shadow-rose-500/25 hover:shadow-rose-500/40 hover:-translate-y-0.5 transition-all font-bold text-xs sm:text-sm whitespace-nowrap"
-            aria-label="Add cash out transaction"
+            className="inline-flex min-h-[40px] items-center gap-2 rounded-xl bg-rose-600 px-3 text-xs font-bold text-white shadow-lg shadow-rose-600/20 transition-all hover:-translate-y-0.5 hover:bg-rose-500 sm:px-4 sm:text-sm"
           >
-            <div className="bg-white/20 p-1 rounded-md flex-shrink-0">
-              <ArrowUpRight size={14} strokeWidth={3} />
-            </div>
-            <span className="hidden xs:inline">Cash Out</span>
-            <span className="xs:hidden">Out</span>
+            <ArrowUpRight size={15} strokeWidth={3} className="flex-shrink-0" />
+            Cash Out
+          </button>
+        </div>
+      </header>
+
+      {/* KPI strip */}
+      <div className="grid grid-cols-2 gap-3 print:hidden lg:grid-cols-4">
+        <div className="rounded-2xl border border-white bg-white/70 p-3 shadow-[0_8px_24px_rgba(15,32,60,0.05)] backdrop-blur-xl sm:p-4">
+          <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500">
+            <TrendingUp size={13} className="text-emerald-500" /> Cash In
+          </span>
+          <p className="mt-1.5 text-lg font-black text-emerald-600 sm:text-2xl">
+            {formatCurrency(summary.totalCashIn)}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-white bg-white/70 p-3 shadow-[0_8px_24px_rgba(15,32,60,0.05)] backdrop-blur-xl sm:p-4">
+          <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500">
+            <TrendingDown size={13} className="text-rose-500" /> Cash Out
+          </span>
+          <p className="mt-1.5 text-lg font-black text-rose-600 sm:text-2xl">
+            {formatCurrency(summary.totalCashOut)}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-white bg-white/70 p-3 shadow-[0_8px_24px_rgba(15,32,60,0.05)] backdrop-blur-xl sm:p-4">
+          <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500">
+            <Users size={13} className="text-sky-500" /> Entities
+          </span>
+          <p className="mt-1.5 text-lg font-black text-slate-800 sm:text-2xl">
+            {summary.entityCount}
+            <span className="ml-1.5 text-xs font-bold text-slate-400">
+              / {transactions.length} txns
+            </span>
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-700 bg-slate-900 p-3 shadow-[0_8px_24px_rgba(15,32,60,0.18)] sm:p-4">
+          <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
+            <Wallet size={13} className="text-sky-400" /> Final Balance
+          </span>
+          <p className="mt-1.5 text-lg font-black text-white sm:text-2xl">
+            {formatCurrency(summary.finalBalance)}
+          </p>
+        </div>
+      </div>
+
+      {/* Toolbar */}
+      <div className="flex flex-col gap-3 print:hidden lg:flex-row lg:items-center lg:justify-between">
+        <label className="relative flex-1 lg:max-w-sm">
+          <span className="sr-only">Search ledger by entity or serial number</span>
+          <Search
+            size={16}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+          />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search entity or S.No..."
+            className="min-h-[42px] w-full rounded-xl border border-slate-200 bg-white/80 pl-9 pr-3 text-sm font-semibold text-slate-700 shadow-sm outline-none transition-all placeholder:font-medium placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-500/15"
+          />
+        </label>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div
+            className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white/80 p-1 shadow-sm"
+            role="group"
+            aria-label="Filter by direction"
+          >
+            <ListFilter size={14} className="ml-1.5 flex-shrink-0 text-slate-400" />
+            {filterTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setDirection(tab.id)}
+                aria-pressed={direction === tab.id}
+                className={`rounded-lg px-2.5 py-1.5 text-[11px] font-bold transition-all sm:text-xs ${
+                  direction === tab.id
+                    ? tab.activeClass
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setNewestFirst((prev) => !prev)}
+            className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-3 text-[11px] font-bold text-slate-600 shadow-sm transition-all hover:border-sky-300 hover:text-sky-700 sm:text-xs"
+          >
+            <ArrowUpDown size={14} className="flex-shrink-0" />
+            {newestFirst ? 'Newest first' : 'Oldest first'}
           </button>
         </div>
       </div>
 
-      {/* Premium Glassmorphism Table Container - Light Mode Optimized */}
-      <div className="relative flex flex-col flex-1 rounded-2xl md:rounded-[32px] overflow-hidden print:overflow-visible bg-white/70 backdrop-blur-2xl border border-white shadow-[0_12px_40px_rgba(15,32,60,0.06)] print:shadow-none print:border-none print:bg-white print:rounded-none">
-        
-        {/* Scrollable Table Area */}
-        <div className="flex-1 overflow-x-auto overflow-y-hidden app-scrollbar print:overflow-visible">
-          <table className="w-full text-left border-collapse print:min-w-full">
-            <thead className="sticky top-0 z-10 bg-slate-800/95 backdrop-blur-md text-slate-100 text-[10px] xs:text-[11px] uppercase tracking-[0.15em] font-extrabold shadow-sm print:bg-white print:text-slate-800 print:shadow-none print:border-b-2 print:border-slate-800">
+      {/* Table */}
+      <div className="relative flex flex-1 flex-col overflow-hidden rounded-2xl border border-white bg-white/70 shadow-[0_12px_40px_rgba(15,32,60,0.06)] backdrop-blur-2xl print:overflow-visible print:rounded-none print:border-none print:bg-white print:shadow-none md:rounded-[28px]">
+        <div className="app-scrollbar flex-1 overflow-auto print:overflow-visible">
+          <table className="w-full border-collapse text-left">
+            <thead className="sticky top-0 z-10 bg-slate-800/95 text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-100 shadow-sm backdrop-blur-md print:border-b-2 print:border-slate-800 print:bg-white print:text-slate-800 print:shadow-none sm:text-[11px]">
               <tr>
-                <th className="px-2 xs:px-4 sm:px-6 py-3 xs:py-5 rounded-tl-[32px] print:rounded-none text-center">S.NO</th>
-                <th className="px-2 xs:px-4 sm:px-6 py-3 xs:py-5 text-left min-w-0">Entity / Sarafi</th>
-                <th className="px-2 xs:px-4 sm:px-6 py-3 xs:py-5 text-right">Cash In</th>
-                <th className="px-2 xs:px-4 sm:px-6 py-3 xs:py-5 text-right">Cash Out</th>
-                <th className="px-2 xs:px-4 sm:px-6 py-3 xs:py-5 text-right rounded-tr-[32px] print:rounded-none">Balance</th>
+                <th className="w-14 px-3 py-3.5 text-center sm:px-5 sm:py-4">S.No</th>
+                <th className="min-w-[200px] px-3 py-3.5 text-left sm:px-5 sm:py-4">
+                  Entity / Sarafi
+                </th>
+                <th className="px-3 py-3.5 text-right sm:px-5 sm:py-4">Cash In</th>
+                <th className="px-3 py-3.5 text-right sm:px-5 sm:py-4">Cash Out</th>
+                <th className="px-3 py-3.5 text-right sm:px-5 sm:py-4">Balance</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100/80 print:divide-slate-200">
-              {transactions.map((tx) => (
-                <tr 
-                  key={tx.serialNumber} 
-                  className="hover:bg-sky-50/50 transition-colors duration-200 group print:hover:bg-transparent text-xs xs:text-sm"
+            <tbody className="divide-y divide-slate-100 print:divide-slate-200">
+              {visibleTransactions.map((tx) => (
+                <tr
+                  key={tx.serialNumber}
+                  className="group text-sm transition-colors hover:bg-sky-50/60 print:hover:bg-transparent"
                 >
-                  <td className="px-2 xs:px-4 sm:px-6 py-2 xs:py-4 font-semibold text-slate-400 group-hover:text-sky-600 transition-colors print:text-slate-600 text-center">
+                  <td className="px-3 py-2.5 text-center text-xs font-bold tabular-nums text-slate-400 transition-colors group-hover:text-sky-600 sm:px-5 sm:py-3 print:text-slate-600">
                     {tx.serialNumber}
                   </td>
-                  <td className="px-2 xs:px-4 sm:px-6 py-2 xs:py-4 font-bold text-slate-700 min-w-0">
-                    <div className="truncate" title={tx.associatedEntity}>{tx.associatedEntity}</div>
-                  </td>
-                  
-                  {/* Cash In Column */}
-                  <td className="px-2 xs:px-4 sm:px-6 py-2 xs:py-4 text-right">
-                    {tx.cashIn > 0 ? (
-                      <div className="inline-flex items-center justify-end gap-1 xs:gap-2 text-emerald-600 bg-emerald-50/50 px-2 xs:px-3 py-1 xs:py-1.5 rounded-lg border border-emerald-100/50 print:border-none print:bg-transparent print:p-0 text-xs xs:text-[15px]">
-                        <ArrowDownLeft size={12} strokeWidth={2.5} className="text-emerald-500 print:hidden flex-shrink-0 hidden xs:block" />
-                        <span className="font-bold">{formatCurrency(tx.cashIn).replace('$', '')}</span>
-                      </div>
-                    ) : (
-                      <span className="text-slate-300 font-bold px-2 xs:px-3 py-1 xs:py-1.5 inline-block print:text-slate-400">—</span>
-                    )}
-                  </td>
-                  
-                  {/* Cash Out Column */}
-                  <td className="px-2 xs:px-4 sm:px-6 py-2 xs:py-4 text-right">
-                    {tx.cashOut > 0 ? (
-                      <div className="inline-flex items-center justify-end gap-1 xs:gap-2 text-rose-600 bg-rose-50/50 px-2 xs:px-3 py-1 xs:py-1.5 rounded-lg border border-rose-100/50 print:border-none print:bg-transparent print:p-0 text-xs xs:text-[15px]">
-                        <ArrowUpRight size={12} strokeWidth={2.5} className="text-rose-500 print:hidden flex-shrink-0 hidden xs:block" />
-                        <span className="font-bold">{formatCurrency(tx.cashOut).replace('$', '')}</span>
-                      </div>
-                    ) : (
-                      <span className="text-slate-300 font-bold px-2 xs:px-3 py-1 xs:py-1.5 inline-block print:text-slate-400">—</span>
-                    )}
-                  </td>
-                  
-                  {/* Running Balance Column */}
-                  <td className="px-2 xs:px-4 sm:px-6 py-2 xs:py-4 font-black text-right text-slate-800 text-xs xs:text-sm">
-                    <div className="inline-flex items-center justify-end gap-1">
-                      <span className="text-xs xs:text-[15px]">{formatCurrency(tx.runningBalance).replace('$', '')}</span>
+
+                  <td className="px-3 py-2.5 sm:px-5 sm:py-3">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <span
+                        className={`hidden h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-[10px] font-black print:hidden sm:flex ${entityAccent(
+                          tx.associatedEntity
+                        )}`}
+                        aria-hidden="true"
+                      >
+                        {entityInitials(tx.associatedEntity)}
+                      </span>
+                      <span
+                        className="truncate font-bold text-slate-700"
+                        title={tx.associatedEntity}
+                      >
+                        {tx.associatedEntity}
+                      </span>
                     </div>
+                  </td>
+
+                  <td className="px-3 py-2.5 text-right sm:px-5 sm:py-3">
+                    {tx.cashIn > 0 ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-sm font-bold tabular-nums text-emerald-700 print:border-none print:bg-transparent print:p-0">
+                        <ArrowDownLeft
+                          size={12}
+                          strokeWidth={3}
+                          className="flex-shrink-0 text-emerald-500 print:hidden"
+                        />
+                        {formatAmount(tx.cashIn)}
+                      </span>
+                    ) : (
+                      <span className="font-bold text-slate-300 print:text-slate-400">—</span>
+                    )}
+                  </td>
+
+                  <td className="px-3 py-2.5 text-right sm:px-5 sm:py-3">
+                    {tx.cashOut > 0 ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-lg border border-rose-100 bg-rose-50 px-2.5 py-1 text-sm font-bold tabular-nums text-rose-700 print:border-none print:bg-transparent print:p-0">
+                        <ArrowUpRight
+                          size={12}
+                          strokeWidth={3}
+                          className="flex-shrink-0 text-rose-500 print:hidden"
+                        />
+                        {formatAmount(tx.cashOut)}
+                      </span>
+                    ) : (
+                      <span className="font-bold text-slate-300 print:text-slate-400">—</span>
+                    )}
+                  </td>
+
+                  <td className="px-3 py-2.5 text-right text-sm font-black tabular-nums text-slate-800 sm:px-5 sm:py-3">
+                    {formatAmount(tx.runningBalance)}
                   </td>
                 </tr>
               ))}
-              {transactions.length === 0 && (
+
+              {visibleTransactions.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500 font-medium">
-                    No transactions found.
+                  <td colSpan={5} className="px-6 py-16 text-center">
+                    <Search size={28} className="mx-auto mb-3 text-slate-300" />
+                    <p className="font-bold text-slate-600">No matching transactions</p>
+                    <p className="mt-1 text-sm text-slate-400">
+                      Try a different name, serial number, or filter.
+                    </p>
                   </td>
                 </tr>
               )}
@@ -181,129 +412,145 @@ export const CustomerLedgerTable: React.FC<CustomerLedgerTableProps> = ({ transa
           </table>
         </div>
 
-        {/* Summary Footer */}
-        <div className="bg-slate-900/95 backdrop-blur-md border-t border-slate-700/50 p-3 sm:p-6 sm:px-8 shrink-0 relative overflow-hidden print:bg-white print:border-t-2 print:border-slate-800 print:text-slate-900">
-          {/* Subtle light effect inside footer */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-2xl bg-gradient-to-t from-sky-500/0 to-sky-400/5 pointer-events-none print:hidden"></div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-center sm:text-left relative z-10">
-            
-            {/* Total Cash In Summary */}
-            <div className="flex flex-col items-center sm:items-start group">
-              <span className="text-slate-400 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] mb-1 sm:mb-2 flex items-center justify-center sm:justify-start gap-1 print:text-slate-600">
-                <TrendingUp size={12} className="text-emerald-400 print:hidden flex-shrink-0" /> <span className="hidden xs:inline">Total Cash In</span> <span className="xs:hidden">Cash In</span>
+        {/* Footer: reflects the current view */}
+        <div className="flex flex-col gap-2 border-t border-slate-200 bg-slate-50/80 px-4 py-3 backdrop-blur-md print:border-t-2 print:border-slate-800 print:bg-white sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <p className="text-xs font-bold text-slate-500">
+            Showing{' '}
+            <span className="font-black text-slate-800">{visibleTransactions.length}</span> of{' '}
+            <span className="font-black text-slate-800">{transactions.length}</span> records
+            {isFiltered && <span className="ml-1 text-sky-600">(filtered)</span>}
+          </p>
+
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs font-bold">
+            <span className="text-slate-500">
+              In:{' '}
+              <span className="font-black tabular-nums text-emerald-600">
+                {formatCurrency(filteredTotals.cashIn)}
               </span>
-              <span className="text-emerald-400 text-xl sm:text-2xl font-black drop-shadow-[0_2px_8px_rgba(52,211,153,0.2)] print:text-slate-800 print:drop-shadow-none line-clamp-1">
-                {formatCurrency(summary.totalCashIn)}
+            </span>
+            <span className="text-slate-500">
+              Out:{' '}
+              <span className="font-black tabular-nums text-rose-600">
+                {formatCurrency(filteredTotals.cashOut)}
               </span>
-            </div>
-            
-            {/* Total Cash Out Summary */}
-            <div className="flex flex-col items-center sm:items-start group">
-              <span className="text-slate-400 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] mb-1 sm:mb-2 flex items-center justify-center sm:justify-start gap-1 print:text-slate-600">
-                <TrendingDown size={12} className="text-rose-400 print:hidden flex-shrink-0" /> <span className="hidden xs:inline">Total Cash Out</span> <span className="xs:hidden">Cash Out</span>
+            </span>
+            <span className="text-slate-500">
+              Net:{' '}
+              <span className="font-black tabular-nums text-slate-800">
+                {formatCurrency(filteredTotals.cashIn - filteredTotals.cashOut)}
               </span>
-              <span className="text-rose-400 text-xl sm:text-2xl font-black drop-shadow-[0_2px_8px_rgba(251,113,133,0.2)] print:text-slate-800 print:drop-shadow-none line-clamp-1">
-                {formatCurrency(summary.totalCashOut)}
-              </span>
-            </div>
-            
-            {/* Final Balance Summary */}
-            <div className="flex flex-col items-center sm:items-end group">
-              <span className="text-slate-400 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] mb-1 sm:mb-2 print:text-slate-600">
-                Final Balance
-              </span>
-              <span className="text-white text-2xl sm:text-3xl font-black drop-shadow-[0_2px_12px_rgba(255,255,255,0.15)] print:text-slate-900 print:drop-shadow-none line-clamp-1">
-                {formatCurrency(summary.finalBalance)}
-              </span>
-            </div>
-            
+            </span>
           </div>
         </div>
-        
       </div>
 
       {/* Add Transaction Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-sm transition-all">
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden overflow-y-auto transform transition-all animate-in zoom-in-95 duration-200">
-            <div className={`p-4 sm:p-6 ${showAddModal === 'cash-in' ? 'bg-emerald-500' : 'bg-rose-500'} text-white relative`}>
-              <button 
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3 backdrop-blur-sm sm:p-4">
+          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-2xl sm:rounded-3xl">
+            <div
+              className={`relative p-4 text-white sm:p-6 ${
+                showAddModal === 'cash-in' ? 'bg-emerald-600' : 'bg-rose-600'
+              }`}
+            >
+              <button
                 onClick={() => setShowAddModal(null)}
-                className="absolute top-3 sm:top-4 right-3 sm:right-4 min-w-[44px] min-h-[44px] flex items-center justify-center text-white/70 hover:text-white bg-black/10 hover:bg-black/20 rounded-full transition-colors"
+                className="absolute right-3 top-3 flex min-h-[40px] min-w-[40px] items-center justify-center rounded-full bg-black/10 text-white/80 transition-colors hover:bg-black/20 hover:text-white sm:right-4 sm:top-4"
                 aria-label="Close dialog"
               >
                 <X size={20} />
               </button>
-              <div className="flex items-center gap-2 sm:gap-3 mb-2 pr-12">
-                <div className="bg-white/20 p-1.5 sm:p-2 rounded-lg sm:rounded-xl flex-shrink-0">
-                  {showAddModal === 'cash-in' ? <ArrowDownLeft size={20} className="sm:w-6 sm:h-6" /> : <ArrowUpRight size={20} className="sm:w-6 sm:h-6" />}
+              <div className="mb-2 flex items-center gap-3 pr-12">
+                <div className="flex-shrink-0 rounded-xl bg-white/20 p-2">
+                  {showAddModal === 'cash-in' ? (
+                    <ArrowDownLeft size={22} />
+                  ) : (
+                    <ArrowUpRight size={22} />
+                  )}
                 </div>
-                <h3 className="text-lg sm:text-2xl font-black tracking-tight">
+                <h3 className="text-lg font-black tracking-tight sm:text-2xl">
                   {showAddModal === 'cash-in' ? 'Add Cash In' : 'Add Cash Out'}
                 </h3>
               </div>
-              <p className="text-white/80 font-medium text-xs sm:text-sm">
-                Enter details for the new {showAddModal === 'cash-in' ? 'deposit' : 'withdrawal'} transaction.
+              <p className="text-xs font-medium text-white/80 sm:text-sm">
+                Enter details for the new{' '}
+                {showAddModal === 'cash-in' ? 'deposit' : 'withdrawal'} transaction.
               </p>
             </div>
-            
+
             <form onSubmit={handleAddTransaction} className="p-4 sm:p-6">
               <div className="space-y-4 sm:space-y-5">
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
+                  <label
+                    htmlFor="ledger-entity"
+                    className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-500"
+                  >
                     Entity / Sarafi
                   </label>
                   <input
+                    id="ledger-entity"
                     type="text"
                     required
+                    list="ledger-entity-options"
                     value={newTx.entity}
                     onChange={(e) => setNewTx({ ...newTx, entity: e.target.value })}
-                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-800 font-bold focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all outline-none min-h-[44px]"
-                    placeholder="Enter name"
+                    className="min-h-[44px] w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 text-sm font-bold text-slate-800 outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 sm:text-base"
+                    placeholder="Enter or pick a name"
                   />
+                  <datalist id="ledger-entity-options">
+                    {Array.from(new Set(transactions.map((tx) => tx.associatedEntity))).map(
+                      (name) => (
+                        <option key={name} value={name} />
+                      )
+                    )}
+                  </datalist>
                 </div>
-                
+
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
+                  <label
+                    htmlFor="ledger-amount"
+                    className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-500"
+                  >
                     Amount (USD)
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
-                      <DollarSign size={16} className="text-slate-400 sm:w-[18px] sm:h-[18px]" />
-                    </div>
+                    <DollarSign
+                      size={17}
+                      className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
                     <input
+                      id="ledger-amount"
                       type="number"
                       required
                       min="1"
                       step="any"
                       value={newTx.amount}
                       onChange={(e) => setNewTx({ ...newTx, amount: e.target.value })}
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-lg sm:rounded-xl pl-9 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-800 font-black focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 transition-all outline-none min-h-[44px]"
+                      className="min-h-[44px] w-full rounded-xl border-2 border-slate-100 bg-slate-50 pl-10 pr-4 text-sm font-black text-slate-800 outline-none transition-all focus:border-sky-500 focus:ring-4 focus:ring-sky-500/20 sm:text-base"
                       placeholder="0.00"
                     />
                   </div>
                 </div>
               </div>
-              
-              <div className="mt-6 sm:mt-8 flex gap-2 sm:gap-3">
+
+              <div className="mt-6 flex gap-3 sm:mt-8">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(null)}
-                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 min-h-[44px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg sm:rounded-xl transition-colors text-sm sm:text-base"
+                  className="min-h-[44px] flex-1 rounded-xl bg-slate-100 px-4 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-200 sm:text-base"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className={`flex-1 px-3 sm:px-4 py-2.5 sm:py-3 min-h-[44px] flex items-center justify-center gap-1 sm:gap-2 text-white font-bold rounded-lg sm:rounded-xl transition-all shadow-lg shadow-current/25 hover:shadow-current/40 hover:-translate-y-0.5 text-sm sm:text-base ${
-                    showAddModal === 'cash-in' 
-                      ? 'bg-emerald-500 hover:bg-emerald-600' 
-                      : 'bg-rose-500 hover:bg-rose-600'
+                  className={`flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 sm:text-base ${
+                    showAddModal === 'cash-in'
+                      ? 'bg-emerald-600 shadow-emerald-600/25 hover:bg-emerald-500'
+                      : 'bg-rose-600 shadow-rose-600/25 hover:bg-rose-500'
                   }`}
                 >
-                  <CheckCircle2 size={16} className="flex-shrink-0" />
-                  <span>Confirm</span>
+                  <CheckCircle2 size={17} className="flex-shrink-0" />
+                  Confirm
                 </button>
               </div>
             </form>
