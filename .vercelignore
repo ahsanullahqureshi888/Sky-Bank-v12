@@ -13,7 +13,6 @@ output
 frosted_glass_temp
 *.log
 .env
-.env.*
 backend/*.db
 backend/*.db-*
 backend/app/uploads/*
