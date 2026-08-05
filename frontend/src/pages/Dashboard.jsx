@@ -4,6 +4,7 @@ import {
   Activity,
   Building,
   Calendar,
+  RefreshCw,
   Clock,
   Plus,
   Scale,
@@ -40,35 +41,53 @@ export default function Dashboard() {
   const [banks, setBanks] = useState([]);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem('sky_banking_user') || '{}');
+  let user = {};
+  try {
+    user = JSON.parse(localStorage.getItem('sky_banking_user') || '{}');
+  } catch {
+    user = {};
+  }
+
+  const loadData = async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+    setLoadError('');
+
+    const results = await Promise.allSettled([
+      dashboardAPI.getSummary(),
+      dashboardAPI.getRecentTransactions(7),
+      dashboardAPI.getMonthlyChart(),
+      bankAPI.list(),
+      backupAPI.auditLogs(),
+    ]);
+
+    const [sumRes, recRes, chartRes, bankRes, logsRes] = results;
+    const failures = results.filter((result) => result.status === 'rejected');
+
+    if (sumRes.status === 'fulfilled') setSummary(sumRes.value.data);
+    if (recRes.status === 'fulfilled') setRecent(Array.isArray(recRes.value.data) ? recRes.value.data : []);
+    if (chartRes.status === 'fulfilled') setChartData(Array.isArray(chartRes.value.data) ? chartRes.value.data : []);
+    if (bankRes.status === 'fulfilled') setBanks(Array.isArray(bankRes.value.data) ? bankRes.value.data : []);
+    if (logsRes.status === 'fulfilled') setLogs(Array.isArray(logsRes.value.data) ? logsRes.value.data.slice(0, 6) : []);
+
+    if (failures.length === results.length) {
+      setLoadError('Dashboard data could not be loaded. Check the connection and try again.');
+    } else if (failures.length > 0) {
+      setLoadError('Some dashboard sections are temporarily unavailable.');
+    }
+
+    setLoading(false);
+    setRefreshing(false);
+  };
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [sumRes, recRes, chartRes, bankRes, logsRes] = await Promise.all([
-          dashboardAPI.getSummary(),
-          dashboardAPI.getRecentTransactions(7),
-          dashboardAPI.getMonthlyChart(),
-          bankAPI.list(),
-          backupAPI.auditLogs(),
-        ]);
-        setSummary(sumRes.data);
-        setRecent(recRes.data);
-        setChartData(chartRes.data);
-        setBanks(bankRes.data);
-        setLogs(logsRes.data.slice(0, 6));
-      } catch (err) {
-        console.error('Failed to load dashboard data', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadData();
   }, []);
 
-  if (loading) {
+  if (loading) { 
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -200,14 +219,35 @@ export default function Dashboard() {
             {LABELS.dashboardSubtitle}
           </p>
         </div>
-        <Link
-          to="/add-transaction"
-          className="inline-flex h-12 items-center justify-center gap-2 self-start rounded-2xl bg-gradient-to-r from-sky-600 to-blue-600 px-5 text-sm font-extrabold text-white shadow-xl shadow-sky-500/20 transition-all hover:-translate-y-0.5 hover:shadow-sky-500/30 sm:self-auto"
-        >
-          <Plus size={17} />
-          <span>{LABELS.newTransactionBtn}</span>
-        </Link>
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => loadData(true)}
+            disabled={refreshing}
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-sky-100 bg-white/70 px-4 text-sm font-extrabold text-sky-700 shadow-sm transition hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-60"
+            aria-label="Refresh dashboard"
+          >
+            <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
+          <Link
+            to="/add-transaction"
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-600 to-blue-600 px-5 text-sm font-extrabold text-white shadow-xl shadow-sky-500/20 transition-all hover:-translate-y-0.5 hover:shadow-sky-500/30"
+          >
+            <Plus size={17} />
+            <span>{LABELS.newTransactionBtn}</span>
+          </Link>
+        </div>
       </div>
+
+      {loadError && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800 sm:flex-row sm:items-center sm:justify-between" role="status">
+          <span>{loadError}</span>
+          <button type="button" onClick={() => loadData(true)} className="w-fit rounded-xl bg-amber-100 px-3 py-2 text-xs font-black text-amber-900 transition hover:bg-amber-200">
+            Try again
+          </button>
+        </div>
+      )}
 
       <div className="hidden md:grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard

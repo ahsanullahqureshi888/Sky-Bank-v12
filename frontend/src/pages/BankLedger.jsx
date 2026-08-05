@@ -27,6 +27,9 @@ export default function BankLedger() {
   const [ledgerRows, setLedgerRows] = useState([]);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [loadingLedger, setLoadingLedger] = useState(false);
+  const [accountError, setAccountError] = useState('');
+  const [ledgerError, setLedgerError] = useState('');
+  const [ledgerRetryKey, setLedgerRetryKey] = useState(0);
 
   // CRUD Bank Account Form States
   const [form, setForm] = useState(defaultAccountForm);
@@ -34,18 +37,23 @@ export default function BankLedger() {
   const [savingAccount, setSavingAccount] = useState(false);
   const [formError, setFormError] = useState('');
 
-  const fetchAccounts = async (selectFirst = false) => {
+  const fetchAccounts = async (selectFirst = false, preferredId = selectedAccountId) => {
     setLoadingAccounts(true);
+    setAccountError('');
     try {
       const res = await bankAPI.list();
-      setAccounts(res.data);
-      if (res.data.length > 0) {
-        if (selectFirst || !selectedAccountId) {
-          setSelectedAccountId(res.data[0].id);
-        }
+      const nextAccounts = Array.isArray(res.data) ? res.data : [];
+      setAccounts(nextAccounts);
+      if (nextAccounts.length > 0) {
+        const preferredAccount = nextAccounts.find((account) => String(account.id) === String(preferredId));
+        setSelectedAccountId(String(selectFirst ? nextAccounts[0].id : (preferredAccount?.id || nextAccounts[0].id)));
+      } else {
+        setSelectedAccountId('');
+        setLedgerRows([]);
       }
     } catch (err) {
-      console.error(err);
+      console.error('[v0] Failed to load bank accounts', err);
+      setAccountError(err.response?.data?.detail || 'Bank accounts could not be loaded.');
     } finally {
       setLoadingAccounts(false);
     }
@@ -58,20 +66,24 @@ export default function BankLedger() {
   useEffect(() => {
     if (!selectedAccountId) {
       setLedgerRows([]);
+      setLedgerError('');
       return;
     }
     setLoadingLedger(true);
+    setLedgerError('');
     bankAPI.getLedger(selectedAccountId)
       .then((res) => {
-        setLedgerRows(res.data);
+        setLedgerRows(Array.isArray(res.data) ? res.data : []);
       })
       .catch((err) => {
-        console.error(err);
+        console.error('[v0] Failed to load bank ledger', err);
+        setLedgerRows([]);
+        setLedgerError(err.response?.data?.detail || 'This account ledger could not be loaded.');
       })
       .finally(() => {
         setLoadingLedger(false);
       });
-  }, [selectedAccountId]);
+  }, [selectedAccountId, ledgerRetryKey]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -80,8 +92,17 @@ export default function BankLedger() {
 
   const handleSaveAccount = async (e) => {
     e.preventDefault();
-    if (!form.account_name || !form.bank_name || !form.account_number) {
-      setFormError('Please fill in all required fields.');
+    const accountName = form.account_name.trim();
+    const bankName = form.bank_name.trim();
+    const accountNumber = form.account_number.trim();
+    const openingBalance = Number(form.opening_balance || 0);
+
+    if (!accountName || !bankName || !accountNumber) {
+      setFormError('Account name, bank name, and account number are required.');
+      return;
+    }
+    if (!Number.isFinite(openingBalance) || openingBalance < 0) {
+      setFormError('Opening balance must be a valid non-negative number.');
       return;
     }
 
@@ -91,27 +112,30 @@ export default function BankLedger() {
     try {
       if (editMode) {
         const payload = {
-          account_name: form.account_name,
-          bank_name: form.bank_name,
-          account_number: form.account_number,
+          account_name: accountName,
+          bank_name: bankName,
+          account_number: accountNumber,
           currency: form.currency,
-          opening_balance: Number(form.opening_balance || 0),
+          opening_balance: openingBalance,
         };
         await bankAPI.update(selectedAccountId, payload);
         alert('Bank account details updated successfully.');
         setForm(defaultAccountForm);
         setEditMode(false);
-        fetchAccounts(false);
+        await fetchAccounts(false, selectedAccountId);
       } else {
         const payload = {
-          ...form,
-          opening_balance: Number(form.opening_balance || 0),
+          account_name: accountName,
+          bank_name: bankName,
+          account_number: accountNumber,
+          currency: form.currency,
+          opening_balance: openingBalance,
         };
         const res = await bankAPI.create(payload);
         setForm(defaultAccountForm);
         alert('Bank account registered successfully.');
-        setSelectedAccountId(res.data.id);
-        fetchAccounts(false);
+        setSelectedAccountId(String(res.data.id));
+        await fetchAccounts(false, res.data.id);
       }
     } catch (err) {
       console.error(err);
@@ -148,9 +172,10 @@ export default function BankLedger() {
       try {
         await bankAPI.delete(selectedAccountId);
         alert('Bank account deleted successfully.');
-        const remaining = accounts.filter(a => a.id !== selectedAccountId);
+        const remaining = accounts.filter((account) => String(account.id) !== String(selectedAccountId));
         setAccounts(remaining);
-        setSelectedAccountId(remaining.length > 0 ? remaining[0].id : '');
+        setSelectedAccountId(remaining.length > 0 ? String(remaining[0].id) : '');
+        setLedgerRows([]);
         setEditMode(false);
         setForm(defaultAccountForm);
       } catch (err) {
@@ -251,16 +276,18 @@ export default function BankLedger() {
                     <div className="flex gap-1.5 ml-2">
                       <button
                         onClick={handleEditClick}
-                        className="p-2 border border-sky-100 bg-white hover:bg-sky-50 text-sky-800 rounded-xl transition-all"
+                        className="min-h-11 min-w-11 p-2 border border-sky-100 bg-white hover:bg-sky-50 text-sky-800 rounded-xl transition-all"
                         title="Edit Account Details"
+                        aria-label="Edit account details"
                       >
                         <Edit2 size={13} />
                       </button>
                       {isAdmin && (
                         <button
                           onClick={handleDeleteAccount}
-                          className="p-2 border border-rose-100 bg-rose-550/5 hover:bg-rose-100 text-rose-700 rounded-xl transition-all"
+                          className="min-h-11 min-w-11 p-2 border border-rose-100 bg-rose-550/5 hover:bg-rose-100 text-rose-700 rounded-xl transition-all"
                           title="Delete Bank Account"
+                          aria-label="Delete bank account"
                         >
                           <Trash2 size={13} />
                         </button>
@@ -270,6 +297,15 @@ export default function BankLedger() {
                 </div>
               )}
             </div>
+
+            {accountError && (
+              <div className="mb-4 flex flex-col gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-3 text-xs font-semibold text-rose-700 sm:flex-row sm:items-center sm:justify-between" role="alert">
+                <span>{accountError}</span>
+                <button type="button" onClick={() => fetchAccounts(false)} className="w-fit rounded-lg bg-rose-100 px-3 py-2 font-black text-rose-800 hover:bg-rose-200">
+                  Retry
+                </button>
+              </div>
+            )}
 
             {selectedAcc ? (
               <div className="space-y-6">
@@ -302,9 +338,16 @@ export default function BankLedger() {
                     <Loader2 className="animate-spin text-sky-500 mb-3" size={24} />
                     <p className="text-xs font-semibold text-sky-600">{t('bankLedger.loading')}</p>
                   </div>
+                ) : ledgerError ? (
+                  <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-rose-100 bg-rose-50/60 px-4 py-12 text-center" role="alert">
+                    <p className="text-xs font-semibold text-rose-700">{ledgerError}</p>
+                    <button type="button" onClick={() => setLedgerRetryKey((value) => value + 1)} className="rounded-lg bg-rose-100 px-3 py-2 text-xs font-black text-rose-800 hover:bg-rose-200">
+                      Retry ledger
+                    </button>
+                  </div>
                 ) : (
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full min-w-[620px] text-left border-collapse">
                       <thead>
                         <tr className="border-b border-sky-100/50 text-[10px] font-bold text-sky-500 uppercase tracking-wider">
                           <th className="pb-3 pr-2">{t('bankLedger.date')}</th>
@@ -438,7 +481,10 @@ export default function BankLedger() {
                     <input
                       type="number"
                       name="opening_balance"
-                      className="w-full px-3 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-xs font-semibold text-sky-900"
+                      min="0"
+                      step="0.01"
+                      inputMode="decimal"
+                      className="w-full min-h-11 px-3 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-xs font-semibold text-sky-900"
                       placeholder="0.00"
                       value={form.opening_balance}
                       onChange={handleFormChange}
