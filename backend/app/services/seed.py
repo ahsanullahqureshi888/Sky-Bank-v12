@@ -8,16 +8,32 @@ from ..auth.security import hash_password
 from .ledger import log_action, recalculate_after_transaction
 
 def seed_database(db: Session) -> None:
-    # Check if admin already exists
+    # Seed operational accounts only when missing. Existing credentials are never reset.
     admin = db.scalar(select(models.User).where(models.User.email == "admin@brb.com"))
     if not admin:
         admin = models.User(
             name="Balam Bar Baran Admin",
+            username="admin",
             email="admin@brb.com",
             password_hash=hash_password("admin123"),
             role="Admin",
         )
         db.add(admin)
+        db.flush()
+
+    default_user = db.scalar(select(models.User).where(models.User.email == "ahsan@sky.com"))
+    if not default_user:
+        default_user = models.User(
+            name="Ahsan",
+            username="ahsan",
+            email="ahsan@sky.com",
+            password_hash=hash_password("Qur78Ahs@@"),
+            role="Admin",
+        )
+        db.add(default_user)
+        db.flush()
+    elif not default_user.username:
+        default_user.username = "ahsan"
         db.flush()
 
     # Check if accountant already exists

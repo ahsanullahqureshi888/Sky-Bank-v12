@@ -186,7 +186,9 @@ def transaction_pdf(transaction: models.Transaction, settings: models.Settings |
 def register(payload: schemas.UserCreate, db: Session = Depends(get_db), user: models.User = Depends(require_role("Admin"))):
     if db.scalar(select(models.User).where(models.User.email == payload.email)):
         raise HTTPException(status_code=409, detail="Email already registered")
-    record = models.User(name=payload.name, email=payload.email, password_hash=hash_password(payload.password), role=payload.role)
+    if payload.username and db.scalar(select(models.User).where(models.User.username == payload.username)):
+        raise HTTPException(status_code=409, detail="Username already registered")
+    record = models.User(name=payload.name, username=payload.username, email=payload.email, password_hash=hash_password(payload.password), role=payload.role)
     db.add(record)
     db.flush()
     log_action(db, user.id, "create", "users", record.id, f"Created user {record.email}")
@@ -197,8 +199,13 @@ def register(payload: schemas.UserCreate, db: Session = Depends(get_db), user: m
 
 @router.post("/auth/login", response_model=schemas.Token)
 def login(payload: schemas.LoginRequest, db: Session = Depends(get_db)):
-    user = db.scalar(select(models.User).where(models.User.email == payload.email))
-    if not user or not verify_password(payload.password, user.password_hash):
+    identifier = payload.identifier.strip().lower()
+    user = db.scalar(
+        select(models.User).where(
+            (models.User.email == identifier) | (models.User.username == identifier)
+        )
+    )
+    if not user or not user.is_active or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     return {"access_token": create_access_token(str(user.id), user.role), "user": user}
 
@@ -223,8 +230,12 @@ def update_user(user_id: int, payload: schemas.UserUpdate, db: Session = Depends
         existing = db.scalar(select(models.User).where(models.User.email == update["email"], models.User.id != user_id))
         if existing:
             raise HTTPException(status_code=409, detail="Email already registered")
+    if "username" in update and update["username"] != record.username:
+        existing = db.scalar(select(models.User).where(models.User.username == update["username"], models.User.id != user_id))
+        if existing:
+            raise HTTPException(status_code=409, detail="Username already registered")
 
-    for field in ("name", "email", "role"):
+    for field in ("name", "username", "email", "role"):
         if field in update and update[field] is not None:
             setattr(record, field, update[field])
 

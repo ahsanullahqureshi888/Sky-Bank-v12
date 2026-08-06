@@ -11,12 +11,13 @@ class Token(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: str
+    identifier: str = Field(min_length=1)
     password: str
 
 
 class UserCreate(BaseModel):
     name: str
+    username: Optional[str] = None
     email: str
     password: str = Field(min_length=8)
     role: str = "Viewer"
@@ -24,6 +25,7 @@ class UserCreate(BaseModel):
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
+    username: Optional[str] = None
     email: Optional[str] = None
     role: Optional[str] = None
 
@@ -35,6 +37,7 @@ class UserPasswordUpdate(BaseModel):
 class UserRead(BaseModel):
     id: int
     name: str
+    username: Optional[str] = None
     email: str
     role: str
     is_active: bool

@@ -41,14 +41,12 @@ export default function Login() {
     setLoading(true);
     setError('');
 
-    const email = emailOrUsername.includes('@')
-      ? emailOrUsername
-      : `${emailOrUsername}@skybanking.local`;
+    const identifier = emailOrUsername.trim();
 
     try {
-      await authAPI.login(email, password);
+      await authAPI.login(identifier, password);
       if (remember) {
-        localStorage.setItem('sky_banking_remember_email', emailOrUsername);
+        localStorage.setItem('sky_banking_remember_email', identifier);
       }
       navigate('/');
     } catch (err) {
