@@ -391,9 +391,13 @@ export default function Reports() {
       <head>
         <title>${reportTitle}</title>
         <style>
+          @page { size: A4 portrait; margin: 12mm; }
           @media print {
-            body { margin: 15mm 15mm 15mm 15mm; -webkit-print-color-adjust: exact; }
-            .no-print { display: none; }
+            body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            thead { display: table-header-group; }
+            tfoot { display: table-footer-group; }
+            tr, .total-block, .signatures { break-inside: avoid; page-break-inside: avoid; }
           }
           body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -531,6 +535,23 @@ export default function Reports() {
 
     printWindow.document.write(html);
     printWindow.document.close();
+    const printWhenReady = async () => {
+      if (printWindow.document.fonts?.ready) await printWindow.document.fonts.ready;
+      const images = Array.from(printWindow.document.images);
+      await Promise.all(images.map((image) => image.complete
+        ? Promise.resolve()
+        : new Promise((resolve) => {
+          image.addEventListener('load', resolve, { once: true });
+          image.addEventListener('error', resolve, { once: true });
+        })));
+      printWindow.focus();
+      printWindow.print();
+    };
+    if (printWindow.document.readyState === 'complete') {
+      printWhenReady();
+    } else {
+      printWindow.addEventListener('load', printWhenReady, { once: true });
+    }
   };
 
   const handleTabChange = (tab) => {

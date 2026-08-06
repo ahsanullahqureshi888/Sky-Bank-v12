@@ -789,13 +789,16 @@ def recent_transactions(limit: int = Query(10, le=50), db: Session = Depends(get
 
 @router.get("/dashboard/monthly-chart")
 def monthly_chart(db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
+    year_expr = func.extract("year", models.Transaction.date)
+    month_expr = func.extract("month", models.Transaction.date)
     rows = db.execute(
-        select(func.strftime("%Y-%m", models.Transaction.date), models.Transaction.type, func.sum(models.Transaction.amount))
+        select(year_expr, month_expr, models.Transaction.type, func.sum(models.Transaction.amount))
         .where(models.Transaction.status != "Cancelled")
-        .group_by(func.strftime("%Y-%m", models.Transaction.date), models.Transaction.type)
+        .group_by(year_expr, month_expr, models.Transaction.type)
     ).all()
     chart: dict[str, dict[str, float]] = {}
-    for month, tx_type, amount in rows:
+    for year, month_number, tx_type, amount in rows:
+        month = f"{int(year):04d}-{int(month_number):02d}"
         chart.setdefault(month, {"received": 0, "paid": 0})
         chart[month]["received" if tx_type == "Received" else "paid"] = float(amount or 0)
     return [{"month": month, **values} for month, values in sorted(chart.items())]

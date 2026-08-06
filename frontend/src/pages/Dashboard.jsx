@@ -65,18 +65,20 @@ export default function Dashboard() {
     ]);
 
     const [sumRes, recRes, chartRes, bankRes, logsRes] = results;
-    const failures = results.filter((result) => result.status === 'rejected');
+    const coreResults = [sumRes, recRes, chartRes, bankRes];
+    const coreFailures = coreResults.filter((result) => result.status === 'rejected');
 
     if (sumRes.status === 'fulfilled') setSummary(sumRes.value.data);
     if (recRes.status === 'fulfilled') setRecent(Array.isArray(recRes.value.data) ? recRes.value.data : []);
     if (chartRes.status === 'fulfilled') setChartData(Array.isArray(chartRes.value.data) ? chartRes.value.data : []);
     if (bankRes.status === 'fulfilled') setBanks(Array.isArray(bankRes.value.data) ? bankRes.value.data : []);
     if (logsRes.status === 'fulfilled') setLogs(Array.isArray(logsRes.value.data) ? logsRes.value.data.slice(0, 6) : []);
+    else setLogs([]);
 
-    if (failures.length === results.length) {
+    if (coreFailures.length === coreResults.length) {
       setLoadError('Dashboard data could not be loaded. Check the connection and try again.');
-    } else if (failures.length > 0) {
-      setLoadError('Some dashboard sections are temporarily unavailable.');
+    } else if (coreFailures.length > 0) {
+      setLoadError('Some core dashboard data is temporarily unavailable.');
     }
 
     setLoading(false);
