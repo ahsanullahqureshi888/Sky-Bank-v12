@@ -21,7 +21,9 @@ const GOLDEN_LINES = [
 ];
 
 export default function Login() {
-  const [emailOrUsername, setEmailOrUsername] = useState('');
+  const [emailOrUsername, setEmailOrUsername] = useState(() =>
+    localStorage.getItem('sky_banking_remember_email') || ''
+  );
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -61,9 +63,9 @@ export default function Login() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 p-4 text-slate-900">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(14,165,233,0.15),transparent_50%),linear-gradient(135deg,#f8fafc_0%,#e2e8f0_100%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.03)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:linear-gradient(to_bottom,black,transparent_88%)]" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 p-4 text-slate-900 sm:p-6">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(14,165,233,0.2),transparent_42%),linear-gradient(135deg,#081426_0%,#102947_55%,#07111f_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.04)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:linear-gradient(to_bottom,black,transparent_85%)]" />
       
       {/* Animated Golden Lines Background */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -86,9 +88,33 @@ export default function Login() {
         ))}
       </div>
 
-      {/* Centered Login Card - Zoomed out via max-w-[380px] */}
-      <div className="relative z-10 w-full max-w-[380px] transition-all duration-300">
-        <section className="glass-panel w-full ring-1 ring-amber-300/30 transition-all duration-500">
+      <div className="relative z-10 grid w-full max-w-5xl items-center gap-8 lg:grid-cols-[minmax(0,1fr)_420px] lg:gap-20">
+        <aside className="hidden max-w-xl text-white lg:block">
+          <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-sky-100 backdrop-blur">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)]" />
+            Secure financial workspace
+          </div>
+          <h2 className="max-w-lg text-4xl font-black leading-[1.05] tracking-[-0.04em] text-balance xl:text-6xl">
+            Every transaction, clearly accounted for.
+          </h2>
+          <p className="mt-6 max-w-md text-base leading-7 text-slate-300">
+            Manage receipts, ledgers, and money movement from one calm, controlled console built for your team.
+          </p>
+          <div className="mt-10 grid max-w-md grid-cols-3 gap-3">
+            {[
+              ['01', 'Receipt control'],
+              ['02', 'Live ledgers'],
+              ['03', 'Audit ready'],
+            ].map(([number, label]) => (
+              <div key={number} className="border-l border-sky-300/40 pl-3">
+                <p className="font-mono text-xs font-bold text-sky-300">{number}</p>
+                <p className="mt-1 text-xs font-bold leading-4 text-slate-300">{label}</p>
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        <section className="glass-panel !bg-white/95 w-full ring-1 ring-amber-300/30 transition-all duration-500">
           {/* Golden top rule with shimmer */}
           <div className="golden-rule" />
 
@@ -127,7 +153,9 @@ export default function Login() {
                         type="text"
                         autoComplete="username"
                         className="form-control pl-10 pr-4"
-                        placeholder="Enter email address"
+                        placeholder="you@example.com or username"
+                        aria-invalid={Boolean(error)}
+                        aria-describedby={error ? 'login-error' : undefined}
                         value={emailOrUsername}
                         onChange={(e) => setEmailOrUsername(e.target.value)}
                         required
@@ -144,6 +172,8 @@ export default function Login() {
                         autoComplete="current-password"
                         className="form-control pl-10 pr-10"
                         placeholder="Enter your password"
+                        aria-invalid={Boolean(error)}
+                        aria-describedby={error ? 'login-error' : undefined}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
@@ -182,7 +212,7 @@ export default function Login() {
                   </div>
 
                   {error && (
-                    <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-[11px] font-bold leading-relaxed text-red-600">
+                    <div id="login-error" role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-[11px] font-bold leading-relaxed text-red-600">
                       {error}
                     </div>
                   )}
@@ -190,7 +220,7 @@ export default function Login() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="relative flex h-11 w-full items-center justify-center overflow-hidden rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-[13px] font-black text-white shadow-[0_4px_15px_rgba(14,165,233,0.25)] transition-all duration-300 hover:shadow-[0_4px_20px_rgba(14,165,233,0.4)] hover:-translate-y-0.5 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="relative flex h-12 w-full items-center justify-center overflow-hidden rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-[13px] font-black text-white shadow-[0_8px_22px_rgba(14,165,233,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(14,165,233,0.38)] focus:outline-none focus:ring-4 focus:ring-sky-500/25 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {loading ? (
                       <span className="flex items-center gap-2">
@@ -269,7 +299,7 @@ export default function Login() {
         </section>
       </div>
 
-      <footer className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-[9px] font-extrabold text-slate-400/80 tracking-[0.2em] uppercase select-none">
+      <footer className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap text-[9px] font-extrabold tracking-[0.2em] text-slate-400/80 uppercase select-none">
         {BRAND_NAME} &bull; SECURE CONSOLE
       </footer>
     </div>
