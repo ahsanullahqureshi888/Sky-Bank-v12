@@ -52,10 +52,16 @@ export default function Login() {
       }
       navigate('/');
     } catch (err) {
-      console.error(err);
+      console.error('[v0] Login request failed:', err);
+      const status = err.response?.status;
+      const detail = err.response?.data?.detail;
+      const isNetworkFailure = !err.response;
       setError(
-        err.response?.data?.detail ||
-          'Invalid email or password. Verify the FastAPI backend is running.'
+        isNetworkFailure
+          ? 'The banking service is unreachable. Please try again in a moment.'
+          : status === 401
+            ? 'Invalid email or password.'
+            : detail || 'Unable to sign in right now. Please try again.'
       );
     } finally {
       setLoading(false);
