@@ -105,8 +105,12 @@ export const printReceipt = ({ transaction, bankAccount, settings, language }) =
 
   runPrint().catch((error) => {
     cleanup();
-    console.error('Failed to print receipt', error);
+    console.error('[v0] Failed to print receipt', error);
   });
+
+  return () => {
+    cleanup();
+  };
 };
 
 export const downloadReceiptPdf = async ({ transaction, bankAccount, settings, language }) => {
