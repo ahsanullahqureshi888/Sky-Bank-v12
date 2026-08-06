@@ -27,6 +27,22 @@ router = APIRouter()
 UPLOAD_DIR = Path(__file__).resolve().parents[1] / "uploads"
 
 
+def get_blob_token() -> str | None:
+    """Return the Blob write token when available.
+
+    BLOB_STORE_ID identifies a store but cannot authenticate uploads. When the
+    token is unavailable, uploads intentionally use the local persistent
+    fallback instead of failing the transaction flow.
+    """
+    return os.getenv("BLOB_READ_WRITE_TOKEN") or os.getenv("VERCEL_BLOB_READ_WRITE_TOKEN")
+
+
+def safe_upload_name(filename: str | None, prefix: str) -> str:
+    original = Path(filename or "upload.bin").name
+    cleaned = re.sub(r"[^A-Za-z0-9._-]+", "-", original).strip(".-") or "upload.bin"
+    return f"{prefix}-{cleaned}"
+
+
 def log_api_action(request: Request, db: Session, user_id: int | None, action: str, table_name: str, record_id: int | None, description: str) -> None:
     ip = request.client.host if request.client else None
     device = request.headers.get("user-agent")
@@ -664,13 +680,12 @@ def upload_transaction_file(transaction_id: int, file: UploadFile = File(...), d
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
 
-    token = os.getenv("BLOB_READ_WRITE_TOKEN")
+    token = get_blob_token()
     if token:
         import urllib.parse
         import urllib.request
-        import json
         try:
-            unique_filename = f"transaction-{transaction_id}-{file.filename}"
+            unique_filename = safe_upload_name(file.filename, f"transaction-{transaction_id}")
             safe_name = urllib.parse.quote(unique_filename)
             url = f"https://blob.vercel-storage.com/{safe_name}"
 
@@ -699,9 +714,9 @@ def upload_transaction_file(transaction_id: int, file: UploadFile = File(...), d
         except Exception as e:
             print(f"Vercel Blob upload exception: {e}")
 
-    # Fallback to local file storage
+    # Fallback to local file storage when the Blob write token is unavailable.
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    path = UPLOAD_DIR / f"transaction-{transaction_id}-{file.filename}"
+    path = UPLOAD_DIR / safe_upload_name(file.filename, f"transaction-{transaction_id}")
     file.file.seek(0)
     with path.open("wb") as handle:
         shutil.copyfileobj(file.file, handle)
@@ -881,7 +896,7 @@ def upload_logo(
     user: models.User = Depends(require_role("Admin"))
 ):
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-    path = UPLOAD_DIR / f"logo-{file.filename}"
+    path = UPLOAD_DIR / safe_upload_name(file.filename, "logo")
     with path.open("wb") as handle:
         shutil.copyfileobj(file.file, handle)
     settings = db.scalar(select(models.Settings).limit(1))
