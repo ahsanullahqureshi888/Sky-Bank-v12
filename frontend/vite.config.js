@@ -11,7 +11,8 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: process.env.VITE_BACKEND_TARGET || 'http://127.0.0.1:8000',
+        // Use the deployed API by default so the Vite preview works without a local FastAPI process.
+        target: process.env.VITE_BACKEND_TARGET || 'https://sky-banking-backend.onrender.com',
         changeOrigin: true,
       },
     },
