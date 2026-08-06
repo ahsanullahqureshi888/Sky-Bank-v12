@@ -71,8 +71,8 @@ client.interceptors.response.use(
 );
 
 export const authAPI = {
-  login: async (email, password) => {
-    const response = await client.post('/auth/login', { email, password });
+  login: async (identifier, password) => {
+    const response = await client.post('/auth/login', { identifier, password });
     if (response.data.access_token) {
       localStorage.setItem('sky_banking_token', response.data.access_token);
       localStorage.setItem('sky_banking_user', JSON.stringify(response.data.user));
