@@ -269,55 +269,83 @@ export default function CustomerLedger() {
   };
 
   const buildLedgerPrintHtml = () => {
-    const now = new Date().toLocaleString();
+    const now = new Date();
+    const printStyle = `
+      <style>
+        @page { size: A4; margin: 10mm; }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; background: #fff; }
+        body { font-family: Inter, Arial, sans-serif; color: #10233f; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .sheet { position: relative; overflow: hidden; border: 1px solid #cfe0f3; background: #fff; padding: 6mm; }
+        .top-rule { position: absolute; inset: 0 0 auto; height: 2mm; background: linear-gradient(90deg, #0f2a4a, #2563eb 72%, #c79a45); }
+        .brand { display: flex; justify-content: space-between; align-items: center; gap: 8mm; padding: 2mm 0 3mm; border-bottom: 1px solid #c79a45; }
+        .brand-left { display: flex; min-width: 0; align-items: center; }
+        .logo { display: inline-flex; width: 22mm; height: 15mm; flex: 0 0 auto; align-items: center; justify-content: center; margin-right: 4mm; overflow: hidden; border: 1px solid #d9e8f7; border-radius: 3mm; background: #fff; }
+        .logo img { width: 100%; height: 100%; object-fit: contain; padding: 1mm; }
+        h1 { margin: 0; color: #0f2a4a; font-size: 17pt; font-weight: 900; line-height: 1.05; }
+        .subtitle { margin-top: 1.2mm; color: #2563eb; font-size: 8pt; font-weight: 800; text-transform: uppercase; }
+        .report-meta { min-width: 58mm; overflow: hidden; border: 1px solid #cfe0f3; border-radius: 3mm; background: #f8fbff; }
+        .report-meta div { display: flex; justify-content: space-between; gap: 5mm; padding: 1.6mm 2.8mm; border-bottom: 1px solid #e4edf7; font-size: 7.6pt; }
+        .report-meta div:last-child { border-bottom: 0; }
+        .report-meta span { color: #64748b; font-weight: 700; }
+        .report-meta strong { color: #0f2a4a; font-weight: 900; }
+        .report-title { display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; padding: 3mm 0 2mm; }
+        .report-title h2 { margin: 0; color: #0f2a4a; font-size: 13pt; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; }
+        .report-title p { margin: 0.7mm 0 0; color: #64748b; font-size: 7.5pt; }
+        .customer-panel { margin-bottom: 3mm; padding: 2.5mm 3.5mm; border: 1px solid #dbeafe; border-radius: 2.5mm; background: #f7fbff; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; }
+        .customer-panel div { min-width: 0; }
+        .customer-panel .label { display: block; margin-bottom: 1mm; color: #64748b; font-size: 6.6pt; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
+        .customer-panel .value { color: #10233f; font-size: 9.5pt; font-weight: 800; overflow-wrap: anywhere; }
+        .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5mm; margin-bottom: 3mm; }
+        .summary-card { min-height: 15mm; padding: 2mm 3.5mm; border: 1px solid #dbeafe; border-radius: 2.5mm; background: #f7fbff; }
+        .summary-card.debit-card { border-color: #ffd0d8; background: #fff7f8; }
+        .summary-card.credit-card { border-color: #b7e9d2; background: #f0fdf7; }
+        .summary-card.balance-card { border-color: #bfdbfe; background: #eff6ff; }
+        .summary-card .label { display: block; margin-bottom: 1.3mm; color: #64748b; font-size: 6.8pt; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
+        .summary-card .value { color: #10233f; font-size: 11pt; font-weight: 900; line-height: 1.25; white-space: nowrap; }
+        .debit-card .value { color: #be123c; }
+        .credit-card .value { color: #047857; }
+        .balance-card .value { color: #0f2a4a; }
+        .table-shell { overflow: hidden; border: 1px solid #cfe0f3; border-radius: 2.5mm; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        thead { display: table-header-group; }
+        th { padding: 2mm 2mm; background: #0f2a4a; color: #fff; font-size: 7pt; font-weight: 900; letter-spacing: 0.07em; text-align: left; text-transform: uppercase; }
+        td { padding: 1.9mm 2mm; border-bottom: 1px solid #e2eaf4; color: #334155; font-size: 8pt; line-height: 1.25; vertical-align: top; overflow-wrap: anywhere; }
+        tbody tr:nth-child(even) { background: #f8fbff; }
+        tbody tr:last-child td { border-bottom: 0; }
+        tbody tr { break-inside: avoid; page-break-inside: avoid; }
+        .amount { text-align: right; white-space: nowrap; font-weight: 900; overflow-wrap: normal; }
+        .debit { color: #be123c; }
+        .credit { color: #047857; }
+        .empty-state { padding: 12mm !important; color: #64748b; text-align: center; }
+        tfoot td { background: #eef5fd; font-size: 8.6pt; font-weight: 900; border-top: 2px solid #cfe0f3; border-bottom: 0; }
+        .authorization { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8mm; margin-top: 6mm; }
+        .signature { padding-top: 6mm; border-top: 1px solid #71849b; color: #475569; font-size: 7.5pt; font-weight: 800; }
+        .signature small { display: block; margin-top: 1mm; color: #94a3b8; font-size: 6pt; font-weight: 600; }
+        .document-footer { display: flex; justify-content: space-between; gap: 5mm; margin-top: 3mm; padding-top: 1.8mm; border-top: 1px solid #dbeafe; color: #64748b; font-size: 6.4pt; }
+      </style>
+    `;
+
     const rows = ledgerRows.map((row) => `
       <tr>
         <td>${escapeHtml(formatDate(row.date))}</td>
         <td>${escapeHtml(row.receipt_no || 'OP')}</td>
         <td>${escapeHtml(row.description || '-')}</td>
-        <td class="amount debit">${row.debit ? formatCurrency(row.debit, 'USD') : '-'}</td>
-        <td class="amount credit">${row.credit ? formatCurrency(row.credit, 'USD') : '-'}</td>
-        <td class="amount">${formatCurrency(row.balance, 'USD')}</td>
+        <td class="amount debit">${row.debit ? escapeHtml(formatCurrency(row.debit, 'USD')) : '-'}</td>
+        <td class="amount credit">${row.credit ? escapeHtml(formatCurrency(row.credit, 'USD')) : '-'}</td>
+        <td class="amount">${escapeHtml(formatCurrency(row.balance, 'USD'))}</td>
       </tr>
     `).join('');
 
     return `<!doctype html>
       <html>
         <head>
-          <title>${escapeHtml(selectedCustomer?.name || 'Customer')} Ledger</title>
-          <style>
-            @page { size: A4; margin: 14mm; }
-            * { box-sizing: border-box; }
-            body { margin: 0; font-family: Arial, sans-serif; color: #0f2748; background: #fff; }
-            .sheet { min-height: 267mm; border: 1px solid #d9e8f7; padding: 22px; }
-            .brand { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; border-bottom: 2px solid #0d75dd; padding-bottom: 18px; }
-            .logo { width: 86px; height: 58px; border-radius: 16px; border: 1px solid #d9e8f7; background: #fff; display: inline-flex; align-items: center; justify-content: center; margin-right: 14px; overflow: hidden; }
-            .logo img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
-            .brand-left { display: flex; align-items: center; }
-            h1 { margin: 0; font-size: 24px; letter-spacing: -0.02em; }
-            .subtitle { margin-top: 4px; color: #2779c9; font-size: 12px; font-weight: 700; }
-            .badge { border: 1px solid #d9e8f7; border-radius: 12px; padding: 10px 14px; text-align: right; font-size: 11px; color: #5d7088; }
-            .section-title { margin: 22px 0 12px; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: #0d5fb4; }
-            .meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-            .meta div, .summary div { border: 1px solid #e1ecf8; background: #f7fbff; border-radius: 12px; padding: 11px 12px; }
-            .label { display: block; color: #6a7b92; text-transform: uppercase; font-size: 9px; font-weight: 800; letter-spacing: 0.1em; margin-bottom: 5px; }
-            .value { font-size: 13px; font-weight: 800; color: #10233f; }
-            .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-            .summary .value { font-size: 18px; white-space: nowrap; }
-            table { width: 100%; border-collapse: collapse; margin-top: 12px; table-layout: fixed; }
-            th { text-align: left; font-size: 9px; color: #0d75dd; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid #cfe0f3; padding: 9px 6px; }
-            td { font-size: 10px; border-bottom: 1px solid #e6eef7; padding: 9px 6px; vertical-align: top; overflow-wrap: anywhere; }
-            th:nth-child(3), td:nth-child(3) { width: 34%; }
-            .amount { text-align: right; white-space: nowrap; font-weight: 800; overflow-wrap: normal; }
-            .debit { color: #dc2f5f; }
-            .credit { color: #059669; }
-            tfoot td { background: #f3f8ff; font-size: 11px; font-weight: 900; }
-            .signatures { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; margin-top: 42px; }
-            .signature { border-top: 1px solid #7f93aa; padding-top: 8px; color: #5f7085; font-size: 11px; font-weight: 700; }
-          </style>
+          <title>${escapeHtml(selectedCustomer?.name || 'Customer')} Statement</title>
+          ${printStyle}
         </head>
         <body>
           <div class="sheet">
+            <div class="top-rule"></div>
             <div class="brand">
               <div class="brand-left">
                 <div class="logo"><img src="${COMPANY_LOGO}" alt="${COMPANY_NAME}" /></div>
@@ -326,58 +354,67 @@ export default function CustomerLedger() {
                   <div class="subtitle">${COMPANY_SUBTITLE}</div>
                 </div>
               </div>
-              <div class="badge">
-                Customer Ledger<br />
-                Generated: ${escapeHtml(now)}
+              <div class="report-meta">
+                <div><span>Document</span><strong>Customer Account Statement</strong></div>
+                <div><span>Generated</span><strong>${escapeHtml(now.toLocaleDateString())}</strong></div>
+                <div><span>Time</span><strong>${escapeHtml(now.toLocaleTimeString())}</strong></div>
               </div>
             </div>
-
-            <h2 class="section-title">{t('customerLedger.customer_statement')}</h2>
-            <div class="meta">
+            <div class="report-title">
+              <div>
+                <h2>Customer Ledger Statement</h2>
+                <p>Official customer account ledger and balance statement</p>
+              </div>
+            </div>
+            <div class="customer-panel">
               <div><span class="label">Customer</span><span class="value">${escapeHtml(selectedCustomer?.name || '-')}</span></div>
               <div><span class="label">Phone</span><span class="value">${escapeHtml(selectedCustomer?.phone || '-')}</span></div>
               <div><span class="label">Address</span><span class="value">${escapeHtml(selectedCustomer?.address || '-')}</span></div>
             </div>
             <div class="summary">
-              <div><span class="label">{t('customerLedger.total_debit')}</span><span class="value">${formatCurrency(totals.debit, 'USD')}</span></div>
-              <div><span class="label">{t('customerLedger.total_credit')}</span><span class="value">${formatCurrency(totals.credit, 'USD')}</span></div>
-              <div><span class="label">{t('customerLedger.closing_balance')}</span><span class="value">${formatCurrency(totals.balance, 'USD')}</span></div>
+              <div class="summary-card debit-card"><span class="label">Total Debit</span><span class="value">${escapeHtml(formatCurrency(totals.debit, 'USD'))}</span></div>
+              <div class="summary-card credit-card"><span class="label">Total Credit</span><span class="value">${escapeHtml(formatCurrency(totals.credit, 'USD'))}</span></div>
+              <div class="summary-card balance-card"><span class="label">Closing Balance</span><span class="value">${escapeHtml(formatCurrency(totals.balance, 'USD'))}</span></div>
             </div>
-
-            <table>
-              <thead>
-                <tr>
-                  <th>{t('customerLedger.date')}</th>
-                  <th>{t('customerLedger.receipt_no')}</th>
-                  <th>{t('customerLedger.description')}</th>
-                  <th>{t('customerLedger.debit')}</th>
-                  <th>{t('customerLedger.credit')}</th>
-                  <th>{t('customerLedger.balance')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${rows || '<tr><td colspan="6" style="text-align:center; padding:24px;">No ledger entries recorded for this customer.</td></tr>'}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colspan="3">{t('customerLedger.statement_total')}</td>
-                  <td class="amount debit">${formatCurrency(totals.debit, 'USD')}</td>
-                  <td class="amount credit">${formatCurrency(totals.credit, 'USD')}</td>
-                  <td class="amount">${formatCurrency(totals.balance, 'USD')}</td>
-                </tr>
-              </tfoot>
-            </table>
-            <div class="signatures">
-              <div class="signature">{t('customerLedger.prepared_by')}</div>
-              <div class="signature">{t('customerLedger.auth_signature')}</div>
+            <div class="table-shell">
+              <table>
+                <colgroup>
+                  <col style="width:12%"><col style="width:16%"><col style="width:32%"><col style="width:13%"><col style="width:13%"><col style="width:14%">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Receipt No.</th>
+                    <th>Description</th>
+                    <th style="text-align:right">Debit</th>
+                    <th style="text-align:right">Credit</th>
+                    <th style="text-align:right">Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows || '<tr><td colspan="6" class="empty-state">No ledger entries recorded for this customer.</td></tr>'}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="3">Statement Total</td>
+                    <td class="amount debit">${escapeHtml(formatCurrency(totals.debit, 'USD'))}</td>
+                    <td class="amount credit">${escapeHtml(formatCurrency(totals.credit, 'USD'))}</td>
+                    <td class="amount">${escapeHtml(formatCurrency(totals.balance, 'USD'))}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            <div class="authorization">
+              <div class="signature">Prepared By<small>Name, date, and signature</small></div>
+              <div class="signature">Authorized Signature / Stamp<small>Official approval</small></div>
+            </div>
+            <div class="document-footer">
+              <span>Official customer statement generated by ${COMPANY_NAME}.</span>
+              <span>${COMPANY_SUBTITLE}</span>
+              <span>Page 1</span>
             </div>
           </div>
-          <script>
-            window.onload = () => {
-              window.focus();
-              window.print();
-            };
-          </script>
+          <script>window.onload = () => { window.focus(); window.print(); };</script>
         </body>
       </html>`;
   };
