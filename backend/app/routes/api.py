@@ -518,13 +518,15 @@ def create_transaction(
     db.add(transaction)
     db.flush()
     
-    # Auto-increment setting count if it matches the prefix
+    # Auto-increment setting count if it matches the prefix (legacy format only)
     settings = db.scalar(select(models.Settings).limit(1))
     if settings:
         prefix = settings.receipt_prefix or "TX"
-        if transaction.receipt_no.startswith(f"{prefix}-"):
+        # Legacy format: PREFIX-0001 (two parts). Skip currency format: PREFIX-CURR-0001 (three parts)
+        parts = transaction.receipt_no.split("-")
+        if len(parts) == 2 and transaction.receipt_no.startswith(f"{prefix}-"):
             try:
-                num_part = int(transaction.receipt_no.split("-")[-1])
+                num_part = int(parts[-1])
                 if num_part >= settings.next_receipt_number:
                     settings.next_receipt_number = num_part + 1
             except ValueError:
@@ -582,13 +584,15 @@ def update_transaction(
     for key, value in update.items():
         setattr(transaction, key, value)
         
-    # Auto-increment setting count if it matches the prefix
+    # Auto-increment setting count if it matches the prefix (legacy format only)
     settings = db.scalar(select(models.Settings).limit(1))
     if settings:
         prefix = settings.receipt_prefix or "TX"
-        if transaction.receipt_no.startswith(f"{prefix}-"):
+        # Legacy format: PREFIX-0001 (two parts). Skip currency format: PREFIX-CURR-0001 (three parts)
+        parts = transaction.receipt_no.split("-")
+        if len(parts) == 2 and transaction.receipt_no.startswith(f"{prefix}-"):
             try:
-                num_part = int(transaction.receipt_no.split("-")[-1])
+                num_part = int(parts[-1])
                 if num_part >= settings.next_receipt_number:
                     settings.next_receipt_number = num_part + 1
             except ValueError:
@@ -878,13 +882,53 @@ def get_settings(db: Session = Depends(get_db), _: models.User = Depends(get_cur
     return db.scalar(select(models.Settings).limit(1))
 
 
+# Currency code mapping for receipt sequences
+CURRENCY_CODES = {
+    "USD": "USD",
+    "Toman": "TMN",
+    "Dirham": "DRM",
+    "Afghani": "AFN",
+}
+
+
 @router.get("/settings/next-receipt-no")
-def get_next_receipt_no(db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
+def get_next_receipt_no(
+    currency: str | None = None,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(get_current_user),
+):
     settings = db.scalar(select(models.Settings).limit(1))
-    if not settings:
-        return {"receipt_no": "TX-0001"}
-    prefix = settings.receipt_prefix or "TX"
-    num = settings.next_receipt_number or 1
+    prefix = (settings.receipt_prefix or "TX") if settings else "TX"
+
+    # If a currency is provided, use a per-currency sequence: PREFIX-CURR-0001
+    if currency:
+        curr_code = CURRENCY_CODES.get(currency, currency[:3].upper())
+        pattern_prefix = f"{prefix}-{curr_code}-"
+        existing = db.execute(
+            select(models.Transaction.receipt_no)
+            .where(models.Transaction.receipt_no.like(f"{pattern_prefix}%"))
+        ).scalars().all()
+        max_num = 0
+        for rn in existing:
+            try:
+                num_part = int(rn.split("-")[-1])
+                if num_part > max_num:
+                    max_num = num_part
+            except (ValueError, IndexError):
+                continue
+        num = max_num + 1
+        while True:
+            receipt_no = f"{pattern_prefix}{num:04d}"
+            exists = db.scalar(
+                select(models.Transaction).where(models.Transaction.receipt_no == receipt_no)
+            )
+            if not exists:
+                break
+            num += 1
+        return {"receipt_no": receipt_no, "prefix": prefix, "currency": currency, "next_number": num}
+
+    # Fallback: legacy global sequence
+    num = settings.next_receipt_number or 1 if settings else 1
     while True:
         receipt_no = f"{prefix}-{num:04d}"
         exists = db.scalar(select(models.Transaction).where(models.Transaction.receipt_no == receipt_no))

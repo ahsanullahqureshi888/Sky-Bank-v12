@@ -98,6 +98,17 @@
 .receipt-document-footer p { display: inline-block; margin: 0 1.5mm; font-size: 7pt; line-height: 1.35; }
 .receipt-document-footer > div { display: flex; justify-content: space-between; margin-top: 1mm; color: #2563eb; font-size: 6.5pt; font-weight: 700; flex-shrink: 0; }
 
+/* New receipt UI elements */
+.receipt-amount-display { display: flex; align-items: center; gap: 2mm; margin-top: 2mm; }
+.receipt-status-cell { padding: 1mm 0; }
+.receipt-summary-amount { position: relative; }
+.receipt-summary-amount .receipt-currency { font-weight: 800; }
+
+/* PDF stage adjustments for new elements */
+.receipt-pdf-stage .receipt-amount-display { gap: 1mm; margin-top: 1mm; }
+.receipt-pdf-stage .receipt-amount-display strong { font-size: 12pt; }
+.receipt-pdf-stage .receipt-summary-amount .receipt-currency { font-size: 6.5pt; }
+
 .receipt-summary-grid > div { padding-inline: 2mm; }
 
 .receipt-pdf-stage { position: absolute; top: 0; left: 0; z-index: 2147483647; width: 194mm; height: 285mm; overflow: hidden; pointer-events: none; background: #fff; }

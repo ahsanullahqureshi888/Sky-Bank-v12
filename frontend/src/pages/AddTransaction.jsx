@@ -97,7 +97,7 @@ export default function AddTransaction() {
           });
         } else {
           try {
-            const nextRes = await settingsAPI.getNextReceiptNo();
+            const nextRes = await settingsAPI.getNextReceiptNo(form.currency || 'USD');
             setForm((prev) => ({
               ...prev,
             receipt_no: nextRes.data?.receipt_no || `TX-${Date.now().toString().slice(-6)}`,
@@ -121,6 +121,24 @@ export default function AddTransaction() {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
+
+  // Re-fetch receipt number when currency changes (only for new transactions, not editing)
+  useEffect(() => {
+    if (id || !form.currency) return;
+    let cancelled = false;
+    const fetchNewReceiptNo = async () => {
+      try {
+        const nextRes = await settingsAPI.getNextReceiptNo(form.currency);
+        if (!cancelled && nextRes.data?.receipt_no) {
+          setForm((prev) => ({ ...prev, receipt_no: nextRes.data.receipt_no }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch receipt number for currency', form.currency, err);
+      }
+    };
+    fetchNewReceiptNo();
+    return () => { cancelled = true; };
+  }, [form.currency, id]);
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {

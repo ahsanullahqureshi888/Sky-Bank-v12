@@ -1,6 +1,36 @@
 import React, { useEffect } from 'react';
+import {
+  ArrowDownLeft,
+  ArrowUpRight,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  CheckCircle2,
+  Clock3,
+  XCircle,
+  ShieldCheck,
+} from 'lucide-react';
 import i18n from '../i18n';
 import { useReceiptStyles } from '../hooks/useReceiptStyles';
+
+const TYPE_BADGES = {
+  Received: { icon: ArrowDownLeft, color: '#059669', bg: '#ecfdf5', border: '#a7f3d0', label: 'RECEIVED' },
+  Paid: { icon: ArrowUpRight, color: '#e11d48', bg: '#fff1f2', border: '#fecdd3', label: 'PAID' },
+  Import: { icon: ArrowDownCircle, color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe', label: 'IMPORT' },
+  Export: { icon: ArrowUpCircle, color: '#d97706', bg: '#fffbeb', border: '#fde68a', label: 'EXPORT' },
+};
+
+const STATUS_BADGES = {
+  Completed: { icon: CheckCircle2, color: '#059669', bg: '#ecfdf5', border: '#a7f3d0' },
+  Pending: { icon: Clock3, color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
+  Cancelled: { icon: XCircle, color: '#e11d48', bg: '#fff1f2', border: '#fecdd3' },
+};
+
+const CURRENCY_SEALS = {
+  USD: { color: '#059669', bg: '#ecfdf5', symbol: '$' },
+  Toman: { color: '#2563eb', bg: '#eff6ff', symbol: 'T' },
+  Dirham: { color: '#7c3aed', bg: '#f5f3ff', symbol: 'Dhs' },
+  Afghani: { color: '#d97706', bg: '#fffbeb', symbol: 'Afs' },
+};
 
 const FALLBACK_LOGO = '/sky-bbb-logo.png';
 const DEFAULT_COMPANY = 'Sky Ariana Limited';
@@ -103,6 +133,73 @@ function SignatureBox({ labelKey, helperKey, stamp = false, defaultName, tEn, tS
   );
 }
 
+function TypeBadge({ type }) {
+  const config = TYPE_BADGES[type] || TYPE_BADGES.Received;
+  const Icon = config.icon;
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: '1mm',
+      padding: '1.5mm 3mm', borderRadius: '6px', fontSize: '8pt', fontWeight: 900,
+      letterSpacing: '0.08em', color: config.color, background: config.bg,
+      border: `1px solid ${config.border}`, textTransform: 'uppercase',
+    }}>
+      <Icon size={11} strokeWidth={2.5} />
+      {config.label}
+    </span>
+  );
+}
+
+function StatusBadge({ status }) {
+  const config = STATUS_BADGES[status] || STATUS_BADGES.Pending;
+  const Icon = config.icon;
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: '1mm',
+      padding: '1mm 2.5mm', borderRadius: '5px', fontSize: '7.5pt', fontWeight: 900,
+      letterSpacing: '0.05em', color: config.color, background: config.bg,
+      border: `1px solid ${config.border}`,
+    }}>
+      <Icon size={10} strokeWidth={2.5} />
+      {status}
+    </span>
+  );
+}
+
+function CurrencySeal({ currency }) {
+  const config = CURRENCY_SEALS[currency] || { color: '#0f2a4a', bg: '#f1f5f9', symbol: currency?.slice(0, 2) || '?' };
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      width: '14mm', height: '14mm', borderRadius: '50%',
+      fontSize: '12pt', fontWeight: 900, color: config.color,
+      background: config.bg, border: `2px solid ${config.color}`,
+      boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.06)',
+      flexShrink: 0,
+    }}>
+      {config.symbol}
+    </span>
+  );
+}
+
+function ReceiptNumberBar({ receiptNo }) {
+  if (!receiptNo || receiptNo === '—') return null;
+  const digits = receiptNo.replace(/[^0-9]/g, '');
+  const letters = receiptNo.replace(/[^A-Za-z]/g, '');
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '1.5mm',
+      fontFamily: '"Courier New", monospace',
+    }}>
+      <span style={{ fontSize: '7pt', fontWeight: 700, color: '#64748b', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+        {letters}
+      </span>
+      <span style={{ fontSize: '10pt', fontWeight: 900, color: '#0f2a4a', letterSpacing: '0.15em' }}>
+        {digits}
+      </span>
+    </div>
+  );
+}
+
 export default function ReceiptDocument({
   transaction = {},
   bankAccount = null,
@@ -162,9 +259,9 @@ export default function ReceiptDocument({
           </div>
 
           <dl className="receipt-meta-card">
-            <div><dt><ReceiptLabel labelKey="receipt.receipt_no" tEn={tEn} tSecondary={tSecondary} /></dt><dd>{receiptNo}</dd></div>
+            <div><dt><ReceiptLabel labelKey="receipt.receipt_no" tEn={tEn} tSecondary={tSecondary} /></dt><dd><ReceiptNumberBar receiptNo={receiptNo} /></dd></div>
             <div><dt><ReceiptLabel labelKey="receipt.date" tEn={tEn} tSecondary={tSecondary} /></dt><dd>{formatReceiptDate(transaction.date)}</dd></div>
-            <div><dt><ReceiptLabel labelKey="receipt.status" tEn={tEn} tSecondary={tSecondary} /></dt><dd className="receipt-status-value">{safeText(transaction.status)}</dd></div>
+            <div><dt><ReceiptLabel labelKey="receipt.status" tEn={tEn} tSecondary={tSecondary} /></dt><dd className="receipt-status-value"><StatusBadge status={safeText(transaction.status)} /></dd></div>
           </dl>
         </div>
       </header>
@@ -179,12 +276,16 @@ export default function ReceiptDocument({
       </section>
 
       <section className="receipt-summary-grid" aria-label={tEn('receipt.transaction_summary')}>
-        <div className="receipt-summary-main">
+        <div className="receipt-summary-main receipt-summary-amount">
           <ReceiptLabel labelKey="receipt.amount" tEn={tEn} tSecondary={tSecondary} />
-          <strong>
-            {formatReceiptAmount(transaction.amount)}{' '}
+          <div className="receipt-amount-display" style={{ display: 'flex', alignItems: 'center', gap: '2mm', marginTop: '2mm' }}>
+            <CurrencySeal currency={safeText(transaction.currency, '')} />
+            <strong style={{ fontSize: '15pt', color: TYPE_BADGES[transaction.type]?.color || '#0f2a4a' }}>
+              {transaction.type === 'Received' || transaction.type === 'Import' ? '+' : '-'}{formatReceiptAmount(transaction.amount)}
+            </strong>
             <span className="receipt-currency text-sky-700/70 font-bold ml-1 text-[0.75em] tracking-wide">{safeText(transaction.currency, '')}</span>
-          </strong>
+          </div>
+          {transaction.type && <div style={{ marginTop: '2mm' }}><TypeBadge type={transaction.type} /></div>}
         </div>
         <div>
           <ReceiptLabel labelKey="receipt.equivalent" tEn={tEn} tSecondary={tSecondary} />
@@ -196,7 +297,7 @@ export default function ReceiptDocument({
         </div>
         <div>
           <ReceiptLabel labelKey="receipt.status" tEn={tEn} tSecondary={tSecondary} />
-          <strong className="receipt-completed-text">{safeText(transaction.status)}</strong>
+          <strong className="receipt-status-cell"><StatusBadge status={safeText(transaction.status)} /></strong>
         </div>
       </section>
 
@@ -235,6 +336,12 @@ export default function ReceiptDocument({
       <section className="receipt-authorization">
         <div className="receipt-authorization-title">
           <ReceiptLabel labelKey="receipt.authorization" tEn={tEn} tSecondary={tSecondary} />
+          {transaction.status === 'Completed' && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '1mm', marginLeft: '3mm', fontSize: '7.5pt', fontWeight: 900, color: '#059669' }}>
+              <ShieldCheck size={12} strokeWidth={2.5} />
+              VERIFIED
+            </span>
+          )}
         </div>
         <div className="receipt-signature-grid">
           <SignatureBox labelKey="receipt.authorized_signature" helperKey="receipt.date_line" defaultName="Ahsanullah Qureshi" tEn={tEn} tSecondary={tSecondary} />
