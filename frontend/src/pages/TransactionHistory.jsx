@@ -944,7 +944,7 @@ export default function TransactionHistory() {
                             <th className="pb-3 px-2">{t('transaction.method')}</th>
                             <th className="pb-3 px-2">{t('receiver')}</th>
                             <th className="pb-3 px-2">{t('transaction.status')}</th>
-                            <th className="pb-3 pl-2 text-right">ACTIONS</th>
+                            <th className="pb-3 pl-2 text-right print:hidden">ACTIONS</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-sky-100/60 text-[13px] font-bold text-sky-900">
@@ -973,7 +973,7 @@ export default function TransactionHistory() {
                               <td className={`py-3 px-2 text-right font-black whitespace-nowrap ${tx.type === 'Received' ? 'text-emerald-600' : 'text-rose-600'}`}>
                                 {tx.type === 'Received' ? '+' : '-'}{formatCurrency(tx.amount, tx.currency)}
                               </td>
-                              <td className="py-3 px-2 text-right text-sky-800 font-black whitespace-nowrap print:hidden">
+                              <td className="py-3 px-2 text-right text-sky-800 font-black whitespace-nowrap">
                                 {tx.equivalent_amount ? formatCurrency(tx.equivalent_amount, tx.equivalent_currency) : '-'}
                               </td>
                               <td className="py-3 px-2 text-sky-900/70 whitespace-nowrap text-xs">{tx.payment_method || '-'}</td>
@@ -986,7 +986,7 @@ export default function TransactionHistory() {
                                   {tx.status}
                                 </span>
                               </td>
-                              <td className="py-3 pl-2 text-right whitespace-nowrap">
+                              <td className="py-3 pl-2 text-right whitespace-nowrap print:hidden">
                                 <div className="inline-flex items-center gap-0.5 p-1 bg-sky-50/60 hover:bg-sky-50/90 border border-sky-100/80 rounded-xl transition-all shadow-2xs group-hover:border-sky-200">
                                   {/* Read & Export Group */}
                                   <div className="flex items-center gap-0.5">

@@ -46,6 +46,34 @@ const safeFilename = (value) =>
     .replace(/^-|-$/g, '')
     .toLowerCase();
 
+/** Deterministic accent per customer so the same name always gets the same avatar color. */
+const CUSTOMER_ACCENTS = [
+  'bg-sky-100 text-sky-700',
+  'bg-emerald-100 text-emerald-700',
+  'bg-amber-100 text-amber-700',
+  'bg-rose-100 text-rose-700',
+  'bg-teal-100 text-teal-700',
+  'bg-indigo-100 text-indigo-700',
+];
+
+const customerAccent = (name) => {
+  let hash = 0;
+  const str = String(name || '');
+  for (let i = 0; i < str.length; i += 1) {
+    hash = (hash * 31 + str.charCodeAt(i)) % 9973;
+  }
+  return CUSTOMER_ACCENTS[hash % CUSTOMER_ACCENTS.length];
+};
+
+const customerInitials = (name) =>
+  String(name || '')
+    .replace(/[^A-Za-z\s/]/g, ' ')
+    .split(/[\s/]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? '')
+    .join('') || '?';
+
 function LedgerMetricCard({ title, value, tone, icon: Icon }) {
   const toneStyles = {
     rose: {
@@ -469,18 +497,28 @@ export default function CustomerLedger() {
                       setSelectedCustomerId(customer.id);
                       resetForm();
                     }}
-                    className={`w-full text-left px-4 py-3 rounded-[18px] transition-all min-w-0 flex flex-col justify-center border ${
+                    className={`w-full text-left px-4 py-3 rounded-[18px] transition-all min-w-0 flex items-center gap-3 border ${
                       isSelected
                         ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg shadow-sky-500/25 border-transparent translate-x-1'
                         : 'bg-white/70 border-white hover:bg-white text-sky-900 shadow-sm hover:shadow-md hover:border-sky-100 hover:translate-x-0.5'
                     }`}
                   >
-                    <span className="block truncate text-[14px] font-black">{customer.name}</span>
-                    {(customer.phone || customer.address) && (
-                      <span className={`block truncate text-[11px] mt-1 font-bold ${isSelected ? 'text-sky-100' : 'text-sky-500'}`}>
-                        {customer.phone || customer.address}
-                      </span>
-                    )}
+                    <span
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[11px] font-black ${
+                        isSelected ? 'bg-white/20 text-white' : customerAccent(customer.name)
+                      }`}
+                      aria-hidden="true"
+                    >
+                      {customerInitials(customer.name)}
+                    </span>
+                    <span className="min-w-0 flex flex-col justify-center">
+                      <span className="block truncate text-[14px] font-black">{customer.name}</span>
+                      {(customer.phone || customer.address) && (
+                        <span className={`block truncate text-[11px] mt-0.5 font-bold ${isSelected ? 'text-sky-100' : 'text-sky-500'}`}>
+                          {customer.phone || customer.address}
+                        </span>
+                      )}
+                    </span>
                   </button>
                 );
               })}
