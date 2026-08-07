@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Save, Upload, Loader2, Image as ImageIcon, CheckCircle, AlertCircle } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Upload, Loader2, Image as ImageIcon, CheckCircle, AlertCircle, Hash, RefreshCw } from 'lucide-react';
 import { settingsAPI } from '../api/client';
 import GlassCard from '../components/GlassCard';
 
@@ -19,6 +19,8 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [currencySequences, setCurrencySequences] = useState([]);
+  const [sequencesLoading, setSequencesLoading] = useState(false);
 
   useEffect(() => {
     settingsAPI.get()
@@ -45,6 +47,27 @@ export default function Settings() {
         console.error('Failed to load settings', err);
         setLoading(false);
       });
+  }, []);
+
+  const CURRENCIES = ['USD', 'Toman', 'Dirham', 'Afghani'];
+
+  const loadCurrencySequences = async () => {
+    setSequencesLoading(true);
+    try {
+      const results = await Promise.all(
+        CURRENCIES.map((c) =>
+          settingsAPI.getNextReceiptNo(c).then((res) => ({ currency: c, receipt_no: res.data?.receipt_no || '—' }))
+            .catch(() => ({ currency: c, receipt_no: '—' }))
+        )
+      );
+      setCurrencySequences(results);
+    } finally {
+      setSequencesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCurrencySequences();
   }, []);
 
   const handleChange = (e) => {
@@ -79,6 +102,7 @@ export default function Settings() {
       }
 
       setMessage('Branding settings updated successfully. Reload to apply.');
+      loadCurrencySequences();
     } catch (err) {
       console.error(err);
       setMessage('Failed to save settings. Confirm Admin authorization.');
@@ -158,11 +182,12 @@ export default function Settings() {
                   onChange={handleChange}
                   required
                 />
+                <p className="text-[10px] text-sky-400 font-bold mt-1">Used as the base for every currency sequence, e.g. {form.receipt_prefix}-USD-0001</p>
               </div>
 
               <div>
                 <label className="block text-[10px] font-black text-sky-500 uppercase tracking-[0.1em] mb-1.5">
-                  Next Auto Number
+                  Legacy Fallback Number
                 </label>
                 <input
                   type="number"
@@ -173,6 +198,7 @@ export default function Settings() {
                   required
                   min="1"
                 />
+                <p className="text-[10px] text-sky-400 font-bold mt-1">Only used if no currency is selected. Each currency now tracks its own sequence automatically.</p>
               </div>
 
               <div>
@@ -295,6 +321,38 @@ export default function Settings() {
                 onChange={handleLogoChange}
               />
             </label>
+          </GlassCard>
+
+          <GlassCard className="p-6 mt-6 space-y-4">
+            <h2 className="text-xs font-black text-sky-900 uppercase tracking-wider border-b border-sky-100 pb-3 flex items-center justify-between gap-2">
+              <span className="flex items-center gap-2">
+                <Hash size={16} className="text-sky-500" />
+                <span>Receipt Sequences</span>
+              </span>
+              <button
+                type="button"
+                onClick={loadCurrencySequences}
+                disabled={sequencesLoading}
+                className="text-sky-400 hover:text-sky-600 transition-colors disabled:opacity-40"
+                aria-label="Refresh sequences"
+              >
+                <RefreshCw size={13} className={sequencesLoading ? 'animate-spin' : ''} />
+              </button>
+            </h2>
+            <p className="text-[10px] text-sky-400 font-bold -mt-2">Next receipt number per currency, updated live as transactions are recorded.</p>
+            <div className="space-y-2">
+              {currencySequences.map(({ currency, receipt_no }) => (
+                <div key={currency} className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-sky-50/60 border border-sky-100">
+                  <span className="text-xs font-black text-sky-800">{currency}</span>
+                  <span className="text-xs font-bold font-mono text-sky-600">{receipt_no}</span>
+                </div>
+              ))}
+              {currencySequences.length === 0 && sequencesLoading && (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="animate-spin text-sky-400" size={18} />
+                </div>
+              )}
+            </div>
           </GlassCard>
         </div>
 
