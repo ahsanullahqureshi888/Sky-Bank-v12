@@ -343,6 +343,29 @@ export const CustomerLedgerTable: React.FC<CustomerLedgerTableProps> = ({
 
       {/* Main Container for Table & Mobile Cards */}
       <div className="relative flex flex-1 flex-col overflow-hidden rounded-2xl border border-white bg-white/70 shadow-[0_12px_40px_rgba(15,32,60,0.06)] backdrop-blur-2xl print:overflow-visible print:rounded-none print:border-none print:bg-white print:shadow-none md:rounded-[28px]">
+        {/* Print-only clean statement header */}
+        <div className="hidden border-b-2 border-slate-800 px-6 py-4 print:block">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-black text-slate-800">Sky Ariana Limited</h1>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-sky-600">
+                Customer &amp; Sarafi Ledger Statement
+              </p>
+            </div>
+            <div className="text-right text-[10px] font-semibold text-slate-500">
+              <p>
+                Generated:{' '}
+                <span className="font-black text-slate-700">
+                  {new Date().toLocaleDateString()}
+                </span>
+              </p>
+              <p>
+                Records: <span className="font-black text-slate-700">{transactions.length}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
         {visibleTransactions.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center px-4 py-16 text-center">
             <Search size={28} className="mx-auto mb-3 text-slate-300" />
@@ -581,7 +604,7 @@ export const CustomerLedgerTable: React.FC<CustomerLedgerTableProps> = ({
 
       {/* Add Transaction Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3 backdrop-blur-sm sm:p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-3 backdrop-blur-sm print:hidden sm:p-4">
           <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-2xl sm:rounded-3xl">
             <div
               className={`relative p-4 text-white sm:p-6 ${

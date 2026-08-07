@@ -312,11 +312,11 @@ export default function Reports() {
       `).join('');
     } else if (reportType === 'currency') {
       tableHeaders = `
-        <th>{t('reports.currency')}</th>
-        <th style="text-align: center;">{t('reports.tx_count')}</th>
-        <th style="text-align: right;">{t('reports.total_inflows')}</th>
-        <th style="text-align: right;">{t('reports.total_outflows')}</th>
-        <th style="text-align: right;">{t('reports.net_vault')}</th>
+        <th>${t('reports.currency')}</th>
+        <th style="text-align: center;">${t('reports.tx_count')}</th>
+        <th style="text-align: right;">${t('reports.total_inflows')}</th>
+        <th style="text-align: right;">${t('reports.total_outflows')}</th>
+        <th style="text-align: right;">${t('reports.net_vault')}</th>
       `;
       tableBodyRows = reportData.map(item => `
         <tr>
@@ -331,11 +331,11 @@ export default function Reports() {
       `).join('');
     } else if (reportType === 'audit') {
       tableHeaders = `
-        <th>{t('reports.timestamp')}</th>
-        <th>{t('reports.action')}</th>
-        <th>{t('reports.operator')}</th>
+        <th>${t('reports.timestamp')}</th>
+        <th>${t('reports.action')}</th>
+        <th>${t('reports.operator')}</th>
         <th>Description</th>
-        <th>{t('reports.ip_network_col')}</th>
+        <th>${t('reports.ip_network_col')}</th>
       `;
       tableBodyRows = reportData.map(item => `
         <tr>
@@ -348,13 +348,13 @@ export default function Reports() {
       `).join('');
     } else {
       tableHeaders = `
-        <th>{t('reports.receipt_no')}</th>
+        <th>${t('reports.receipt_no')}</th>
         <th>Date</th>
-        <th>{t('reports.cust_name')}</th>
-        <th>{t('reports.method')}</th>
-        <th>{t('reports.type')}</th>
-        <th style="text-align: right;">{t('reports.amount')}</th>
-        <th style="text-align: right;">{t('reports.eq_usd')}</th>
+        <th>${t('reports.cust_name')}</th>
+        <th>${t('reports.method')}</th>
+        <th>${t('reports.type')}</th>
+        <th style="text-align: right;">${t('reports.amount')}</th>
+        <th style="text-align: right;">${t('reports.eq_usd')}</th>
       `;
       tableBodyRows = reportData.map(item => `
         <tr>
@@ -376,11 +376,11 @@ export default function Reports() {
       const outTot = reportData.reduce((s, x) => s + (x.type === 'Paid' || x.debit > 0 ? (x.equivalent_amount || x.debit || 0) : 0), 0);
       totalBlock = `
         <div style="margin: 25px 0; padding: 15px; border: 1.5px solid #0284c7; background-color: #f0f9ff; border-radius: 8px; display: flex; justify-content: space-around; font-family: 'Segoe UI', Arial, sans-serif;">
-          <div><strong style="color: #0284c7; font-size: 11px; text-transform: uppercase;">{t('reports.total_cr_usd')}</strong><div style="font-size: 18px; font-weight: 850; color: #1e3a8a; margin-top: 4px;">$${inTot.toLocaleString(undefined, {minimumFractionDigits: 2})}</div></div>
+          <div><strong style="color: #0284c7; font-size: 11px; text-transform: uppercase;">${t('reports.total_cr_usd')}</strong><div style="font-size: 18px; font-weight: 850; color: #1e3a8a; margin-top: 4px;">$${inTot.toLocaleString(undefined, {minimumFractionDigits: 2})}</div></div>
           <div style="border-left: 1px solid #bae6fd;"></div>
-          <div><strong style="color: #0284c7; font-size: 11px; text-transform: uppercase;">{t('reports.total_db_usd')}</strong><div style="font-size: 18px; font-weight: 850; color: #1e3a8a; margin-top: 4px;">$${outTot.toLocaleString(undefined, {minimumFractionDigits: 2})}</div></div>
+          <div><strong style="color: #0284c7; font-size: 11px; text-transform: uppercase;">${t('reports.total_db_usd')}</strong><div style="font-size: 18px; font-weight: 850; color: #1e3a8a; margin-top: 4px;">$${outTot.toLocaleString(undefined, {minimumFractionDigits: 2})}</div></div>
           <div style="border-left: 1px solid #bae6fd;"></div>
-          <div><strong style="color: #0284c7; font-size: 11px; text-transform: uppercase;">{t('reports.net_bal_usd')}</strong><div style="font-size: 18px; font-weight: 850; color: ${(inTot - outTot) >= 0 ? '#10b981' : '#ef4444'}; margin-top: 4px;">$${(inTot - outTot).toLocaleString(undefined, {minimumFractionDigits: 2})}</div></div>
+          <div><strong style="color: #0284c7; font-size: 11px; text-transform: uppercase;">${t('reports.net_bal_usd')}</strong><div style="font-size: 18px; font-weight: 850; color: ${(inTot - outTot) >= 0 ? '#10b981' : '#ef4444'}; margin-top: 4px;">$${(inTot - outTot).toLocaleString(undefined, {minimumFractionDigits: 2})}</div></div>
         </div>
       `;
     }
@@ -497,19 +497,19 @@ export default function Reports() {
       </head>
       <body>
         <div class="no-print">
-          <button class="btn-print" onclick="window.print()">{t('reports.print_this')}</button>
+          <button class="btn-print" onclick="window.print()">${t('reports.print_this')}</button>
         </div>
         <header>
           <div class="brand-lockup">
-            <img class="brand-logo" src="${BRAND_LOGO}" alt={t('reports.company_name')} />
+            <img class="brand-logo" src="${BRAND_LOGO}" alt="${t('reports.company_name')}" />
             <div class="title-area">
-              <h1>{t('reports.company_name')}</h1>
+              <h1>${t('reports.company_name')}</h1>
               <p>${reportTitle}</p>
             </div>
           </div>
           <div class="meta-area">
             <div>${filterSummary}</div>
-            <div style="margin-top: 4px;">{t('reports.company_desc')}</div>
+            <div style="margin-top: 4px;">${t('reports.company_desc')}</div>
           </div>
         </header>
         
@@ -525,9 +525,9 @@ export default function Reports() {
         </table>
 
         <div class="signatures">
-          <div class="sig-box">{t('reports.prepared_by')}</div>
-          <div class="sig-box">{t('reports.verified_by')}</div>
-          <div class="sig-box">{t('reports.signature')}</div>
+          <div class="sig-box">${t('reports.prepared_by')}</div>
+          <div class="sig-box">${t('reports.verified_by')}</div>
+          <div class="sig-box">${t('reports.signature')}</div>
         </div>
       </body>
       </html>
@@ -570,7 +570,7 @@ export default function Reports() {
     <div className="space-y-6">
       
       {/* Header Panel */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
         <div>
           <h1 className="text-2xl font-black text-sky-900 leading-tight">{t('reports.title')}</h1>
           <p className="text-sm text-sky-500 font-medium mt-1">{t('reports.subtitle')}</p>
@@ -578,7 +578,7 @@ export default function Reports() {
       </div>
 
       {/* Premium Directory Tabs */}
-      <div className="flex flex-wrap gap-1.5 p-2 bg-gradient-to-r from-sky-100/60 to-white/60 backdrop-blur-xl rounded-2xl md:rounded-[24px] border border-white/80 shadow-[0_4px_20px_rgba(15,32,66,0.03)]">
+      <div className="flex flex-wrap gap-1.5 p-2 bg-gradient-to-r from-sky-100/60 to-white/60 backdrop-blur-xl rounded-2xl md:rounded-[24px] border border-white/80 shadow-[0_4px_20px_rgba(15,32,66,0.03)] print:hidden">
         {[
           { id: 'balance', label: 'Vault Net Position', icon: BarChart2 },
           { id: 'daily', label: 'Daily Journal', icon: Calendar },
@@ -721,7 +721,7 @@ export default function Reports() {
         <div className="space-y-6">
           
           {/* Dynamic Filters Form */}
-          <GlassCard className="p-5">
+          <GlassCard className="p-5 print:hidden">
             <h3 className="text-xs font-black text-sky-900 uppercase tracking-wider mb-4">{t('reports.report_filters')}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               
@@ -839,7 +839,7 @@ export default function Reports() {
           </GlassCard>
 
           {/* Action Toolbar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 print:hidden">
             <h3 className="text-sm font-extrabold text-sky-900">
               Filtered Records ({reportData.length} entries found)
             </h3>
@@ -864,7 +864,20 @@ export default function Reports() {
           </div>
 
           {/* Results Area Premium Container */}
-          <div className="relative flex flex-col flex-1 rounded-2xl md:rounded-[32px] overflow-hidden print:overflow-visible bg-white/70 backdrop-blur-2xl border border-white shadow-[0_12px_40px_rgba(15,32,66,0.06)]">
+          <div className="relative flex flex-col flex-1 rounded-2xl md:rounded-[32px] overflow-hidden print:overflow-visible print:rounded-none print:border-none print:shadow-none bg-white/70 backdrop-blur-2xl border border-white shadow-[0_12px_40px_rgba(15,32,66,0.06)]">
+            {/* Print-only clean statement header */}
+            <div className="hidden border-b-2 border-sky-900 px-6 py-4 print:block">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-lg font-black text-sky-900">{t('reports.company_name')}</h1>
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-sky-600">Financial Report</p>
+                </div>
+                <div className="text-right text-[10px] font-semibold text-slate-500">
+                  <p>Generated: <span className="font-black text-sky-900">{new Date().toLocaleDateString()}</span></p>
+                </div>
+              </div>
+            </div>
+
             {reportLoading ? (
               <div className="py-24 flex justify-center">
                 <Loader2 className="animate-spin text-sky-500" size={32} />
@@ -879,8 +892,8 @@ export default function Reports() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto app-scrollbar">
-                <table className="w-full text-left text-[13px] whitespace-nowrap">
+              <div className="overflow-x-auto app-scrollbar print:overflow-visible">
+                <table className="w-full text-left text-[13px] whitespace-nowrap print:text-[9px] print:whitespace-normal">
                   <thead className="bg-gradient-to-b from-sky-50/50 to-white/50 backdrop-blur-md sticky top-0 z-10 border-b border-sky-100">
                     <tr className="text-[10px] uppercase font-black text-sky-400 tracking-wider">
                       {reportType === 'customer' || reportType === 'bank' ? (
