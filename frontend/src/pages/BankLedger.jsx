@@ -379,13 +379,17 @@ export default function BankLedger() {
   const finalBalance = ledgerRows.length > 0 ? ledgerRows.at(-1)?.balance || 0 : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="bank-ledger-page space-y-6">
       
       {/* Header Panel */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
-        <div>
-          <h1 className="text-2xl font-black text-sky-900 leading-tight font-sans">{t('bankLedger.title')}</h1>
-          <p className="text-sm text-sky-500 font-medium mt-1">{t('bankLedger.subtitle')}</p>
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 print:hidden">
+        <div className="min-w-0">
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-sky-100 bg-white/70 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-sky-600 shadow-sm">
+            <Wallet size={12} />
+            Treasury control
+          </div>
+          <h1 className="text-2xl font-black tracking-tight text-sky-950 leading-tight font-sans">{t('bankLedger.title')}</h1>
+          <p className="text-sm text-sky-600/80 font-medium mt-1">{t('bankLedger.subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -411,7 +415,7 @@ export default function BankLedger() {
         
         {/* Ledger statement list */}
         <div className={isViewer ? "xl:col-span-3 space-y-6" : "xl:col-span-2 space-y-6"}>
-          <GlassCard className="p-6 print:border-none print:bg-white print:shadow-none">
+          <GlassCard className="p-4 sm:p-6 print:border-none print:bg-white print:shadow-none">
             {/* Print-only clean statement header (fallback if printed without the dedicated Print Statement button) */}
             <div className="hidden print:block mb-4">
               <div className="flex items-center justify-between border-b-2 border-sky-900 pb-3 mb-3">
@@ -428,7 +432,10 @@ export default function BankLedger() {
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-sky-100/80 pb-4 gap-3 mb-5 print:hidden">
-              <h2 className="text-base font-extrabold text-sky-900">{t('bankLedger.select_ledger')}</h2>
+              <div>
+                <h2 className="text-base font-extrabold tracking-tight text-sky-950">{t('bankLedger.select_ledger')}</h2>
+                <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">Choose a vault to review its running balance</p>
+              </div>
               {loadingAccounts ? (
                 <Loader2 className="animate-spin text-sky-500" size={18} />
               ) : (
@@ -476,6 +483,19 @@ export default function BankLedger() {
               )}
             </div>
 
+            {selectedAcc && (
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sky-100/80 bg-gradient-to-r from-sky-50/80 to-white/70 px-4 py-3 print:hidden">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-700"><Building size={16} /></span>
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-black text-sky-950">{selectedAcc.account_name}</p>
+                    <p className="truncate text-[10px] font-semibold text-slate-500">{selectedAcc.bank_name} · {selectedAcc.account_number}</p>
+                  </div>
+                </div>
+                <span className="rounded-full border border-sky-200 bg-white px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-sky-700">{currentCurrency}</span>
+              </div>
+            )}
+
             {accountError && (
               <div className="mb-4 flex flex-col gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-3 text-xs font-semibold text-rose-700 sm:flex-row sm:items-center sm:justify-between print:hidden" role="alert">
                 <span>{accountError}</span>
@@ -490,7 +510,7 @@ export default function BankLedger() {
                 
                 {/* Metric Summary Rows */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="rounded-2xl border border-white bg-white/70 shadow-sm p-4">
+                  <div className="rounded-2xl border border-white/80 bg-white/75 p-4 shadow-[0_8px_24px_rgba(15,42,74,0.06)] transition-transform hover:-translate-y-0.5">
                     <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">
                       <TrendingDown size={14} className="text-rose-500" />
                       {t('bankLedger.total_debit')}
@@ -499,7 +519,7 @@ export default function BankLedger() {
                       {formatCurrency(totalDebit, currentCurrency)}
                     </strong>
                   </div>
-                  <div className="rounded-2xl border border-white bg-white/70 shadow-sm p-4">
+                  <div className="rounded-2xl border border-white/80 bg-white/75 p-4 shadow-[0_8px_24px_rgba(15,42,74,0.06)] transition-transform hover:-translate-y-0.5">
                     <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">
                       <TrendingUp size={14} className="text-emerald-500" />
                       {t('bankLedger.total_credit')}
@@ -508,7 +528,7 @@ export default function BankLedger() {
                       {formatCurrency(totalCredit, currentCurrency)}
                     </strong>
                   </div>
-                  <div className="rounded-2xl border border-white bg-white/70 shadow-sm p-4">
+                  <div className="rounded-2xl border border-white/80 bg-white/75 p-4 shadow-[0_8px_24px_rgba(15,42,74,0.06)] transition-transform hover:-translate-y-0.5">
                     <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">
                       <Wallet size={14} className="text-sky-500" />
                       {t('bankLedger.current_balance')}
@@ -535,8 +555,8 @@ export default function BankLedger() {
                 ) : (
                   <div className="overflow-x-auto print:overflow-visible">
                     <table className="w-full min-w-[620px] text-left border-collapse print:min-w-0 print:text-[9px]">
-                      <thead>
-                        <tr className="border-b border-sky-100/50 text-[10px] font-bold text-sky-500 uppercase tracking-wider">
+                      <thead className="bg-sky-50/60">
+                        <tr className="border-b border-sky-100/70 text-[10px] font-black text-sky-600 uppercase tracking-[0.1em]">
                           <th className="pb-3 pr-2">{t('bankLedger.date')}</th>
                           <th className="pb-3 px-2">{t('bankLedger.description')}</th>
                           <th className="pb-3 px-2 text-right">{t('bankLedger.debit_out')}</th>
@@ -546,9 +566,9 @@ export default function BankLedger() {
                       </thead>
                       <tbody className="divide-y divide-sky-100/30 text-xs font-semibold text-sky-900/90">
                         {ledgerRows.map((row) => (
-                          <tr key={row.id} className="hover:bg-sky-50/20 transition-colors">
-                            <td className="py-3.5 pr-2 text-sky-500/70">{row.date}</td>
-                            <td className="py-3.5 px-2">{row.description}</td>
+                          <tr key={row.id} className="border-b border-sky-100/40 transition-colors odd:bg-white/35 even:bg-sky-50/25 hover:bg-sky-100/35">
+                            <td className="py-4 pr-2 text-[11px] font-bold text-sky-500/80">{row.date}</td>
+                            <td className="py-4 px-2 text-[11px]">{row.description}</td>
                             <td className="py-3.5 px-2 text-right font-black text-rose-600">
                               {row.debit ? formatCurrency(row.debit, currentCurrency) : '-'}
                             </td>
@@ -584,14 +604,18 @@ export default function BankLedger() {
         {/* Add/Edit Bank Account form (Visible to Admins/Accountants) */}
         {!isViewer && (
           <div className="xl:col-span-1 print:hidden">
-            <GlassCard className="p-6">
-              <div className="flex items-center justify-between border-b border-sky-100 pb-3 mb-5">
-                <h2 className="text-base font-extrabold text-sky-900 flex items-center gap-1.5">
-                  {editMode ? <Edit2 size={16} className="text-sky-500" /> : <Building size={18} className="text-sky-500" />}
-                  <span>{editMode ? 'Edit Account' : 'Add Bank Account'}</span>
-                </h2>
+            <GlassCard className="relative overflow-hidden p-5 sm:p-6">
+              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-500 via-blue-500 to-emerald-400" />
+              <div className="flex items-start justify-between border-b border-sky-100 pb-4 mb-5">
+                <div className="min-w-0">
+                  <h2 className="flex items-center gap-1.5 text-base font-extrabold text-sky-900">
+                    {editMode ? <Edit2 size={16} className="text-sky-500" /> : <Building size={18} className="text-sky-500" />}
+                    <span>{editMode ? 'Edit Account' : 'Add Bank Account'}</span>
+                  </h2>
+                  <p className="mt-1 text-[10px] font-semibold text-slate-400">{editMode ? 'Update vault details without changing its audit currency.' : 'Register a controlled bank or cash vault.'}</p>
+                </div>
                 {editMode && (
-                  <button onClick={handleCancelEdit} className="text-sky-400 hover:text-sky-600 transition-colors">
+                  <button onClick={handleCancelEdit} className="ml-3 text-sky-400 transition-colors hover:text-sky-600">
                     <X size={16} />
                   </button>
                 )}
@@ -605,7 +629,7 @@ export default function BankLedger() {
                   <input
                     type="text"
                     name="account_name"
-                    className="w-full px-3 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-xs font-semibold text-sky-900"
+                    className="min-h-11 w-full rounded-xl border border-sky-100 bg-white/60 px-3 py-2 text-xs font-semibold text-sky-900 shadow-inner shadow-sky-950/[0.02] transition focus:border-sky-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
                     placeholder="Dubai Hawala Desk, Main vault"
                     value={form.account_name}
                     onChange={handleFormChange}
@@ -620,7 +644,7 @@ export default function BankLedger() {
                   <input
                     type="text"
                     name="bank_name"
-                    className="w-full px-3 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-xs font-semibold text-sky-900"
+                    className="min-h-11 w-full rounded-xl border border-sky-100 bg-white/60 px-3 py-2 text-xs font-semibold text-sky-900 shadow-inner shadow-sky-950/[0.02] transition focus:border-sky-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
                     placeholder="AIB Bank, Hawala Desk"
                     value={form.bank_name}
                     onChange={handleFormChange}
@@ -635,7 +659,7 @@ export default function BankLedger() {
                   <input
                     type="text"
                     name="account_number"
-                    className="w-full px-3 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-xs font-semibold text-sky-900"
+                    className="min-h-11 w-full rounded-xl border border-sky-100 bg-white/60 px-3 py-2 text-xs font-semibold text-sky-900 shadow-inner shadow-sky-950/[0.02] transition focus:border-sky-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
                     placeholder="DXB-HWL-443"
                     value={form.account_number}
                     onChange={handleFormChange}
@@ -649,7 +673,7 @@ export default function BankLedger() {
                   </label>
                   <select
                     name="currency"
-                    className="w-full px-3 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-xs font-semibold text-sky-900"
+                    className="min-h-11 w-full rounded-xl border border-sky-100 bg-white/60 px-3 py-2 text-xs font-semibold text-sky-900 shadow-inner shadow-sky-950/[0.02] transition focus:border-sky-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
                     value={form.currency}
                     onChange={handleFormChange}
                     disabled={editMode} // Disable currency change on edit to preserve balance audit integrity
