@@ -382,7 +382,7 @@ export default function BankLedger() {
     <div className="space-y-6">
       
       {/* Header Panel */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
         <div>
           <h1 className="text-2xl font-black text-sky-900 leading-tight font-sans">{t('bankLedger.title')}</h1>
           <p className="text-sm text-sky-500 font-medium mt-1">{t('bankLedger.subtitle')}</p>
@@ -407,12 +407,27 @@ export default function BankLedger() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 print:block">
         
         {/* Ledger statement list */}
         <div className={isViewer ? "xl:col-span-3 space-y-6" : "xl:col-span-2 space-y-6"}>
-          <GlassCard className="p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-sky-100/80 pb-4 gap-3 mb-5">
+          <GlassCard className="p-6 print:border-none print:bg-white print:shadow-none">
+            {/* Print-only clean statement header (fallback if printed without the dedicated Print Statement button) */}
+            <div className="hidden print:block mb-4">
+              <div className="flex items-center justify-between border-b-2 border-sky-900 pb-3 mb-3">
+                <div>
+                  <h1 className="text-lg font-black text-sky-900">{COMPANY_NAME}</h1>
+                  <p className="text-[10px] font-bold text-sky-600 uppercase tracking-wide">Bank Ledger &amp; Vaults Statement</p>
+                </div>
+                <div className="text-right text-[10px] font-semibold text-slate-600">
+                  <p>Account: <span className="font-black text-sky-900">{selectedAcc?.account_name || '-'}</span></p>
+                  <p>{selectedAcc?.bank_name} ({selectedAcc?.account_number})</p>
+                  <p>Generated: {new Date().toLocaleDateString()}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-sky-100/80 pb-4 gap-3 mb-5 print:hidden">
               <h2 className="text-base font-extrabold text-sky-900">{t('bankLedger.select_ledger')}</h2>
               {loadingAccounts ? (
                 <Loader2 className="animate-spin text-sky-500" size={18} />
@@ -462,7 +477,7 @@ export default function BankLedger() {
             </div>
 
             {accountError && (
-              <div className="mb-4 flex flex-col gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-3 text-xs font-semibold text-rose-700 sm:flex-row sm:items-center sm:justify-between" role="alert">
+              <div className="mb-4 flex flex-col gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-3 text-xs font-semibold text-rose-700 sm:flex-row sm:items-center sm:justify-between print:hidden" role="alert">
                 <span>{accountError}</span>
                 <button type="button" onClick={() => fetchAccounts(false)} className="w-fit rounded-lg bg-rose-100 px-3 py-2 font-black text-rose-800 hover:bg-rose-200">
                   Retry
@@ -518,8 +533,8 @@ export default function BankLedger() {
                     </button>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[620px] text-left border-collapse">
+                  <div className="overflow-x-auto print:overflow-visible">
+                    <table className="w-full min-w-[620px] text-left border-collapse print:min-w-0 print:text-[9px]">
                       <thead>
                         <tr className="border-b border-sky-100/50 text-[10px] font-bold text-sky-500 uppercase tracking-wider">
                           <th className="pb-3 pr-2">{t('bankLedger.date')}</th>
@@ -568,7 +583,7 @@ export default function BankLedger() {
 
         {/* Add/Edit Bank Account form (Visible to Admins/Accountants) */}
         {!isViewer && (
-          <div className="xl:col-span-1">
+          <div className="xl:col-span-1 print:hidden">
             <GlassCard className="p-6">
               <div className="flex items-center justify-between border-b border-sky-100 pb-3 mb-5">
                 <h2 className="text-base font-extrabold text-sky-900 flex items-center gap-1.5">
