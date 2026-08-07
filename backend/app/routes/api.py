@@ -748,14 +748,34 @@ def download_transaction_pdf(transaction_id: int, db: Session = Depends(get_db),
     return Response(transaction_pdf(transaction, settings), media_type="application/pdf", headers={"Content-Disposition": f'attachment; filename="{transaction.receipt_no}.pdf"'})
 
 
+def _attach_receipt_numbers(db: Session, rows: list):
+    """Attach the real transaction receipt_no (e.g. SKY-TX-0007) onto ledger rows,
+    which only store the internal transaction_id foreign key by default."""
+    transaction_ids = {row.transaction_id for row in rows if row.transaction_id}
+    receipts: dict[int, str] = {}
+    if transaction_ids:
+        receipts = dict(
+            db.execute(
+                select(models.Transaction.id, models.Transaction.receipt_no).where(
+                    models.Transaction.id.in_(transaction_ids)
+                )
+            ).all()
+        )
+    for row in rows:
+        row.receipt_no = receipts.get(row.transaction_id)
+    return rows
+
+
 @router.get("/ledger/customer/{customer_id}", response_model=list[schemas.LedgerRead])
 def customer_ledger(customer_id: int, db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
-    return db.scalars(select(models.CustomerLedger).where(models.CustomerLedger.customer_id == customer_id).order_by(models.CustomerLedger.date, models.CustomerLedger.id)).all()
+    rows = db.scalars(select(models.CustomerLedger).where(models.CustomerLedger.customer_id == customer_id).order_by(models.CustomerLedger.date, models.CustomerLedger.id)).all()
+    return _attach_receipt_numbers(db, rows)
 
 
 @router.get("/ledger/bank/{bank_account_id}", response_model=list[schemas.LedgerRead])
 def bank_ledger(bank_account_id: int, db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
-    return db.scalars(select(models.BankLedger).where(models.BankLedger.bank_account_id == bank_account_id).order_by(models.BankLedger.date, models.BankLedger.id)).all()
+    rows = db.scalars(select(models.BankLedger).where(models.BankLedger.bank_account_id == bank_account_id).order_by(models.BankLedger.date, models.BankLedger.id)).all()
+    return _attach_receipt_numbers(db, rows)
 
 
 @router.get("/dashboard/summary", response_model=schemas.DashboardSummary)

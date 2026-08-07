@@ -245,7 +245,7 @@ export default function CustomerLedger() {
     const rows = ledgerRows.map((row) => `
       <tr>
         <td>${escapeHtml(formatDate(row.date))}</td>
-        <td>${row.transaction_id ? `TX-${row.transaction_id}` : 'OP'}</td>
+        <td>${escapeHtml(row.receipt_no || 'OP')}</td>
         <td>${escapeHtml(row.description || '-')}</td>
         <td class="amount debit">${row.debit ? formatCurrency(row.debit, 'USD') : '-'}</td>
         <td class="amount credit">${row.credit ? formatCurrency(row.credit, 'USD') : '-'}</td>
@@ -382,7 +382,7 @@ export default function CustomerLedger() {
       COMPANY_NAME,
       selectedCustomer.name,
       row.date,
-      row.transaction_id ? `TX-${row.transaction_id}` : 'OP',
+      row.receipt_no || 'OP',
       row.description || '',
       row.debit || 0,
       row.credit || 0,
@@ -687,7 +687,7 @@ export default function CustomerLedger() {
                             <div className="flex items-center gap-2">
                               <span className="text-[11px] font-bold text-sky-600">{formatDate(row.date)}</span>
                               <span className="text-[10px] font-black text-sky-950 bg-sky-50 px-2 py-0.5 rounded-lg">
-                                {row.transaction_id ? `TX-${row.transaction_id}` : 'OP'}
+                                {row.receipt_no || 'OP'}
                               </span>
                             </div>
                             <div className="text-right">
@@ -757,7 +757,7 @@ export default function CustomerLedger() {
                             <tr key={row.id} className="hover:bg-sky-50/40 transition-colors">
                               <td className="py-4 pl-5 pr-4 text-sky-500 whitespace-nowrap">{formatDate(row.date)}</td>
                               <td className="py-4 px-4 font-black text-sky-950 whitespace-nowrap">
-                                <span className="bg-sky-50 px-2 py-1 rounded-lg text-xs">{row.transaction_id ? `TX-${row.transaction_id}` : 'OP'}</span>
+                                <span className="bg-sky-50 px-2 py-1 rounded-lg text-xs">{row.receipt_no || 'OP'}</span>
                               </td>
                               <td className="py-4 px-4 min-w-[220px]">{row.description || '-'}</td>
                               <td className="py-4 px-4 text-right font-black text-rose-600 whitespace-nowrap">

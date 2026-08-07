@@ -153,6 +153,7 @@ class TransactionRead(TransactionBase):
 class LedgerRead(BaseModel):
     id: int
     transaction_id: int
+    receipt_no: Optional[str] = None
     date: dt_date
     description: str
     debit: float
