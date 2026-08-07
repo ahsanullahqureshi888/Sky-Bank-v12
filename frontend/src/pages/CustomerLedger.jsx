@@ -403,7 +403,7 @@ export default function CustomerLedger() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between print:hidden">
         <div className="min-w-0">
           <h1 className="text-2xl font-black text-sky-950 leading-tight tracking-normal">{t('customerLedger.customer_ledger')}</h1>
           <p className="text-sm text-sky-600 font-semibold mt-1">
@@ -430,8 +430,8 @@ export default function CustomerLedger() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-5 items-start">
-        <div className="flex flex-col gap-5 xl:sticky xl:top-5 xl:max-h-[calc(100vh-40px)] overflow-y-auto nav-scrollbar xl:pb-0 pb-10 pr-1">
+      <div className="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-5 items-start print:block">
+        <div className="flex flex-col gap-5 xl:sticky xl:top-5 xl:max-h-[calc(100vh-40px)] overflow-y-auto nav-scrollbar xl:pb-0 pb-10 pr-1 print:hidden">
           <GlassCard className="p-5 shrink-0">
           <div className="flex items-center justify-between gap-3 mb-4">
             <div>
@@ -622,8 +622,22 @@ export default function CustomerLedger() {
                 />
               </div>
 
-              <GlassCard className="p-5 sm:p-6 min-w-0">
-                <div className="border-b border-sky-100 pb-5 mb-5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <GlassCard className="p-5 sm:p-6 min-w-0 print:border-none print:bg-white print:shadow-none">
+                {/* Print-only clean statement header (fallback if printed without the dedicated Print Ledger button) */}
+                <div className="hidden print:block mb-4">
+                  <div className="flex items-center justify-between border-b-2 border-sky-900 pb-3 mb-3">
+                    <div>
+                      <h1 className="text-lg font-black text-sky-950">{COMPANY_NAME}</h1>
+                      <p className="text-[10px] font-bold text-sky-600 uppercase tracking-wide">Customer Account Statement</p>
+                    </div>
+                    <div className="text-right text-[10px] font-semibold text-slate-600">
+                      <p>Customer: <span className="font-black text-sky-950">{selectedCustomer.name}</span></p>
+                      <p>Generated: {new Date().toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-b border-sky-100 pb-5 mb-5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 print:hidden">
                   <div className="min-w-0">
                     <h2 className="text-xl font-black text-sky-950 leading-snug truncate">
                       {selectedCustomer.name}
@@ -661,7 +675,7 @@ export default function CustomerLedger() {
                 ) : (
                   <div>
                     {/* Mobile Cards Statement View */}
-                    <div className="block md:hidden space-y-3.5 ios-card-fade-up">
+                    <div className="block md:hidden print:hidden space-y-3.5 ios-card-fade-up">
                       {ledgerRows.map((row) => (
                         <div 
                           key={row.id} 
@@ -726,8 +740,8 @@ export default function CustomerLedger() {
                     </div>
 
                     {/* Desktop Table View */}
-                    <div className="hidden md:block overflow-x-auto app-scrollbar rounded-2xl border border-sky-100 bg-white/50">
-                      <table className="w-full text-left border-collapse">
+                    <div className="hidden md:block print:block overflow-x-auto print:overflow-visible app-scrollbar rounded-2xl border border-sky-100 bg-white/50 print:border-none">
+                      <table className="w-full text-left border-collapse print:text-[9px]">
                         <thead>
                           <tr className="bg-slate-50/80 border-b border-sky-100 text-[11px] font-black text-sky-600 uppercase tracking-[0.15em]">
                             <th className="py-3.5 pl-5 pr-4">{t('customerLedger.date')}</th>
