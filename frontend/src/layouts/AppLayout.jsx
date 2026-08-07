@@ -15,7 +15,9 @@ import {
   LogOut,
   Menu,
   X,
-  User
+  User,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { authAPI, settingsAPI } from '../api/client';
 
@@ -65,22 +67,26 @@ export default function AppLayout({ children }) {
     navigate('/login');
   };
 
-  const allNavItems = [
-    { name: t('nav.dashboard'), path: '/', icon: LayoutDashboard, roles: ['Admin', 'Accountant', 'Viewer'] },
-    { name: t('nav.add_transaction'), path: '/add-transaction', icon: PlusCircle, roles: ['Admin', 'Accountant'] },
-    { name: t('nav.transaction_history'), path: '/transactions', icon: History, roles: ['Admin', 'Accountant', 'Viewer'] },
-    { name: t('nav.customer_ledger'), path: '/customer-ledger', icon: Users, roles: ['Admin', 'Accountant', 'Viewer'] },
-    { name: 'Sarafi Ledger', path: '/sarafi-ledger', icon: Users, roles: ['Admin', 'Accountant', 'Viewer'] },
-    { name: t('nav.bank_ledger'), path: '/bank-ledger', icon: Building, roles: ['Admin', 'Accountant', 'Viewer'] },
+  const NAV_GROUPS = ['Overview', 'Operations', 'Management'];
 
-    { name: t('nav.reports'), path: '/reports', icon: FileSpreadsheet, roles: ['Admin', 'Accountant', 'Viewer'] },
-    { name: t('nav.users'), path: '/users', icon: UserCheck, roles: ['Admin'] },
-    { name: t('nav.backup'), path: '/backup', icon: Database, roles: ['Admin'] },
-    { name: t('nav.settings'), path: '/settings', icon: SettingsIcon, roles: ['Admin'] },
+  const allNavItems = [
+    { name: t('nav.dashboard'), path: '/', icon: LayoutDashboard, roles: ['Admin', 'Accountant', 'Viewer'], group: 'Overview' },
+    { name: t('nav.add_transaction'), path: '/add-transaction', icon: PlusCircle, roles: ['Admin', 'Accountant'], group: 'Operations' },
+    { name: t('nav.transaction_history'), path: '/transactions', icon: History, roles: ['Admin', 'Accountant', 'Viewer'], group: 'Operations' },
+    { name: t('nav.customer_ledger'), path: '/customer-ledger', icon: Users, roles: ['Admin', 'Accountant', 'Viewer'], group: 'Operations' },
+    { name: 'Sarafi Ledger', path: '/sarafi-ledger', icon: Users, roles: ['Admin', 'Accountant', 'Viewer'], group: 'Operations' },
+    { name: t('nav.bank_ledger'), path: '/bank-ledger', icon: Building, roles: ['Admin', 'Accountant', 'Viewer'], group: 'Operations' },
+    { name: t('nav.reports'), path: '/reports', icon: FileSpreadsheet, roles: ['Admin', 'Accountant', 'Viewer'], group: 'Operations' },
+    { name: t('nav.users'), path: '/users', icon: UserCheck, roles: ['Admin'], group: 'Management' },
+    { name: t('nav.backup'), path: '/backup', icon: Database, roles: ['Admin'], group: 'Management' },
+    { name: t('nav.settings'), path: '/settings', icon: SettingsIcon, roles: ['Admin'], group: 'Management' },
   ];
 
   const userRole = user.role || 'Viewer';
   const navItems = allNavItems.filter(item => item.roles.includes(userRole));
+  const groupedNavItems = NAV_GROUPS
+    .map((group) => ({ group, items: navItems.filter((item) => item.group === group) }))
+    .filter((g) => g.items.length > 0);
 
   // Close sidebar on navigation on mobile
   useEffect(() => {
@@ -227,6 +233,19 @@ export default function AppLayout({ children }) {
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
+        {/* Discoverable desktop collapse/expand toggle */}
+        <button
+          onClick={() => {
+            const newState = !sidebarCollapsed;
+            setSidebarCollapsed(newState);
+            localStorage.setItem('sky_sidebar_collapsed', JSON.stringify(newState));
+          }}
+          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="hidden md:flex absolute -right-3 top-9 z-10 h-6 w-6 items-center justify-center rounded-full border border-sky-100 bg-white text-sky-500 shadow-md shadow-sky-950/10 transition-all duration-200 hover:bg-sky-50 hover:text-sky-600 hover:scale-110"
+        >
+          {sidebarCollapsed ? <ChevronRight size={13} strokeWidth={2.5} /> : <ChevronLeft size={13} strokeWidth={2.5} />}
+        </button>
         <div className={`flex h-full min-h-0 flex-col overflow-hidden px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(16px,env(safe-area-inset-top))] ${sidebarCollapsed ? 'md:px-2 md:py-4' : 'md:p-4'}`}>
           {/* Header branding logo */}
           <div className="shrink-0 pb-3">
@@ -267,36 +286,48 @@ export default function AppLayout({ children }) {
           </div>
 
           {/* Navigation Links */}
-          <nav className="nav-scrollbar flex-1 min-h-0 space-y-1 overflow-y-auto overflow-x-hidden border-t border-sky-100/70 py-3 pr-1">
-            {navItems.map((item) => {
-              const IconComponent = item.icon;
-              const isActive =
-                item.path === '/'
-                  ? location.pathname === '/'
-                  : location.pathname.startsWith(item.path);
+          <nav className="nav-scrollbar flex-1 min-h-0 space-y-4 overflow-y-auto overflow-x-hidden border-t border-sky-100/70 py-3 pr-1">
+            {groupedNavItems.map(({ group, items }) => (
+              <div key={group} className="space-y-1">
+                {!sidebarCollapsed && (
+                  <p className="px-4 pb-1 text-[9.5px] font-black uppercase tracking-[0.18em] text-sky-400/70">
+                    {group}
+                  </p>
+                )}
+                {items.map((item) => {
+                  const IconComponent = item.icon;
+                  const isActive =
+                    item.path === '/'
+                      ? location.pathname === '/'
+                      : location.pathname.startsWith(item.path);
 
-              return (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  title={sidebarCollapsed ? item.name : undefined}
-                  onClick={(event) => handleDrawerNavigation(event, item.path)}
-                  className={`group flex h-11 items-center gap-3 rounded-xl ${sidebarCollapsed ? 'px-0 justify-center' : 'px-4'} text-[13.5px] font-black transition-all duration-300 ios-button-tap ${
-                    isActive
-                      ? 'bg-white text-sky-600 shadow-md shadow-sky-950/5 border border-sky-100 ring-4 ring-sky-50/50'
-                      : 'text-slate-600 hover:bg-sky-50/50 hover:text-sky-950 active:bg-sky-100/50'
-                  }`}
-                >
-                  <IconComponent
-                    size={18}
-                    className={`shrink-0 transition-transform duration-300 group-hover:scale-110 ${
-                      isActive ? 'text-sky-500' : 'text-slate-400 group-hover:text-sky-500'
-                    }`}
-                  />
-                  {!sidebarCollapsed && <span className="min-w-0 truncate">{item.name}</span>}
-                </Link>
-              );
-            })}
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.path}
+                      title={sidebarCollapsed ? item.name : undefined}
+                      onClick={(event) => handleDrawerNavigation(event, item.path)}
+                      className={`group relative flex h-11 items-center gap-3 rounded-xl ${sidebarCollapsed ? 'px-0 justify-center' : 'px-4'} text-[13.5px] font-black transition-all duration-300 ios-button-tap ${
+                        isActive
+                          ? 'bg-white text-sky-600 shadow-md shadow-sky-950/5 border border-sky-100 ring-4 ring-sky-50/50'
+                          : 'text-slate-600 hover:bg-sky-50/50 hover:text-sky-950 active:bg-sky-100/50'
+                      }`}
+                    >
+                      {isActive && (
+                        <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full bg-sky-500" />
+                      )}
+                      <IconComponent
+                        size={18}
+                        className={`shrink-0 transition-transform duration-300 group-hover:scale-110 ${
+                          isActive ? 'text-sky-500' : 'text-slate-400 group-hover:text-sky-500'
+                        }`}
+                      />
+                      {!sidebarCollapsed && <span className="min-w-0 truncate">{item.name}</span>}
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
           </nav>
 
           {/* Footer profile & logout */}
