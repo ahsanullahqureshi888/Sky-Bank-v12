@@ -19,6 +19,17 @@ const TYPE_BADGES = {
   Export: { icon: ArrowUpCircle, color: '#d97706', bg: '#fffbeb', border: '#fde68a', label: 'EXPORT' },
 };
 
+// Money direction is a separate concern from transaction "type" branding above (which uses 4
+// distinct colors to differentiate Received/Paid/Import/Export). For the headline amount, we
+// always want a single unambiguous 2-color signal - green in, rose out - matching the same
+// convention used across the rest of the app (Transaction Detail, Ledger tables).
+const INFLOW_TYPES = new Set(['Received', 'Import']);
+const isInflowType = (type) => INFLOW_TYPES.has(type);
+const DIRECTION_COLORS = {
+  in: { color: '#059669', icon: ArrowDownLeft },
+  out: { color: '#e11d48', icon: ArrowUpRight },
+};
+
 const STATUS_BADGES = {
   Completed: { icon: CheckCircle2, color: '#059669', bg: '#ecfdf5', border: '#a7f3d0' },
   Pending: { icon: Clock3, color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
@@ -181,6 +192,11 @@ function CurrencySeal({ currency }) {
   );
 }
 
+function DirectionIcon({ inflow }) {
+  const { color, icon: Icon } = inflow ? DIRECTION_COLORS.in : DIRECTION_COLORS.out;
+  return <Icon size={14} strokeWidth={3} color={color} style={{ flexShrink: 0 }} />;
+}
+
 function ReceiptNumberBar({ receiptNo }) {
   if (!receiptNo || receiptNo === '—') return null;
   const digits = receiptNo.replace(/[^0-9]/g, '');
@@ -280,9 +296,12 @@ export default function ReceiptDocument({
           <ReceiptLabel labelKey="receipt.amount" tEn={tEn} tSecondary={tSecondary} />
           <div className="receipt-amount-display" style={{ display: 'flex', alignItems: 'center', gap: '2mm', marginTop: '2mm' }}>
             <CurrencySeal currency={safeText(transaction.currency, '')} />
-            <strong style={{ fontSize: '15pt', color: TYPE_BADGES[transaction.type]?.color || '#0f2a4a' }}>
-              {transaction.type === 'Received' || transaction.type === 'Import' ? '+' : '-'}{formatReceiptAmount(transaction.amount)}
-            </strong>
+            <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: '1mm' }}>
+              <DirectionIcon inflow={isInflowType(transaction.type)} />
+              <strong style={{ fontSize: '15pt', color: isInflowType(transaction.type) ? DIRECTION_COLORS.in.color : DIRECTION_COLORS.out.color }}>
+                {isInflowType(transaction.type) ? '+' : '-'}{formatReceiptAmount(transaction.amount)}
+              </strong>
+            </span>
             <span className="receipt-currency text-sky-700/70 font-bold ml-1 text-[0.75em] tracking-wide">{safeText(transaction.currency, '')}</span>
           </div>
           {transaction.type && <div style={{ marginTop: '2mm' }}><TypeBadge type={transaction.type} /></div>}
@@ -324,7 +343,9 @@ export default function ReceiptDocument({
           <DetailRow labelKey="receipt.payment_method" value={transaction.payment_method} tEn={tEn} tSecondary={tSecondary} />
           <DetailRow labelKey="receipt.bank_account" value={bankLabel} tEn={tEn} tSecondary={tSecondary} />
           <DetailRow labelKey="receipt.currency" value={transaction.currency} tEn={tEn} tSecondary={tSecondary} />
-          <DetailRow labelKey="receipt.equivalent_currency" value={transaction.equivalent_currency} tEn={tEn} tSecondary={tSecondary} />
+          {Number(transaction.equivalent_amount || 0) > 0 && (
+            <DetailRow labelKey="receipt.equivalent_currency" value={transaction.equivalent_currency} tEn={tEn} tSecondary={tSecondary} />
+          )}
         </dl>
       </section>
 
