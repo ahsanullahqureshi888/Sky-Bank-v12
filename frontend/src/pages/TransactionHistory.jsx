@@ -247,16 +247,18 @@ export default function TransactionHistory() {
       .report-title h2 { margin: 0; color: #0f2a4a; font-size: 14pt; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; }
       .report-title p { margin: 0.7mm 0 0; color: #64748b; font-size: 7.5pt; }
       .report-scope { max-width: 120mm; color: #2563eb; font-size: 7.5pt; font-weight: 800; text-align: right; }
-      .summary { display: grid; grid-template-columns: 1.25fr 0.6fr 1fr 1fr; gap: 2mm; margin-bottom: 2mm; }
+      .summary { display: grid; grid-template-columns: 1.1fr 0.5fr 0.9fr 0.9fr 0.9fr; gap: 2mm; margin-bottom: 2mm; }
       .summary-card { min-height: 14mm; padding: 1.8mm 3mm; border: 1px solid #dbeafe; border-radius: 2.5mm; background: #f7fbff; }
       .summary-card.received-card { border-color: #b7e9d2; background: #f0fdf7; }
       .summary-card.paid-card { border-color: #ffd0d8; background: #fff7f8; }
-      .label { display: block; margin-bottom: 1.2mm; color: #64748b; font-size: 6.6pt; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
-      .value { color: #10233f; font-size: 10pt; font-weight: 900; line-height: 1.25; }
+      .summary-card.net-card { border-color: #fcd34d; background: #fffbeb; }
+      .summary-card .label { display: block; margin-bottom: 1.2mm; color: #64748b; font-size: 6.6pt; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
+      .summary-card .value { color: #10233f; font-size: 10pt; font-weight: 900; line-height: 1.25; }
       .received-card .value { color: #047857; }
       .paid-card .value { color: #be123c; }
+      .net-card .value { color: #b45309; }
       .filter-value { font-size: 8.2pt; white-space: normal; }
-      .volume-line { display: block; white-space: nowrap; }
+      .volume-line { display: block; line-height: 1.5; white-space: nowrap; }
       .table-shell { overflow: hidden; border: 1px solid #cfe0f3; border-radius: 2.5mm; }
       table { width: 100%; border-collapse: collapse; table-layout: fixed; }
       thead { display: table-header-group; }
@@ -284,14 +286,28 @@ export default function TransactionHistory() {
   `;
 
   const buildArchivePrintHtml = () => {
-    const currencyVolumes = (type) => {
+    const currencyVolumes = (direction) => {
       const totals = new Map();
       transactions
-        .filter((tx) => tx.type === type)
+        .filter((tx) => (direction === 'Received' ? tx.type === 'Received' : tx.type !== 'Received'))
         .forEach((tx) => {
           const currency = tx.currency || 'Unknown';
           totals.set(currency, (totals.get(currency) || 0) + Number(tx.amount || 0));
         });
+      if (!totals.size) return '<span class="volume-line">0.00</span>';
+      return Array.from(totals.entries())
+        .map(([currency, amount]) => `<span class="volume-line">${escapeHtml(formatCurrency(amount, currency))}</span>`)
+        .join('');
+    };
+
+    const currencyNetVolume = () => {
+      const totals = new Map();
+      transactions.forEach((tx) => {
+        const currency = tx.currency || 'Unknown';
+        const amount = Number(tx.amount || 0);
+        const sign = tx.type === 'Received' ? 1 : -1;
+        totals.set(currency, (totals.get(currency) || 0) + amount * sign);
+      });
       if (!totals.size) return '<span class="volume-line">0.00</span>';
       return Array.from(totals.entries())
         .map(([currency, amount]) => `<span class="volume-line">${escapeHtml(formatCurrency(amount, currency))}</span>`)
@@ -347,6 +363,7 @@ export default function TransactionHistory() {
               <div class="summary-card"><span class="label">Total Records</span><span class="value">${archiveTotals.count}</span></div>
               <div class="summary-card received-card"><span class="label">Received Volume</span><span class="value">${currencyVolumes('Received')}</span></div>
               <div class="summary-card paid-card"><span class="label">Paid Volume</span><span class="value">${currencyVolumes('Paid')}</span></div>
+              <div class="summary-card net-card"><span class="label">Net Volume</span><span class="value">${currencyNetVolume()}</span></div>
             </div>
             <div class="table-shell">
               <table>
