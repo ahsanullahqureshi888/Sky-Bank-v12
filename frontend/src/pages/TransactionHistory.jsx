@@ -592,7 +592,7 @@ export default function TransactionHistory() {
   };
 
   return (
-    <div className="space-y-6">
+    <div id="transaction-history-page" className="transaction-history-page space-y-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between print:hidden">
         <div className="min-w-0">
           <h1 className="text-2xl font-black text-sky-950 leading-tight tracking-normal">{t('transactionHistory.title')}</h1>
