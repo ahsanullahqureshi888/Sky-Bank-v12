@@ -223,7 +223,7 @@ export default function AppLayout({ children }) {
         aria-label="Main navigation"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
-        className={`mobile-drawer fixed inset-y-0 left-0 z-[60] h-[100dvh] w-[85vw] max-w-[340px] shrink-0 border-r border-sky-100 bg-white/95 shadow-2xl shadow-slate-950/20 backdrop-blur-2xl transition-all duration-300 ease-out will-change-transform md:relative md:z-auto md:h-full ${sidebarCollapsed ? 'md:w-[84px]' : 'md:w-[290px]'} md:max-w-none md:translate-x-0 md:bg-white/84 md:shadow-none ${
+        className={`print:hidden mobile-drawer fixed inset-y-0 left-0 z-[60] h-[100dvh] w-[85vw] max-w-[340px] shrink-0 border-r border-sky-100 bg-white/95 shadow-2xl shadow-slate-950/20 backdrop-blur-2xl transition-all duration-300 ease-out will-change-transform md:relative md:z-auto md:h-full ${sidebarCollapsed ? 'md:w-[84px]' : 'md:w-[290px]'} md:max-w-none md:translate-x-0 md:bg-white/84 md:shadow-none ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -348,7 +348,7 @@ export default function AppLayout({ children }) {
 
     {/* iOS Bottom Tab Navigation for Mobile */}
     {!isFormOrDetailView && (
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-2xl border-t border-sky-100/60 flex items-center justify-around px-2 pt-2 pb-[calc(12px+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(15,32,60,0.05)] min-h-[64px]">
+      <nav className="print:hidden md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-2xl border-t border-sky-100/60 flex items-center justify-around px-2 pt-2 pb-[calc(12px+env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(15,32,60,0.05)] min-h-[64px]">
         {bottomTabs.map((item) => {
           const IconComponent = item.icon;
           const isActive = item.path === '/' 
@@ -388,7 +388,7 @@ export default function AppLayout({ children }) {
     <button
       type="button"
       onClick={closeSidebar}
-      className={`fixed inset-0 z-[55] w-screen h-screen bg-slate-950/45 backdrop-blur-[3px] transition-opacity duration-300 md:hidden ${
+      className={`print:hidden fixed inset-0 z-[55] w-screen h-screen bg-slate-950/45 backdrop-blur-[3px] transition-opacity duration-300 md:hidden ${
         sidebarOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
       }`}
       aria-label="Close navigation"

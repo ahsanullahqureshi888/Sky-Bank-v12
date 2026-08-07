@@ -1,10 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { Building, Plus, Printer, FileSpreadsheet, Loader2, Save, Trash2, Edit2, X } from 'lucide-react';
+import { Building, Plus, Printer, FileSpreadsheet, Loader2, Save, Trash2, Edit2, X, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { bankAPI } from '../api/client';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import GlassCard from '../components/GlassCard';
 import StatCard from '../components/StatCard';
+
+
+const COMPANY_NAME = 'Sky Ariana Limited';
+const COMPANY_SUBTITLE = 'Money Transaction & Hawala Receipt Management System';
+const COMPANY_LOGO = '/sky-bbb-logo.png';
+
+const escapeHtml = (value) =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
+const openPrintWindow = (html, title = 'Print') => {
+  const printWindow = window.open('', '_blank', 'width=1120,height=820');
+  if (!printWindow) {
+    alert('Please allow popups to print this document.');
+    return;
+  }
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+  printWindow.document.title = title;
+};
 
 const currencies = ['USD', 'Toman', 'Dirham', 'Afghani'];
 
@@ -185,9 +210,147 @@ export default function BankLedger() {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+
+  const buildLedgerPrintHtml = () => {
+    const printStyle = `
+      <style>
+        @page { size: A4 landscape; margin: 9mm; }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; background: #fff; }
+        body { font-family: Inter, Arial, sans-serif; color: #10233f; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .sheet { position: relative; overflow: hidden; border: 1px solid #cfe0f3; background: #fff; padding: 4mm; }
+        .top-rule { position: absolute; inset: 0 0 auto; height: 2mm; background: linear-gradient(90deg, #0f2a4a, #2563eb 72%, #c79a45); }
+        .brand { display: flex; justify-content: space-between; align-items: center; gap: 8mm; padding: 1.5mm 0 2mm; border-bottom: 1px solid #c79a45; }
+        .brand-left { display: flex; min-width: 0; align-items: center; }
+        .logo { display: inline-flex; width: 22mm; height: 15mm; flex: 0 0 auto; align-items: center; justify-content: center; margin-right: 4mm; overflow: hidden; border: 1px solid #d9e8f7; border-radius: 3mm; background: #fff; }
+        .logo img { width: 100%; height: 100%; object-fit: contain; padding: 1mm; }
+        h1 { margin: 0; color: #0f2a4a; font-size: 18pt; font-weight: 900; line-height: 1.05; }
+        .subtitle { margin-top: 1.2mm; color: #2563eb; font-size: 8.2pt; font-weight: 800; text-transform: uppercase; }
+        .report-meta { min-width: 55mm; overflow: hidden; border: 1px solid #cfe0f3; border-radius: 3mm; background: #f8fbff; }
+        .report-meta div { display: flex; justify-content: space-between; gap: 5mm; padding: 1.5mm 2.5mm; border-bottom: 1px solid #e4edf7; font-size: 7.6pt; }
+        .report-meta div:last-child { border-bottom: 0; }
+        .report-meta span { color: #64748b; font-weight: 700; }
+        .report-meta strong { color: #0f2a4a; font-weight: 900; }
+        .report-title { display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; padding: 2mm 0 1.5mm; }
+        .report-title h2 { margin: 0; color: #0f2a4a; font-size: 14pt; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; }
+        .report-title p { margin: 0.7mm 0 0; color: #64748b; font-size: 7.5pt; }
+        .report-scope { max-width: 120mm; color: #2563eb; font-size: 7.5pt; font-weight: 800; text-align: right; }
+        .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2mm; margin-bottom: 2mm; }
+        .summary-card { min-height: 14mm; padding: 1.8mm 3mm; border: 1px solid #dbeafe; border-radius: 2.5mm; background: #f7fbff; }
+        .summary-card.debit-card { border-color: #ffd0d8; background: #fff7f8; }
+        .summary-card.credit-card { border-color: #b7e9d2; background: #f0fdf7; }
+        .summary-card.balance-card { border-color: #bfdbfe; background: #eff6ff; }
+        .summary-card .label { display: block; margin-bottom: 1.2mm; color: #64748b; font-size: 6.6pt; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
+        .summary-card .value { color: #10233f; font-size: 10pt; font-weight: 900; line-height: 1.25; }
+        .debit-card .value { color: #be123c; }
+        .credit-card .value { color: #047857; }
+        .balance-card .value { color: #0f2a4a; }
+        .table-shell { overflow: hidden; border: 1px solid #cfe0f3; border-radius: 2.5mm; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        thead { display: table-header-group; }
+        th { padding: 1.8mm 1.8mm; background: #0f2a4a; color: #fff; font-size: 6.4pt; font-weight: 900; letter-spacing: 0.07em; text-align: left; text-transform: uppercase; }
+        td { padding: 1.7mm 1.8mm; border-bottom: 1px solid #e2eaf4; color: #334155; font-size: 7.1pt; line-height: 1.2; vertical-align: top; overflow-wrap: anywhere; }
+        tbody tr:nth-child(even) { background: #f8fbff; }
+        tbody tr:last-child td { border-bottom: 0; }
+        tbody tr { break-inside: avoid; page-break-inside: avoid; }
+        .amount { text-align: right; white-space: nowrap; font-weight: 900; overflow-wrap: normal; }
+        .debit { color: #be123c; }
+        .credit { color: #047857; }
+        .empty-state { padding: 10mm !important; color: #64748b; text-align: center; }
+        .authorization { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6mm; margin-top: 4mm; }
+        .signature { padding-top: 6mm; border-top: 1px solid #71849b; color: #475569; font-size: 7pt; font-weight: 800; }
+        .signature small { display: block; margin-top: 1mm; color: #94a3b8; font-size: 5.8pt; font-weight: 600; }
+        .document-footer { display: flex; justify-content: space-between; gap: 5mm; margin-top: 2.5mm; padding-top: 1.5mm; border-top: 1px solid #dbeafe; color: #64748b; font-size: 6pt; }
+      </style>
+    `;
+
+    const rows = ledgerRows.map((row) => `
+      <tr>
+        <td>${escapeHtml(row.date || '-')}</td>
+        <td>${escapeHtml(row.description || '-')}</td>
+        <td class="amount debit">${row.debit ? escapeHtml(formatCurrency(row.debit, currentCurrency)) : '-'}</td>
+        <td class="amount credit">${row.credit ? escapeHtml(formatCurrency(row.credit, currentCurrency)) : '-'}</td>
+        <td class="amount">${escapeHtml(formatCurrency(row.balance, currentCurrency))}</td>
+      </tr>
+    `).join('');
+
+    return `<!doctype html>
+      <html>
+        <head>
+          <title>${escapeHtml(selectedAcc?.account_name || 'Bank')} Statement</title>
+          ${printStyle}
+        </head>
+        <body>
+          <div class="sheet">
+            <div class="top-rule"></div>
+            <div class="brand">
+              <div class="brand-left">
+                <div class="logo"><img src="${COMPANY_LOGO}" alt="${COMPANY_NAME}" /></div>
+                <div>
+                  <h1>${COMPANY_NAME}</h1>
+                  <div class="subtitle">${COMPANY_SUBTITLE}</div>
+                </div>
+              </div>
+              <div class="report-meta">
+                <div><span>Document</span><strong>Bank Account Statement</strong></div>
+                <div><span>Generated</span><strong>${escapeHtml(new Date().toLocaleDateString())}</strong></div>
+                <div><span>Account</span><strong>${escapeHtml(selectedAcc?.account_name || '-')}</strong></div>
+              </div>
+            </div>
+            <div class="report-title">
+              <div>
+                <h2>Bank Ledger &amp; Vaults Statement</h2>
+                <p>Official bank account ledger and balance statement</p>
+              </div>
+              <div class="report-scope">${escapeHtml(selectedAcc ? `${selectedAcc.account_name} — ${selectedAcc.bank_name} (${selectedAcc.account_number})` : '')}</div>
+            </div>
+            <div class="summary">
+              <div class="summary-card"><span class="label">Currency</span><span class="value">${escapeHtml(currentCurrency)}</span></div>
+              <div class="summary-card debit-card"><span class="label">Total Debit (Out)</span><span class="value">${escapeHtml(formatCurrency(totalDebit, currentCurrency))}</span></div>
+              <div class="summary-card credit-card"><span class="label">Total Credit (In)</span><span class="value">${escapeHtml(formatCurrency(totalCredit, currentCurrency))}</span></div>
+              <div class="summary-card balance-card"><span class="label">Current Balance</span><span class="value">${escapeHtml(formatCurrency(finalBalance, currentCurrency))}</span></div>
+            </div>
+            <div class="table-shell">
+              <table>
+                <colgroup>
+                  <col style="width:15%"><col style="width:40%"><col style="width:15%"><col style="width:15%"><col style="width:15%">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th style="text-align:right">Debit (Out)</th>
+                    <th style="text-align:right">Credit (In)</th>
+                    <th style="text-align:right">Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows || '<tr><td colspan="5" class="empty-state">No statement entries recorded for this account.</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+            <div class="authorization">
+              <div class="signature">Prepared By<small>Name, date, and signature</small></div>
+              <div class="signature">Reviewed By<small>Accounts verification</small></div>
+              <div class="signature">Authorized Signature / Stamp<small>Official approval</small></div>
+            </div>
+            <div class="document-footer">
+              <span>Official bank statement generated by ${COMPANY_NAME}.</span>
+              <span>${COMPANY_SUBTITLE}</span>
+              <span>Page 1</span>
+            </div>
+          </div>
+          <script>window.onload = () => { window.focus(); window.print(); };</script>
+        </body>
+      </html>`;
   };
+
+  const handlePrint = () => {
+    if (!selectedAcc) return;
+    const html = buildLedgerPrintHtml();
+    openPrintWindow(html, `${selectedAcc.account_name || 'Bank'} Statement`);
+  };
+
 
   const handleExportCSV = () => {
     const selectedAcc = accounts.find((a) => a.id === Number(selectedAccountId));
@@ -312,21 +475,30 @@ export default function BankLedger() {
                 
                 {/* Metric Summary Rows */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="p-4 bg-sky-50/50 border border-sky-100 rounded-xl">
-                    <span className="text-[10px] font-bold text-sky-500/70 uppercase block mb-1">{t('bankLedger.total_debit')}</span>
-                    <strong className="text-sm font-black text-rose-600">
+                  <div className="rounded-2xl border border-white bg-white/70 shadow-sm p-4">
+                    <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">
+                      <TrendingDown size={14} className="text-rose-500" />
+                      {t('bankLedger.total_debit')}
+                    </span>
+                    <strong className="text-base sm:text-lg font-black text-rose-600 block">
                       {formatCurrency(totalDebit, currentCurrency)}
                     </strong>
                   </div>
-                  <div className="p-4 bg-sky-50/50 border border-sky-100 rounded-xl">
-                    <span className="text-[10px] font-bold text-sky-500/70 uppercase block mb-1">{t('bankLedger.total_credit')}</span>
-                    <strong className="text-sm font-black text-emerald-600">
+                  <div className="rounded-2xl border border-white bg-white/70 shadow-sm p-4">
+                    <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">
+                      <TrendingUp size={14} className="text-emerald-500" />
+                      {t('bankLedger.total_credit')}
+                    </span>
+                    <strong className="text-base sm:text-lg font-black text-emerald-600 block">
                       {formatCurrency(totalCredit, currentCurrency)}
                     </strong>
                   </div>
-                  <div className="p-4 bg-sky-50/50 border border-sky-100 rounded-xl">
-                    <span className="text-[10px] font-bold text-sky-500/70 uppercase block mb-1">{t('bankLedger.current_balance')}</span>
-                    <strong className="text-sm font-black text-sky-900">
+                  <div className="rounded-2xl border border-white bg-white/70 shadow-sm p-4">
+                    <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">
+                      <Wallet size={14} className="text-sky-500" />
+                      {t('bankLedger.current_balance')}
+                    </span>
+                    <strong className="text-base sm:text-lg font-black text-sky-900 block">
                       {formatCurrency(finalBalance, currentCurrency)}
                     </strong>
                   </div>
