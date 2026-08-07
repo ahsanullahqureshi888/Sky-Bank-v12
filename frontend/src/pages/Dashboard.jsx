@@ -25,6 +25,8 @@ import { formatCurrency, formatDate } from '../utils/formatters';
 import { useTranslation } from 'react-i18next';
 
 const currencies = ['USD', 'Toman', 'Dirham', 'Afghani'];
+const INFLOW_TYPES = new Set(['Received', 'Import']);
+const isInflow = (type) => INFLOW_TYPES.has(type);
 
 const getCurrencyCardGradient = (curr) => {
   switch (curr) {
@@ -437,9 +439,9 @@ export default function Dashboard() {
                 <div key={tx.id} className="p-4 bg-white border border-sky-100/70 rounded-2xl flex items-center justify-between gap-3 shadow-2xs active:bg-sky-50/40 active:scale-[0.98] transition-all">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className={`h-10 w-10 shrink-0 rounded-xl flex items-center justify-center font-black text-[10px] ${
-                      tx.type === 'Received' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'
+                      isInflow(tx.type) ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'
                     }`}>
-                      {tx.type === 'Received' ? 'IN' : 'OUT'}
+                      {isInflow(tx.type) ? 'IN' : 'OUT'}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
@@ -455,8 +457,8 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <span className={`text-sm font-black ${tx.type === 'Received' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {tx.type === 'Received' ? '+' : '-'}
+                    <span className={`text-sm font-black ${isInflow(tx.type) ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {isInflow(tx.type) ? '+' : '-'}
                       {formatCurrency(tx.amount, tx.currency)}
                     </span>
                     <span className="block text-[9px] font-bold text-slate-400 mt-0.5">{tx.payment_method}</span>
@@ -494,10 +496,10 @@ export default function Dashboard() {
                       </td>
                       <td
                         className={`px-3 py-4 text-right font-black ${
-                          tx.type === 'Received' ? 'text-emerald-600' : 'text-rose-600'
+                          isInflow(tx.type) ? 'text-emerald-600' : 'text-rose-600'
                         }`}
                       >
-                        {tx.type === 'Received' ? '+' : '-'}
+                        {isInflow(tx.type) ? '+' : '-'}
                         {formatCurrency(tx.amount, tx.currency)}
                       </td>
                       <td className="px-3 py-4 font-semibold text-slate-400 text-xs">{tx.payment_method}</td>

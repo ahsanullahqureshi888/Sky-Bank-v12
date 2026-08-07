@@ -792,13 +792,15 @@ def bank_ledger(bank_account_id: int, db: Session = Depends(get_db), _: models.U
 @router.get("/dashboard/summary", response_model=schemas.DashboardSummary)
 def dashboard_summary(db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
     transactions = db.scalars(select(models.Transaction)).all()
-    received = sum(item.equivalent_amount if item.equivalent_currency == "USD" else item.amount for item in transactions if item.type == "Received" and item.status != "Cancelled")
-    paid = sum(item.equivalent_amount if item.equivalent_currency == "USD" else item.amount for item in transactions if item.type == "Paid" and item.status != "Cancelled")
+    inflow_types = {"Received", "Import"}
+    outflow_types = {"Paid", "Export"}
+    received = sum(item.equivalent_amount if item.equivalent_currency == "USD" else item.amount for item in transactions if item.type in inflow_types and item.status != "Cancelled")
+    paid = sum(item.equivalent_amount if item.equivalent_currency == "USD" else item.amount for item in transactions if item.type in outflow_types and item.status != "Cancelled")
     currency_totals: dict[str, float] = {}
     for item in transactions:
         if item.status == "Cancelled":
             continue
-        value = item.amount if item.type == "Received" else -item.amount
+        value = item.amount if item.type in {"Received", "Import"} else -item.amount
         currency_totals[item.currency] = currency_totals.get(item.currency, 0) + value
     today = date.today()
     month = today.strftime("%Y-%m")
@@ -831,7 +833,7 @@ def monthly_chart(db: Session = Depends(get_db), _: models.User = Depends(get_cu
     for year, month_number, tx_type, amount in rows:
         month = f"{int(year):04d}-{int(month_number):02d}"
         chart.setdefault(month, {"received": 0, "paid": 0})
-        chart[month]["received" if tx_type == "Received" else "paid"] = float(amount or 0)
+        chart[month]["received" if tx_type in {"Received", "Import"} else "paid"] += float(amount or 0)
     return [{"month": month, **values} for month, values in sorted(chart.items())]
 
 
