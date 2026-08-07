@@ -23,7 +23,7 @@ import {
   UserCheck,
   StickyNote,
 } from 'lucide-react';
-import { transactionAPI, bankAPI, settingsAPI } from '../api/client';
+import { transactionAPI, bankAPI, customerAPI, settingsAPI } from '../api/client';
 import GlassCard from '../components/GlassCard';
 import { useTranslation } from 'react-i18next';
 import ReceiptDocument from '../components/ReceiptDocument';
@@ -36,6 +36,7 @@ const defaultForm = {
   receipt_no: '',
   date: new Date().toISOString().slice(0, 10),
   type: 'Received',
+  customer_id: '',
   customer_name: '',
   company_name: '',
   subject: '',
@@ -54,6 +55,7 @@ export default function AddTransaction() {
   const { t, i18n } = useTranslation();
   const [form, setForm] = useState(defaultForm);
   const [banks, setBanks] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(null);
@@ -67,11 +69,13 @@ export default function AddTransaction() {
     // Load banks & settings
     const loadPrerequisites = async () => {
       try {
-        const [bankRes, settingsRes] = await Promise.all([
+        const [bankRes, customerRes, settingsRes] = await Promise.all([
           bankAPI.list(),
+          customerAPI.list(),
           settingsAPI.get(),
         ]);
         setBanks(Array.isArray(bankRes.data) ? bankRes.data : []);
+        setCustomers(Array.isArray(customerRes.data) ? customerRes.data : []);
         setSettings(settingsRes.data && typeof settingsRes.data === 'object' ? settingsRes.data : null);
 
         // Check if editing
@@ -82,6 +86,7 @@ export default function AddTransaction() {
             receipt_no: tx.receipt_no || '',
             date: tx.date || new Date().toISOString().slice(0, 10),
             type: tx.type || 'Received',
+            customer_id: tx.customer_id ? String(tx.customer_id) : '',
             customer_name: tx.customer_name || '',
             company_name: tx.company_name || '',
             subject: tx.subject || '',
@@ -150,6 +155,12 @@ export default function AddTransaction() {
     if (e) e.preventDefault();
     setLoading(true);
     setErrorMessage('');
+
+    if (!form.customer_id) {
+      setErrorMessage('Select a customer before saving the transaction.');
+      setLoading(false);
+      return null;
+    }
 
     // Sanitize values
     const payload = {
@@ -319,17 +330,30 @@ export default function AddTransaction() {
 
             <div>
               <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1">
-                Customer Name <span className="text-rose-500">*</span>
+                Customer <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="text"
-                name="customer_name"
-                className="w-full px-3.5 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 text-sm transition-all font-semibold"
-                placeholder="Ariana Transport, etc."
-                value={form.customer_name}
-                onChange={handleChange}
+              <select
+                name="customer_id"
+                className="w-full rounded-xl border border-sky-100 bg-white/60 px-3.5 py-2 text-sm font-semibold text-sky-900 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                value={form.customer_id}
+                onChange={(e) => {
+                  const customer = customers.find((item) => String(item.id) === e.target.value);
+                  setForm((prev) => ({
+                    ...prev,
+                    customer_id: e.target.value,
+                    customer_name: customer?.name || '',
+                  }));
+                }}
                 required
-              />
+              >
+                <option value="">Select a customer</option>
+                {customers.map((customer) => (
+                  <option key={customer.id} value={customer.id}>{customer.name}</option>
+                ))}
+              </select>
+              {customers.length === 0 && (
+                <p className="mt-1 text-[10px] font-semibold text-amber-600">No customers are available. Create a customer first.</p>
+              )}
             </div>
 
             <div>
