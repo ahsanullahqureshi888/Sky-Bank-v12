@@ -7,9 +7,11 @@ import {
   Printer,
   Save,
   Search,
+  TrendingDown,
+  TrendingUp,
   Trash2,
-  UserRound,
   Users,
+  Wallet,
   X,
 } from 'lucide-react';
 import { customerAPI } from '../api/client';
@@ -77,45 +79,41 @@ const customerInitials = (name) =>
 function LedgerMetricCard({ title, value, tone, icon: Icon }) {
   const toneStyles = {
     rose: {
-      bg: 'bg-gradient-to-br from-rose-500 to-rose-600',
-      text: 'text-white',
-      shadow: 'shadow-rose-500/30',
-      iconBg: 'bg-white/20',
-      iconColor: 'text-white',
-      titleColor: 'text-rose-100',
+      iconBg: 'bg-rose-50',
+      iconColor: 'text-rose-600',
+      valueColor: 'text-rose-600',
+      glow: 'from-rose-500/15',
     },
     emerald: {
-      bg: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
-      text: 'text-white',
-      shadow: 'shadow-emerald-500/30',
-      iconBg: 'bg-white/20',
-      iconColor: 'text-white',
-      titleColor: 'text-emerald-100',
+      iconBg: 'bg-emerald-50',
+      iconColor: 'text-emerald-600',
+      valueColor: 'text-emerald-600',
+      glow: 'from-emerald-500/15',
     },
     sky: {
-      bg: 'bg-gradient-to-br from-sky-500 to-blue-600',
-      text: 'text-white',
-      shadow: 'shadow-sky-500/30',
-      iconBg: 'bg-white/20',
-      iconColor: 'text-white',
-      titleColor: 'text-sky-100',
+      iconBg: 'bg-sky-50',
+      iconColor: 'text-sky-600',
+      valueColor: 'text-sky-950',
+      glow: 'from-sky-500/15',
     },
   };
 
   const style = toneStyles[tone] || toneStyles.sky;
 
   return (
-    <div className={`rounded-2xl ${style.bg} shadow-lg ${style.shadow} p-5 min-w-0 overflow-hidden relative group transition-all duration-300 hover:-translate-y-1`}>
-      <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl group-hover:opacity-20 transition-opacity pointer-events-none"></div>
-      <div className="flex items-center gap-4 min-w-0 relative z-10">
-        <div className={`h-12 w-12 shrink-0 rounded-[14px] flex items-center justify-center ${style.iconBg} ${style.iconColor} shadow-inner`}>
-          <Icon size={22} strokeWidth={2.5} />
+    <div className="relative overflow-hidden rounded-[22px] border border-white bg-white/70 backdrop-blur-xl shadow-sm p-5 min-w-0 group transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+      <div
+        className={`absolute top-0 right-0 -mr-6 -mt-6 h-28 w-28 rounded-full bg-gradient-to-br ${style.glow} to-transparent blur-2xl opacity-70 group-hover:opacity-100 transition-opacity pointer-events-none`}
+      />
+      <div className="relative z-10 flex items-center gap-3.5 min-w-0">
+        <div
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${style.iconBg} ${style.iconColor} shadow-sm border border-white`}
+        >
+          {Icon && <Icon size={20} strokeWidth={2.5} />}
         </div>
-        <div className="min-w-0 flex-1">
-          <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${style.titleColor} leading-snug mb-1`}>
-            {title}
-          </p>
-          <p className={`text-[clamp(1.15rem,1.7vw,1.6rem)] font-black ${style.text} tracking-tight whitespace-nowrap leading-none drop-shadow-sm`}>
+        <div className="min-w-0">
+          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{title}</p>
+          <p className={`text-lg sm:text-xl font-black tracking-tight ${style.valueColor} truncate`} title={value}>
             {value}
           </p>
         </div>
@@ -680,19 +678,19 @@ export default function CustomerLedger() {
                 <LedgerMetricCard
                   title={t('customerLedger.total_debit')}
                   value={formatCurrency(totals.debit, 'USD')}
-                  icon={UserRound}
+                  icon={TrendingDown}
                   tone="rose"
                 />
                 <LedgerMetricCard
                   title={t('customerLedger.total_credit')}
                   value={formatCurrency(totals.credit, 'USD')}
-                  icon={UserRound}
+                  icon={TrendingUp}
                   tone="emerald"
                 />
                 <LedgerMetricCard
                   title={t('customerLedger.closing_balance')}
                   value={formatCurrency(totals.balance, 'USD')}
-                  icon={UserRound}
+                  icon={Wallet}
                   tone="sky"
                 />
               </div>
@@ -828,8 +826,11 @@ export default function CustomerLedger() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-sky-100/60 text-sm font-bold text-sky-900">
-                          {ledgerRows.map((row) => (
-                            <tr key={row.id} className="hover:bg-sky-50/40 transition-colors">
+                          {ledgerRows.map((row, rowIndex) => (
+                            <tr
+                              key={row.id}
+                              className={`transition-colors hover:bg-sky-50/60 ${rowIndex % 2 === 1 ? 'bg-sky-50/30' : ''}`}
+                            >
                               <td className="py-4 pl-5 pr-4 text-sky-500 whitespace-nowrap">{formatDate(row.date)}</td>
                               <td className="py-4 px-4 font-black text-sky-950 whitespace-nowrap">
                                 <span className="bg-sky-50 px-2 py-1 rounded-lg text-xs">{row.receipt_no || 'OP'}</span>

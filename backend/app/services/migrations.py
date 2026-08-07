@@ -10,6 +10,7 @@ MIGRATIONS = {
     "settings.next_receipt_number": "ALTER TABLE settings ADD COLUMN next_receipt_number INTEGER DEFAULT 1",
     "audit_logs.ip_address": "ALTER TABLE audit_logs ADD COLUMN ip_address VARCHAR(100)",
     "audit_logs.device_info": "ALTER TABLE audit_logs ADD COLUMN device_info VARCHAR(255)",
+    "customers.entity_type": "ALTER TABLE customers ADD COLUMN entity_type VARCHAR(40) DEFAULT 'customer'",
 }
 
 

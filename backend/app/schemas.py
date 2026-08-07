@@ -51,14 +51,19 @@ class CustomerBase(BaseModel):
     phone: Optional[str] = None
     address: Optional[str] = None
     notes: Optional[str] = None
+    entity_type: str = "customer"
 
 
 class CustomerCreate(CustomerBase):
     pass
 
 
-class CustomerUpdate(CustomerBase):
+class CustomerUpdate(BaseModel):
     name: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    notes: Optional[str] = None
+    entity_type: Optional[str] = None
 
 
 class CustomerRead(CustomerBase):
@@ -218,7 +223,6 @@ class SettingsUpdate(BaseModel):
     auto_backup: Optional[bool] = None
     last_backup_at: Optional[str] = None
     next_receipt_number: Optional[int] = None
-
 
 
 class DashboardSummary(BaseModel):

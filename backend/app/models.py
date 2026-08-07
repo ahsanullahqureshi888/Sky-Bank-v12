@@ -27,6 +27,7 @@ class Customer(Base):
     phone: Mapped[str | None] = mapped_column(String(80), nullable=True)
     address: Mapped[str | None] = mapped_column(String(255), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    entity_type: Mapped[str] = mapped_column(String(40), default="customer")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     transactions = relationship("Transaction", back_populates="customer")
@@ -124,7 +125,6 @@ class AuditLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
-
 class Settings(Base):
     __tablename__ = "settings"
 
@@ -140,4 +140,3 @@ class Settings(Base):
     auto_backup: Mapped[bool] = mapped_column(Boolean, default=False)
     last_backup_at: Mapped[str | None] = mapped_column(String(100), nullable=True)
     next_receipt_number: Mapped[int] = mapped_column(Integer, default=1)
-
