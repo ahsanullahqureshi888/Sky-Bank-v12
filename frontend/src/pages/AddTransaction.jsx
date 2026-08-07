@@ -1,6 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { Save, Printer, Download, ArrowLeft, Loader2, FileCheck } from 'lucide-react';
+import {
+  Save,
+  Printer,
+  Download,
+  ArrowLeft,
+  Loader2,
+  FileCheck,
+  DollarSign,
+  ArrowRightLeft,
+  ArrowDownLeft,
+  ArrowUpRight,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  CheckCircle2,
+  Clock3,
+  XCircle,
+  AlertCircle,
+  Hash,
+  Users,
+  Wallet,
+  UserCheck,
+  StickyNote,
+} from 'lucide-react';
 import { transactionAPI, bankAPI, settingsAPI } from '../api/client';
 import GlassCard from '../components/GlassCard';
 import { useTranslation } from 'react-i18next';
@@ -212,9 +234,14 @@ export default function AddTransaction() {
             onSubmit={(e) => { e.preventDefault(); handleSave(e); }}
           >
             
+            <div className="md:col-span-2 flex items-center gap-2.5 border-b border-sky-100 pb-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-sky-600"><Hash size={14} /></span>
+              <h4 className="text-xs font-black uppercase tracking-wider text-sky-800">Transaction Details</h4>
+            </div>
+
             <div>
               <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
-                Receipt No / Payment No
+                Receipt No / Payment No <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
@@ -228,7 +255,7 @@ export default function AddTransaction() {
 
             <div>
               <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
-                Date
+                Date <span className="text-rose-500">*</span>
               </label>
               <input
                 type="date"
@@ -240,26 +267,41 @@ export default function AddTransaction() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-2">
                 Transaction Direction
               </label>
-              <select
-                name="type"
-                className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 transition-all font-semibold"
-                value={form.type}
-                onChange={handleChange}
-              >
-                <option value="Received">{t('transaction.received_inflow')}</option>
-                <option value="Paid">{t('transaction.paid_outflow')}</option>
-                <option value="Import">{t('transaction.import_payment')}</option>
-                <option value="Export">{t('transaction.export_receipt')}</option>
-              </select>
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Transaction direction">
+                {[
+                  { value: 'Received', label: t('transaction.received_inflow'), icon: ArrowDownLeft, active: 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20 border-emerald-600' },
+                  { value: 'Paid', label: t('transaction.paid_outflow'), icon: ArrowUpRight, active: 'bg-rose-600 text-white shadow-md shadow-rose-600/20 border-rose-600' },
+                  { value: 'Import', label: t('transaction.import_payment'), icon: ArrowDownCircle, active: 'bg-sky-600 text-white shadow-md shadow-sky-600/20 border-sky-600' },
+                  { value: 'Export', label: t('transaction.export_receipt'), icon: ArrowUpCircle, active: 'bg-amber-600 text-white shadow-md shadow-amber-600/20 border-amber-600' },
+                ].map(({ value, label, icon: Icon, active }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setForm((prev) => ({ ...prev, type: value }))}
+                    aria-pressed={form.type === value}
+                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition-all ${
+                      form.type === value ? active : 'border-sky-100 bg-white/40 text-sky-700 hover:bg-sky-50'
+                    }`}
+                  >
+                    <Icon size={13} strokeWidth={2.5} />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="md:col-span-2 mt-2 flex items-center gap-2.5 border-b border-sky-100 pb-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-sky-600"><Users size={14} /></span>
+              <h4 className="text-xs font-black uppercase tracking-wider text-sky-800">Party &amp; Purpose</h4>
             </div>
 
             <div>
               <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
-                Customer Name
+                Customer Name <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
@@ -288,7 +330,7 @@ export default function AddTransaction() {
 
             <div>
               <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
-                Subject / Purpose
+                Subject / Purpose <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
@@ -301,29 +343,32 @@ export default function AddTransaction() {
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_140px]">
-              <div>
-                <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
-                  Amount
-                </label>
+            <div className="md:col-span-2 mt-2 flex items-center gap-2.5 border-b border-sky-100 pb-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-sky-600"><Wallet size={14} /></span>
+              <h4 className="text-xs font-black uppercase tracking-wider text-sky-800">Payment Details</h4>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+                Amount <span className="text-rose-500">*</span>
+              </label>
+              <div className="flex overflow-hidden rounded-xl border border-sky-100 bg-white/40 transition-all focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/20">
+                <div className="flex items-center pl-4 text-sky-400">
+                  <DollarSign size={15} strokeWidth={2.5} />
+                </div>
                 <input
                   type="number"
                   step="any"
                   name="amount"
-                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 transition-all font-semibold"
+                  className="w-full min-w-0 flex-1 bg-transparent px-2 py-2.5 text-sky-900 font-semibold outline-none"
                   placeholder="0.00"
                   value={form.amount}
                   onChange={handleChange}
                   required
                 />
-              </div>
-              <div className="min-w-0">
-                <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
-                  Currency
-                </label>
                 <select
                   name="currency"
-                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 transition-all font-semibold"
+                  className="shrink-0 border-l border-sky-100 bg-sky-50/60 px-3 py-2.5 text-sky-900 font-bold text-sm outline-none"
                   value={form.currency}
                   onChange={handleChange}
                 >
@@ -334,28 +379,26 @@ export default function AddTransaction() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_140px]">
-              <div>
-                <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
-                  Equivalent Amount
-                </label>
+            <div>
+              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+                Equivalent Amount
+              </label>
+              <div className="flex overflow-hidden rounded-xl border border-sky-100 bg-white/40 transition-all focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/20">
+                <div className="flex items-center pl-4 text-sky-400">
+                  <ArrowRightLeft size={15} strokeWidth={2.5} />
+                </div>
                 <input
                   type="number"
                   step="any"
                   name="equivalent_amount"
-                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 transition-all font-semibold"
+                  className="w-full min-w-0 flex-1 bg-transparent px-2 py-2.5 text-sky-900 font-semibold outline-none"
                   placeholder="0.00"
                   value={form.equivalent_amount}
                   onChange={handleChange}
                 />
-              </div>
-              <div className="min-w-0">
-                <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
-                  Currency
-                </label>
                 <select
                   name="equivalent_currency"
-                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 transition-all font-semibold"
+                  className="shrink-0 border-l border-sky-100 bg-sky-50/60 px-3 py-2.5 text-sky-900 font-bold text-sm outline-none"
                   value={form.equivalent_currency}
                   onChange={handleChange}
                 >
@@ -401,6 +444,11 @@ export default function AddTransaction() {
               </select>
             </div>
 
+            <div className="md:col-span-2 mt-2 flex items-center gap-2.5 border-b border-sky-100 pb-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-sky-600"><UserCheck size={14} /></span>
+              <h4 className="text-xs font-black uppercase tracking-wider text-sky-800">Recipient &amp; Status</h4>
+            </div>
+
             <div>
               <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
                 Receiver / Beneficiary Name
@@ -416,19 +464,34 @@ export default function AddTransaction() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-2">
                 Status
               </label>
-              <select
-                name="status"
-                className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 transition-all font-semibold"
-                value={form.status}
-                onChange={handleChange}
-              >
-                {statuses.map((s) => (
-                  <option key={s} value={s}>{s}</option>
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Status">
+                {[
+                  { value: 'Completed', icon: CheckCircle2, active: 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20 border-emerald-600' },
+                  { value: 'Pending', icon: Clock3, active: 'bg-amber-500 text-white shadow-md shadow-amber-500/20 border-amber-500' },
+                  { value: 'Cancelled', icon: XCircle, active: 'bg-rose-600 text-white shadow-md shadow-rose-600/20 border-rose-600' },
+                ].map(({ value, icon: Icon, active }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setForm((prev) => ({ ...prev, status: value }))}
+                    aria-pressed={form.status === value}
+                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition-all ${
+                      form.status === value ? active : 'border-sky-100 bg-white/40 text-sky-700 hover:bg-sky-50'
+                    }`}
+                  >
+                    <Icon size={13} strokeWidth={2.5} />
+                    {value}
+                  </button>
                 ))}
-              </select>
+              </div>
+            </div>
+
+            <div className="md:col-span-2 mt-2 flex items-center gap-2.5 border-b border-sky-100 pb-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-sky-600"><StickyNote size={14} /></span>
+              <h4 className="text-xs font-black uppercase tracking-wider text-sky-800">Notes &amp; Attachments</h4>
             </div>
 
             <div className="md:col-span-2">
@@ -474,8 +537,9 @@ export default function AddTransaction() {
             </div>
 
             {errorMessage && (
-              <div className="md:col-span-2 p-4 bg-red-50 border border-red-100 rounded-xl text-xs font-semibold text-red-600 leading-relaxed">
-                {errorMessage}
+              <div className="md:col-span-2 flex items-start gap-3 rounded-xl border border-rose-200 border-l-4 border-l-rose-500 bg-rose-50 p-4 text-xs font-semibold leading-relaxed text-rose-700">
+                <AlertCircle size={16} className="mt-0.5 flex-shrink-0 text-rose-500" />
+                <span>{errorMessage}</span>
               </div>
             )}
 
@@ -522,7 +586,7 @@ export default function AddTransaction() {
           </form>
         </GlassCard>
 
-        <div className="min-w-0 space-y-4">
+        <div className="min-w-0 space-y-4 lg:sticky lg:top-6 lg:self-start">
           <h3 className="pl-1 text-sm font-extrabold uppercase tracking-[0.14em] text-slate-500 flex items-center justify-between">
             {t('transaction.live_receipt_preview')}
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>

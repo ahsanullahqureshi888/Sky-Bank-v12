@@ -74,6 +74,7 @@ export const CustomerLedgerTable: React.FC<CustomerLedgerTableProps> = ({
   const [query, setQuery] = useState('');
   const [direction, setDirection] = useState<DirectionFilter>('all');
   const [newestFirst, setNewestFirst] = useState(true);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Totals always reflect the full ledger, never the filtered view.
   const summary = useMemo(() => {
@@ -165,9 +166,18 @@ export const CustomerLedgerTable: React.FC<CustomerLedgerTableProps> = ({
         showAddModal === 'cash-in' ? lastBalance + amountNum : lastBalance - amountNum,
     };
 
+    const txTypeLabel = showAddModal === 'cash-in' ? 'Cash in' : 'Cash out';
+    const entityName = newTx.entity;
+
     setTransactions([...transactions, newRecord]);
     setShowAddModal(null);
     setNewTx({ entity: '', amount: '' });
+
+    setToast({
+      type: 'success',
+      message: `${txTypeLabel} of ${formatCurrency(amountNum)} recorded for ${entityName}.`,
+    });
+    window.setTimeout(() => setToast(null), 3500);
   };
 
   const filterTabs: Array<{ id: DirectionFilter; label: string; activeClass: string }> = [
@@ -257,9 +267,23 @@ export const CustomerLedgerTable: React.FC<CustomerLedgerTableProps> = ({
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-700 bg-slate-900 p-3 shadow-[0_8px_24px_rgba(15,32,60,0.18)] sm:p-4">
-          <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
-            <Wallet size={13} className="text-sky-400" /> Final Balance
+        <div
+          className={`rounded-2xl border p-3 shadow-[0_8px_24px_rgba(15,32,60,0.18)] transition-all sm:p-4 ${
+            summary.finalBalance < 0
+              ? 'border-rose-700 bg-gradient-to-br from-rose-900 to-rose-950'
+              : 'border-slate-700 bg-slate-900'
+          }`}
+        >
+          <span
+            className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider ${
+              summary.finalBalance < 0 ? 'text-rose-300' : 'text-slate-400'
+            }`}
+          >
+            <Wallet
+              size={13}
+              className={summary.finalBalance < 0 ? 'text-rose-400' : 'text-sky-400'}
+            />{' '}
+            Final Balance
           </span>
           <p className="mt-1.5 text-lg font-black text-white sm:text-2xl">
             {formatCurrency(summary.finalBalance)}
@@ -317,35 +341,30 @@ export const CustomerLedgerTable: React.FC<CustomerLedgerTableProps> = ({
         </div>
       </div>
 
-      {/* Table */}
+      {/* Main Container for Table & Mobile Cards */}
       <div className="relative flex flex-1 flex-col overflow-hidden rounded-2xl border border-white bg-white/70 shadow-[0_12px_40px_rgba(15,32,60,0.06)] backdrop-blur-2xl print:overflow-visible print:rounded-none print:border-none print:bg-white print:shadow-none md:rounded-[28px]">
-        <div className="app-scrollbar flex-1 overflow-auto print:overflow-visible">
-          <table className="w-full border-collapse text-left">
-            <thead className="sticky top-0 z-10 bg-slate-800/95 text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-100 shadow-sm backdrop-blur-md print:border-b-2 print:border-slate-800 print:bg-white print:text-slate-800 print:shadow-none sm:text-[11px]">
-              <tr>
-                <th className="w-14 px-3 py-3.5 text-center sm:px-5 sm:py-4">S.No</th>
-                <th className="min-w-[200px] px-3 py-3.5 text-left sm:px-5 sm:py-4">
-                  Entity / Sarafi
-                </th>
-                <th className="px-3 py-3.5 text-right sm:px-5 sm:py-4">Cash In</th>
-                <th className="px-3 py-3.5 text-right sm:px-5 sm:py-4">Cash Out</th>
-                <th className="px-3 py-3.5 text-right sm:px-5 sm:py-4">Balance</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 print:divide-slate-200">
+        {visibleTransactions.length === 0 ? (
+          <div className="flex flex-1 flex-col items-center justify-center px-4 py-16 text-center">
+            <Search size={28} className="mx-auto mb-3 text-slate-300" />
+            <p className="font-bold text-slate-600">No matching transactions</p>
+            <p className="mt-1 text-sm text-slate-400">
+              Try a different name, serial number, or filter.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Mobile Card Feed View (hidden on md+ screens) */}
+            <div className="block flex-1 overflow-auto p-3 space-y-3 app-scrollbar print:hidden md:hidden">
               {visibleTransactions.map((tx) => (
-                <tr
+                <div
                   key={tx.serialNumber}
-                  className="group text-sm transition-colors hover:bg-sky-50/60 print:hover:bg-transparent"
+                  className="space-y-3 rounded-2xl border border-white bg-white/70 p-4 shadow-sm backdrop-blur-xl"
                 >
-                  <td className="px-3 py-2.5 text-center text-xs font-bold tabular-nums text-slate-400 transition-colors group-hover:text-sky-600 sm:px-5 sm:py-3 print:text-slate-600">
-                    {tx.serialNumber}
-                  </td>
-
-                  <td className="px-3 py-2.5 sm:px-5 sm:py-3">
+                  {/* Card Header: Avatar + Entity + S.No Badge */}
+                  <div className="flex items-center justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-2.5">
                       <span
-                        className={`hidden h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-[10px] font-black print:hidden sm:flex ${entityAccent(
+                        className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-[10px] font-black ${entityAccent(
                           tx.associatedEntity
                         )}`}
                         aria-hidden="true"
@@ -353,64 +372,180 @@ export const CustomerLedgerTable: React.FC<CustomerLedgerTableProps> = ({
                         {entityInitials(tx.associatedEntity)}
                       </span>
                       <span
-                        className="truncate font-bold text-slate-700"
+                        className="truncate font-bold text-slate-800"
                         title={tx.associatedEntity}
                       >
                         {tx.associatedEntity}
                       </span>
                     </div>
-                  </td>
+                    <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-bold tabular-nums text-slate-500">
+                      #{tx.serialNumber}
+                    </span>
+                  </div>
 
-                  <td className="px-3 py-2.5 text-right sm:px-5 sm:py-3">
-                    {tx.cashIn > 0 ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-sm font-bold tabular-nums text-emerald-700 print:border-none print:bg-transparent print:p-0">
-                        <ArrowDownLeft
-                          size={12}
-                          strokeWidth={3}
-                          className="flex-shrink-0 text-emerald-500 print:hidden"
-                        />
-                        {formatAmount(tx.cashIn)}
+                  {/* 2-column Cash In / Cash Out */}
+                  <div className="grid grid-cols-2 gap-2 border-y border-slate-100/80 py-2.5 text-xs">
+                    <div>
+                      <span className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                        Cash In
                       </span>
-                    ) : (
-                      <span className="font-bold text-slate-300 print:text-slate-400">—</span>
-                    )}
-                  </td>
+                      {tx.cashIn > 0 ? (
+                        <span className="mt-1 inline-flex items-center gap-1 rounded-lg border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-xs font-bold tabular-nums text-emerald-700">
+                          <ArrowDownLeft
+                            size={12}
+                            strokeWidth={3}
+                            className="flex-shrink-0 text-emerald-500"
+                          />
+                          {formatAmount(tx.cashIn)}
+                        </span>
+                      ) : (
+                        <span className="mt-1 block font-bold text-slate-300">—</span>
+                      )}
+                    </div>
 
-                  <td className="px-3 py-2.5 text-right sm:px-5 sm:py-3">
-                    {tx.cashOut > 0 ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-lg border border-rose-100 bg-rose-50 px-2.5 py-1 text-sm font-bold tabular-nums text-rose-700 print:border-none print:bg-transparent print:p-0">
-                        <ArrowUpRight
-                          size={12}
-                          strokeWidth={3}
-                          className="flex-shrink-0 text-rose-500 print:hidden"
-                        />
-                        {formatAmount(tx.cashOut)}
+                    <div className="text-right">
+                      <span className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                        Cash Out
                       </span>
-                    ) : (
-                      <span className="font-bold text-slate-300 print:text-slate-400">—</span>
-                    )}
-                  </td>
+                      {tx.cashOut > 0 ? (
+                        <span className="mt-1 inline-flex items-center gap-1 rounded-lg border border-rose-100 bg-rose-50 px-2 py-0.5 text-xs font-bold tabular-nums text-rose-700">
+                          <ArrowUpRight
+                            size={12}
+                            strokeWidth={3}
+                            className="flex-shrink-0 text-rose-500"
+                          />
+                          {formatAmount(tx.cashOut)}
+                        </span>
+                      ) : (
+                        <span className="mt-1 block font-bold text-slate-300">—</span>
+                      )}
+                    </div>
+                  </div>
 
-                  <td className="px-3 py-2.5 text-right text-sm font-black tabular-nums text-slate-800 sm:px-5 sm:py-3">
-                    {formatAmount(tx.runningBalance)}
-                  </td>
-                </tr>
+                  {/* Running Balance */}
+                  <div className="flex items-center justify-between pt-0.5">
+                    <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                      Running Balance
+                    </span>
+                    <span
+                      className={`text-base font-black tabular-nums ${
+                        tx.runningBalance < 0 ? 'text-rose-600' : 'text-slate-800'
+                      }`}
+                    >
+                      {tx.runningBalance < 0 ? (
+                        <span className="inline-flex items-center gap-1">
+                          <span className="rounded bg-rose-100 px-1 py-0.5 text-[9px] font-extrabold text-rose-700">
+                            NEG
+                          </span>
+                          {formatAmount(tx.runningBalance)}
+                        </span>
+                      ) : (
+                        formatAmount(tx.runningBalance)
+                      )}
+                    </span>
+                  </div>
+                </div>
               ))}
+            </div>
 
-              {visibleTransactions.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-6 py-16 text-center">
-                    <Search size={28} className="mx-auto mb-3 text-slate-300" />
-                    <p className="font-bold text-slate-600">No matching transactions</p>
-                    <p className="mt-1 text-sm text-slate-400">
-                      Try a different name, serial number, or filter.
-                    </p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            {/* Desktop Table View (hidden on small screens, visible on md+) */}
+            <div className="hidden flex-1 overflow-auto app-scrollbar print:block print:overflow-visible md:block">
+              <table className="w-full border-collapse text-left">
+                <thead className="sticky top-0 z-10 bg-slate-800/95 text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-100 shadow-sm backdrop-blur-md print:border-b-2 print:border-slate-800 print:bg-white print:text-slate-800 print:shadow-none sm:text-[11px]">
+                  <tr>
+                    <th className="w-14 px-3 py-3.5 text-center sm:px-5 sm:py-4">S.No</th>
+                    <th className="min-w-[200px] px-3 py-3.5 text-left sm:px-5 sm:py-4">
+                      Entity / Sarafi
+                    </th>
+                    <th className="px-3 py-3.5 text-right sm:px-5 sm:py-4">Cash In</th>
+                    <th className="px-3 py-3.5 text-right sm:px-5 sm:py-4">Cash Out</th>
+                    <th className="px-3 py-3.5 text-right sm:px-5 sm:py-4">Balance</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 print:divide-slate-200">
+                  {visibleTransactions.map((tx, idx) => (
+                    <tr
+                      key={tx.serialNumber}
+                      className={`group text-sm transition-colors hover:bg-sky-50/60 print:hover:bg-transparent ${
+                        idx % 2 === 1 ? 'bg-slate-50/40' : 'bg-transparent'
+                      }`}
+                    >
+                      <td className="px-3 py-2.5 text-center text-xs font-bold tabular-nums text-slate-400 transition-colors group-hover:text-sky-600 sm:px-5 sm:py-3 print:text-slate-600">
+                        {tx.serialNumber}
+                      </td>
+
+                      <td className="px-3 py-2.5 sm:px-5 sm:py-3">
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <span
+                            className={`hidden h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-[10px] font-black print:hidden sm:flex ${entityAccent(
+                              tx.associatedEntity
+                            )}`}
+                            aria-hidden="true"
+                          >
+                            {entityInitials(tx.associatedEntity)}
+                          </span>
+                          <span
+                            className="truncate font-bold text-slate-700"
+                            title={tx.associatedEntity}
+                          >
+                            {tx.associatedEntity}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="px-3 py-2.5 text-right sm:px-5 sm:py-3">
+                        {tx.cashIn > 0 ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-sm font-bold tabular-nums text-emerald-700 print:border-none print:bg-transparent print:p-0">
+                            <ArrowDownLeft
+                              size={12}
+                              strokeWidth={3}
+                              className="flex-shrink-0 text-emerald-500 print:hidden"
+                            />
+                            {formatAmount(tx.cashIn)}
+                          </span>
+                        ) : (
+                          <span className="font-bold text-slate-300 print:text-slate-400">—</span>
+                        )}
+                      </td>
+
+                      <td className="px-3 py-2.5 text-right sm:px-5 sm:py-3">
+                        {tx.cashOut > 0 ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-lg border border-rose-100 bg-rose-50 px-2.5 py-1 text-sm font-bold tabular-nums text-rose-700 print:border-none print:bg-transparent print:p-0">
+                            <ArrowUpRight
+                              size={12}
+                              strokeWidth={3}
+                              className="flex-shrink-0 text-rose-500 print:hidden"
+                            />
+                            {formatAmount(tx.cashOut)}
+                          </span>
+                        ) : (
+                          <span className="font-bold text-slate-300 print:text-slate-400">—</span>
+                        )}
+                      </td>
+
+                      <td
+                        className={`px-3 py-2.5 text-right text-sm font-black tabular-nums sm:px-5 sm:py-3 ${
+                          tx.runningBalance < 0 ? 'text-rose-600' : 'text-slate-800'
+                        }`}
+                      >
+                        {tx.runningBalance < 0 ? (
+                          <span className="inline-flex items-center gap-1">
+                            <span className="rounded bg-rose-100 px-1 py-0.5 text-[10px] font-extrabold text-rose-700">
+                              NEG
+                            </span>
+                            {formatAmount(tx.runningBalance)}
+                          </span>
+                        ) : (
+                          formatAmount(tx.runningBalance)
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
 
         {/* Footer: reflects the current view */}
         <div className="flex flex-col gap-2 border-t border-slate-200 bg-slate-50/80 px-4 py-3 backdrop-blur-md print:border-t-2 print:border-slate-800 print:bg-white sm:flex-row sm:items-center sm:justify-between sm:px-6">
@@ -555,6 +690,20 @@ export const CustomerLedgerTable: React.FC<CustomerLedgerTableProps> = ({
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 max-w-sm rounded-2xl border px-4 py-3 text-sm font-black shadow-2xl backdrop-blur-xl print:hidden ${
+            toast.type === 'success'
+              ? 'border-emerald-100 bg-emerald-50/95 text-emerald-700'
+              : 'border-rose-100 bg-rose-50/95 text-rose-700'
+          }`}
+          role="status"
+        >
+          {toast.message}
         </div>
       )}
     </div>
