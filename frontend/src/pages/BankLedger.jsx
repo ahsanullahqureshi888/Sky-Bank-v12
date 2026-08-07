@@ -253,7 +253,7 @@ export default function BankLedger() {
         tbody tr:nth-child(even) { background: #f8fbff; }
         tbody tr:last-child td { border-bottom: 0; }
         tbody tr { break-inside: avoid; page-break-inside: avoid; }
-        .amount { text-align: right; white-space: nowrap; font-weight: 900; overflow-wrap: normal; }
+        .amount { text-align: right; white-space: nowrap; font-weight: 900; overflow-wrap: normal; overflow: hidden; text-overflow: clip; }
         .debit { color: #be123c; }
         .credit { color: #047857; }
         .empty-state { padding: 10mm !important; color: #64748b; text-align: center; }

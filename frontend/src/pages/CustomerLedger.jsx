@@ -314,7 +314,7 @@ export default function CustomerLedger() {
         tbody tr:nth-child(even) { background: #f8fbff; }
         tbody tr:last-child td { border-bottom: 0; }
         tbody tr { break-inside: avoid; page-break-inside: avoid; }
-        .amount { text-align: right; white-space: nowrap; font-weight: 900; overflow-wrap: normal; }
+        .amount { text-align: right; white-space: nowrap; font-weight: 900; overflow-wrap: normal; overflow: hidden; text-overflow: clip; }
         .debit { color: #be123c; }
         .credit { color: #047857; }
         .empty-state { padding: 12mm !important; color: #64748b; text-align: center; }
@@ -379,7 +379,7 @@ export default function CustomerLedger() {
             <div class="table-shell">
               <table>
                 <colgroup>
-                  <col style="width:12%"><col style="width:16%"><col style="width:32%"><col style="width:13%"><col style="width:13%"><col style="width:14%">
+                  <col style="width:9%"><col style="width:13%"><col style="width:24%"><col style="width:16%"><col style="width:17%"><col style="width:21%">
                 </colgroup>
                 <thead>
                   <tr>
