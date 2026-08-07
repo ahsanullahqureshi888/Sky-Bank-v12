@@ -593,7 +593,7 @@ export default function TransactionHistory() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between print:hidden">
         <div className="min-w-0">
           <h1 className="text-2xl font-black text-sky-950 leading-tight tracking-normal">{t('transactionHistory.title')}</h1>
           <p className="text-sm text-sky-600 font-semibold mt-1">
@@ -645,8 +645,8 @@ export default function TransactionHistory() {
       />
 
       {showFilters && (
-        <GlassCard className="p-5 animate-fadeIn">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-4">
+        <GlassCard className="p-5 animate-fadeIn print:hidden">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-4 print:hidden">
             <div>
               <label className="block text-[11px] font-black text-sky-600 uppercase tracking-wide mb-2">
                 Customer Name
@@ -932,8 +932,8 @@ export default function TransactionHistory() {
                     </div>
 
                     {/* Desktop Table View */}
-                    <div className="hidden md:block overflow-x-auto app-scrollbar pb-10">
-                      <table className="w-full min-w-[950px] text-left border-collapse">
+                    <div className="hidden md:block overflow-x-auto app-scrollbar pb-10 print:overflow-visible print:block">
+                      <table className="w-full min-w-[1000px] text-left border-collapse">
                         <thead>
                           <tr className="border-b border-sky-100 text-[10px] font-black text-sky-500 uppercase tracking-[0.1em]">
                             <th className="pb-3 pr-2">{t('transaction.receipt_no')}</th>
@@ -973,7 +973,7 @@ export default function TransactionHistory() {
                               <td className={`py-3 px-2 text-right font-black whitespace-nowrap ${tx.type === 'Received' ? 'text-emerald-600' : 'text-rose-600'}`}>
                                 {tx.type === 'Received' ? '+' : '-'}{formatCurrency(tx.amount, tx.currency)}
                               </td>
-                              <td className="py-3 px-2 text-right text-sky-800 font-black whitespace-nowrap">
+                              <td className="py-3 px-2 text-right text-sky-800 font-black whitespace-nowrap print:hidden">
                                 {tx.equivalent_amount ? formatCurrency(tx.equivalent_amount, tx.equivalent_currency) : '-'}
                               </td>
                               <td className="py-3 px-2 text-sky-900/70 whitespace-nowrap text-xs">{tx.payment_method || '-'}</td>
@@ -986,37 +986,80 @@ export default function TransactionHistory() {
                                   {tx.status}
                                 </span>
                               </td>
-                              <td className="py-3 pl-2 text-right">
-                                <div className="inline-flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
-                                  <button onClick={() => navigate(`/transactions/${tx.id}`)} disabled={deletingTransactionId === tx.id} className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="View Details" aria-label={`View transaction ${tx.receipt_no}`}>
-                                    <Eye size={14} />
-                                  </button>
-                                  <button onClick={() => handlePrintReceipt(tx)} disabled={deletingTransactionId === tx.id} className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Print Receipt" aria-label={`Print transaction ${tx.receipt_no}`}>
-                                    <Printer size={14} />
-                                  </button>
-                                  <button onClick={() => handleDownloadPDF(tx)} disabled={deletingTransactionId === tx.id || generatingPdfId !== null} className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Download PDF" aria-label={`Download PDF for transaction ${tx.receipt_no}`}>
-                                    {generatingPdfId === tx.id ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-                                  </button>
-                                  {!isViewer && (
-                                    <button onClick={() => handleUploadClick(tx.id)} disabled={deletingTransactionId === tx.id} className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Attach Receipt" aria-label={`Attach receipt to transaction ${tx.receipt_no}`}>
-                                      <Paperclip size={14} />
-                                    </button>
-                                  )}
-                                  {!isViewer && (
-                                    <button onClick={() => navigate(`/edit-transaction/${tx.id}`)} disabled={deletingTransactionId === tx.id} className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Edit Details" aria-label={`Edit transaction ${tx.receipt_no}`}>
-                                      <Edit2 size={14} />
-                                    </button>
-                                  )}
-                                  {isAdmin && (
+                              <td className="py-3 pl-2 text-right whitespace-nowrap">
+                                <div className="inline-flex items-center gap-0.5 p-1 bg-sky-50/60 hover:bg-sky-50/90 border border-sky-100/80 rounded-xl transition-all shadow-2xs group-hover:border-sky-200">
+                                  {/* Read & Export Group */}
+                                  <div className="flex items-center gap-0.5">
                                     <button
-                                      onClick={() => handleDelete(tx)}
+                                      onClick={() => navigate(`/transactions/${tx.id}`)}
                                       disabled={deletingTransactionId === tx.id}
-                                      className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                      title="Delete Permanently"
-                                      aria-label={`Delete transaction ${tx.receipt_no}`}
+                                      className="w-7 h-7 inline-flex items-center justify-center text-sky-600 hover:text-sky-900 hover:bg-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                      title="View Details"
+                                      aria-label={`View transaction ${tx.receipt_no}`}
                                     >
-                                      {deletingTransactionId === tx.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                      <Eye size={14} />
                                     </button>
+                                    <button
+                                      onClick={() => handlePrintReceipt(tx)}
+                                      disabled={deletingTransactionId === tx.id}
+                                      className="w-7 h-7 inline-flex items-center justify-center text-sky-600 hover:text-sky-900 hover:bg-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                      title="Print Receipt"
+                                      aria-label={`Print transaction ${tx.receipt_no}`}
+                                    >
+                                      <Printer size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDownloadPDF(tx)}
+                                      disabled={deletingTransactionId === tx.id || generatingPdfId !== null}
+                                      className="w-7 h-7 inline-flex items-center justify-center text-sky-600 hover:text-sky-900 hover:bg-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                      title="Download PDF"
+                                      aria-label={`Download PDF for transaction ${tx.receipt_no}`}
+                                    >
+                                      {generatingPdfId === tx.id ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                                    </button>
+                                  </div>
+
+                                  {/* Modify Group */}
+                                  {!isViewer && (
+                                    <>
+                                      <span className="w-px h-3.5 bg-sky-200/60 my-auto mx-0.5" aria-hidden="true" />
+                                      <div className="flex items-center gap-0.5">
+                                        <button
+                                          onClick={() => handleUploadClick(tx.id)}
+                                          disabled={deletingTransactionId === tx.id}
+                                          className="w-7 h-7 inline-flex items-center justify-center text-sky-600 hover:text-sky-900 hover:bg-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                          title="Attach Receipt"
+                                          aria-label={`Attach receipt to transaction ${tx.receipt_no}`}
+                                        >
+                                          <Paperclip size={14} />
+                                        </button>
+                                        <button
+                                          onClick={() => navigate(`/edit-transaction/${tx.id}`)}
+                                          disabled={deletingTransactionId === tx.id}
+                                          className="w-7 h-7 inline-flex items-center justify-center text-sky-600 hover:text-sky-900 hover:bg-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                          title="Edit Details"
+                                          aria-label={`Edit transaction ${tx.receipt_no}`}
+                                        >
+                                          <Edit2 size={14} />
+                                        </button>
+                                      </div>
+                                    </>
+                                  )}
+
+                                  {/* Danger Group */}
+                                  {isAdmin && (
+                                    <>
+                                      <span className="w-px h-3.5 bg-rose-200/80 my-auto mx-0.5" aria-hidden="true" />
+                                      <button
+                                        onClick={() => handleDelete(tx)}
+                                        disabled={deletingTransactionId === tx.id}
+                                        className="w-7 h-7 inline-flex items-center justify-center text-rose-600 hover:text-rose-800 hover:bg-rose-100/80 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title="Delete Permanently"
+                                        aria-label={`Delete transaction ${tx.receipt_no}`}
+                                      >
+                                        {deletingTransactionId === tx.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                      </button>
+                                    </>
                                   )}
                                 </div>
                               </td>
@@ -1038,7 +1081,7 @@ export default function TransactionHistory() {
 
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 max-w-sm rounded-2xl border px-4 py-3 text-sm font-black shadow-2xl backdrop-blur-xl ${
+          className={`fixed bottom-6 right-6 z-50 max-w-sm rounded-2xl border px-4 py-3 text-sm font-black shadow-2xl backdrop-blur-xl print:hidden ${
             toast.type === 'success'
               ? 'border-emerald-100 bg-emerald-50/95 text-emerald-700'
               : 'border-rose-100 bg-rose-50/95 text-rose-700'
@@ -1090,7 +1133,7 @@ export default function TransactionHistory() {
       )}
 
       {confirmDeleteAll && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/35 px-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="delete-all-title">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/35 px-4 backdrop-blur-sm print:hidden" role="dialog" aria-modal="true" aria-labelledby="delete-all-title">
           <div className="w-full max-w-md rounded-[28px] border border-white/70 bg-white/95 p-6 shadow-2xl shadow-slate-900/20">
             <div className="mb-5 flex items-start gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">

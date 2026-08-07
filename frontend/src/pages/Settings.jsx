@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Save, Upload, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Upload, Loader2, Image as ImageIcon, CheckCircle, AlertCircle } from 'lucide-react';
 import { settingsAPI } from '../api/client';
 import GlassCard from '../components/GlassCard';
 
@@ -89,8 +89,8 @@ export default function Settings() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex justify-center items-center">
-        <Loader2 className="animate-spin text-sky-500" size={28} />
+      <div className="flex-1 flex justify-center items-center py-20">
+        <Loader2 className="animate-spin text-sky-500" size={32} />
       </div>
     );
   }
@@ -100,29 +100,29 @@ export default function Settings() {
       
       {/* Page Title */}
       <div>
-        <h1 className="text-2xl font-black text-sky-900 leading-tight">Settings & Branding</h1>
-        <p className="text-sm text-sky-500 font-medium mt-1">Configure your invoice company, logo, and receipt templates.</p>
+        <h1 className="text-2xl font-black text-sky-900 tracking-tight leading-tight">Settings & Branding</h1>
+        <p className="text-xs font-bold text-sky-500/80 mt-1">Configure your invoice company, logo, and receipt templates.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Form Settings Panel */}
         <GlassCard className="lg:col-span-2 p-6 md:p-8">
-          <h2 className="text-base font-extrabold text-sky-900 border-b border-sky-100 pb-3 mb-6 flex items-center gap-2">
-            <SettingsIcon size={18} className="text-sky-500" />
+          <h2 className="text-xs font-black text-sky-900 uppercase tracking-wider border-b border-sky-100 pb-3 mb-6 flex items-center gap-2">
+            <SettingsIcon size={16} className="text-sky-500" />
             <span>Company Profile Configuration</span>
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+                <label className="block text-[10px] font-black text-sky-500 uppercase tracking-[0.1em] mb-1.5">
                   Company Name
                 </label>
                 <input
                   type="text"
                   name="company_name"
-                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-xs font-semibold text-sky-900"
+                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-xs font-semibold text-sky-900 transition-all"
                   value={form.company_name}
                   onChange={handleChange}
                   required
@@ -130,12 +130,12 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+                <label className="block text-[10px] font-black text-sky-500 uppercase tracking-[0.1em] mb-1.5">
                   Default Vault Currency
                 </label>
                 <select
                   name="default_currency"
-                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-xs font-semibold text-sky-900"
+                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-xs font-semibold text-sky-900 transition-all"
                   value={form.default_currency}
                   onChange={handleChange}
                 >
@@ -147,13 +147,13 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+                <label className="block text-[10px] font-black text-sky-500 uppercase tracking-[0.1em] mb-1.5">
                   Receipt Auto Prefix
                 </label>
                 <input
                   type="text"
                   name="receipt_prefix"
-                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-xs font-semibold text-sky-900"
+                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-xs font-semibold text-sky-900 transition-all"
                   value={form.receipt_prefix}
                   onChange={handleChange}
                   required
@@ -161,13 +161,13 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+                <label className="block text-[10px] font-black text-sky-500 uppercase tracking-[0.1em] mb-1.5">
                   Next Auto Number
                 </label>
                 <input
                   type="number"
                   name="next_receipt_number"
-                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-xs font-semibold text-sky-900"
+                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-xs font-semibold text-sky-900 transition-all"
                   value={form.next_receipt_number}
                   onChange={handleChange}
                   required
@@ -176,52 +176,52 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+                <label className="block text-[10px] font-black text-sky-500 uppercase tracking-[0.1em] mb-1.5">
                   Contact Phone
                 </label>
                 <input
                   type="text"
                   name="phone"
-                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-xs font-semibold text-sky-900"
+                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-xs font-semibold text-sky-900 transition-all"
                   value={form.phone}
                   onChange={handleChange}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+                <label className="block text-[10px] font-black text-sky-500 uppercase tracking-[0.1em] mb-1.5">
                   Contact Email
                 </label>
                 <input
                   type="email"
                   name="email"
-                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-xs font-semibold text-sky-900"
+                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-xs font-semibold text-sky-900 transition-all"
                   value={form.email}
                   onChange={handleChange}
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+                <label className="block text-[10px] font-black text-sky-500 uppercase tracking-[0.1em] mb-1.5">
                   Business Address
                 </label>
                 <input
                   type="text"
                   name="address"
-                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-xs font-semibold text-sky-900"
+                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-xs font-semibold text-sky-900 transition-all"
                   value={form.address}
                   onChange={handleChange}
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+                <label className="block text-[10px] font-black text-sky-500 uppercase tracking-[0.1em] mb-1.5">
                   Receipt Footer Disclaimer
                 </label>
                 <textarea
                   name="receipt_footer"
                   rows="3"
-                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-xs font-semibold text-sky-900"
+                  className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-xs font-semibold text-sky-900 transition-all resize-none"
                   value={form.receipt_footer}
                   onChange={handleChange}
                 />
@@ -229,19 +229,24 @@ export default function Settings() {
             </div>
 
             {message && (
-              <div className={`p-3.5 border rounded-xl text-xs font-semibold leading-relaxed ${
+              <div className={`p-3.5 border rounded-xl text-xs font-semibold leading-relaxed flex items-center gap-2 ${
                 message.includes('successfully')
-                  ? 'bg-emerald-50 border-emerald-100 text-emerald-600'
-                  : 'bg-red-50 border-red-100 text-red-600'
+                  ? 'bg-emerald-50/90 border-emerald-100 text-emerald-700'
+                  : 'bg-rose-50/90 border-rose-100 text-rose-700'
               }`}>
-                {message}
+                {message.includes('successfully') ? (
+                  <CheckCircle size={16} className="shrink-0 text-emerald-500" />
+                ) : (
+                  <AlertCircle size={16} className="shrink-0 text-rose-500" />
+                )}
+                <span>{message}</span>
               </div>
             )}
 
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-3.5 bg-gradient-to-tr from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white font-bold rounded-xl shadow-lg shadow-sky-500/25 transition-all text-xs flex items-center justify-center gap-1.5"
+              className="px-6 py-3 bg-gradient-to-tr from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white font-black rounded-xl shadow-lg shadow-sky-500/20 active:scale-[0.98] transition-all text-xs flex items-center justify-center gap-2"
             >
               {saving ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} />}
               <span>Save System Settings</span>
@@ -252,34 +257,35 @@ export default function Settings() {
         {/* Logo Configuration Column */}
         <div className="lg:col-span-1">
           <GlassCard className="p-6 text-center space-y-6">
-            <h2 className="text-base font-extrabold text-sky-900 border-b border-sky-100 pb-3 text-left">
-              Logo Branding
+            <h2 className="text-xs font-black text-sky-900 uppercase tracking-wider border-b border-sky-100 pb-3 flex items-center gap-2 text-left">
+              <ImageIcon size={16} className="text-sky-500" />
+              <span>Logo Branding</span>
             </h2>
 
             <div className="flex flex-col items-center">
               {logoPreview ? (
-                <div className="relative group">
+                <div className="w-28 h-28 rounded-2xl border border-sky-100 bg-white p-2 shadow-inner flex items-center justify-center overflow-hidden">
                   <img
-                    src={logoPreview.startsWith('blob:') ? logoPreview : `/api/uploads/${logoPreview.split(/[\\/]/).pop()}`}
-                    alt="Company logo preview"
-                    className="w-24 h-24 rounded-2xl object-cover border border-sky-100 shadow-md"
+                    src={logoPreview}
+                    alt="Company Logo"
+                    className="max-h-full max-w-full object-contain"
                     onError={(e) => {
-                      // Fallback if image fails to load
-                      e.target.src = 'https://placehold.co/100x100/eaf4ff/0f6bdc?text=Logo';
+                      e.target.onerror = null;
+                      setLogoPreview('');
                     }}
                   />
                 </div>
               ) : (
-                <div className="w-24 h-24 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-300">
-                  <ImageIcon size={32} />
+                <div className="w-28 h-28 rounded-2xl bg-sky-50/80 border border-sky-100 flex items-center justify-center text-sky-300 shadow-inner">
+                  <ImageIcon size={36} />
                 </div>
               )}
               
-              <p className="text-xs text-sky-900/60 font-semibold mt-3">Company Header Logo</p>
+              <p className="text-xs text-sky-900/80 font-black mt-3">Company Header Logo</p>
               <p className="text-[10px] text-sky-400 font-bold block mt-1">Recommended size 120x120px</p>
             </div>
 
-            <label className="w-full py-2.5 bg-sky-50 hover:bg-sky-100 border border-sky-100 text-sky-700 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-all">
+            <label className="w-full py-2.5 bg-white/80 hover:bg-sky-50 border border-sky-100 text-sky-700 font-black rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-all active:scale-[0.98]">
               <Upload size={14} />
               <span>Select Image Logo</span>
               <input
