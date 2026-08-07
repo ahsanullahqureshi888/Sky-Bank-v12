@@ -204,49 +204,49 @@ export default function AddTransaction() {
   const selectedBank = banks.find((b) => b.id === Number(form.bank_account_id));
 
   return (
-    <div className="mx-auto w-full max-w-[1640px] space-y-5">
+    <div className="mx-auto w-full max-w-[1560px] space-y-4">
       
       {/* Header bar */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <button
           onClick={() => navigate(-1)}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-sky-100 bg-white/70 text-sky-700 shadow-sm transition-all hover:bg-sky-50"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-100 bg-white/70 text-sky-700 shadow-sm transition-all hover:bg-sky-50"
           aria-label="Go back"
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={16} />
         </button>
         <div>
-          <h1 className="text-2xl font-black leading-tight text-slate-900 md:text-3xl">
+          <h1 className="text-xl font-black leading-tight text-slate-900 md:text-2xl">
             {id ? 'Edit Transaction Details' : 'Record New Transaction'}
           </h1>
-          <p className="mt-1 text-[12px] font-bold uppercase tracking-wider text-sky-600/70">
+          <p className="mt-0.5 text-[11px] font-bold uppercase tracking-wider text-sky-600/70">
             Input money transaction, Hawala slips, or paid bank statements
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:gap-8 xl:grid-cols-[minmax(0,1fr)_480px] 2xl:grid-cols-[minmax(0,1fr)_560px]">
+      <div className="grid grid-cols-1 gap-5 lg:gap-6 xl:grid-cols-[minmax(0,1fr)_420px] 2xl:grid-cols-[minmax(0,1fr)_480px]">
         
         {/* Form panel */}
-        <GlassCard className="p-5 md:p-6">
+        <GlassCard className="p-4 md:p-5">
           <form 
-            className="transaction-form grid grid-cols-1 gap-x-5 gap-y-4 md:grid-cols-2 pb-20 md:pb-0"
+            className="transaction-form grid grid-cols-1 gap-x-4 gap-y-3 md:grid-cols-2 pb-20 md:pb-0"
             onSubmit={(e) => { e.preventDefault(); handleSave(e); }}
           >
             
-            <div className="md:col-span-2 flex items-center gap-2.5 border-b border-sky-100 pb-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-sky-600"><Hash size={14} /></span>
-              <h4 className="text-xs font-black uppercase tracking-wider text-sky-800">Transaction Details</h4>
+            <div className="md:col-span-2 flex items-center gap-2 border-b border-sky-100 pb-1.5">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-sky-100 text-sky-600"><Hash size={12} /></span>
+              <h4 className="text-[11px] font-black uppercase tracking-wider text-sky-800">Transaction Details</h4>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1">
                 Receipt No / Payment No <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
                 name="receipt_no"
-                className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 transition-all font-semibold"
+                className="w-full px-3.5 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 text-sm transition-all font-semibold"
                 value={form.receipt_no}
                 onChange={handleChange}
                 required
@@ -254,13 +254,13 @@ export default function AddTransaction() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1">
                 Date <span className="text-rose-500">*</span>
               </label>
               <input
                 type="date"
                 name="date"
-                className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 transition-all font-semibold"
+                className="w-full px-3.5 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 text-sm transition-all font-semibold"
                 value={form.date}
                 onChange={handleChange}
                 required
@@ -268,7 +268,7 @@ export default function AddTransaction() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-2">
+              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
                 Transaction Direction
               </label>
               <div className="flex flex-wrap gap-2" role="group" aria-label="Transaction direction">
@@ -283,7 +283,7 @@ export default function AddTransaction() {
                     type="button"
                     onClick={() => setForm((prev) => ({ ...prev, type: value }))}
                     aria-pressed={form.type === value}
-                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition-all ${
+                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold transition-all ${
                       form.type === value ? active : 'border-sky-100 bg-white/40 text-sky-700 hover:bg-sky-50'
                     }`}
                   >
@@ -294,19 +294,19 @@ export default function AddTransaction() {
               </div>
             </div>
 
-            <div className="md:col-span-2 mt-2 flex items-center gap-2.5 border-b border-sky-100 pb-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-sky-600"><Users size={14} /></span>
-              <h4 className="text-xs font-black uppercase tracking-wider text-sky-800">Party &amp; Purpose</h4>
+            <div className="md:col-span-2 mt-1 flex items-center gap-2 border-b border-sky-100 pb-1.5">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-sky-100 text-sky-600"><Users size={14} /></span>
+              <h4 className="text-[11px] font-black uppercase tracking-wider text-sky-800">Party &amp; Purpose</h4>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1">
                 Customer Name <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
                 name="customer_name"
-                className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 transition-all font-semibold"
+                className="w-full px-3.5 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 text-sm transition-all font-semibold"
                 placeholder="Ariana Transport, etc."
                 value={form.customer_name}
                 onChange={handleChange}
@@ -315,13 +315,13 @@ export default function AddTransaction() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1">
                 Company Name
               </label>
               <input
                 type="text"
                 name="company_name"
-                className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 transition-all font-semibold"
+                className="w-full px-3.5 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 text-sm transition-all font-semibold"
                 placeholder="Customer company or account name"
                 value={form.company_name}
                 onChange={handleChange}
@@ -329,13 +329,13 @@ export default function AddTransaction() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1">
                 Subject / Purpose <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
                 name="subject"
-                className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 transition-all font-semibold"
+                className="w-full px-3.5 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 text-sm transition-all font-semibold"
                 placeholder="Hawala settlement, Invoice payment"
                 value={form.subject}
                 onChange={handleChange}
@@ -343,13 +343,13 @@ export default function AddTransaction() {
               />
             </div>
 
-            <div className="md:col-span-2 mt-2 flex items-center gap-2.5 border-b border-sky-100 pb-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-sky-600"><Wallet size={14} /></span>
-              <h4 className="text-xs font-black uppercase tracking-wider text-sky-800">Payment Details</h4>
+            <div className="md:col-span-2 mt-1 flex items-center gap-2 border-b border-sky-100 pb-1.5">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-sky-100 text-sky-600"><Wallet size={14} /></span>
+              <h4 className="text-[11px] font-black uppercase tracking-wider text-sky-800">Payment Details</h4>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1">
                 Amount <span className="text-rose-500">*</span>
               </label>
               <div className="flex overflow-hidden rounded-xl border border-sky-100 bg-white/40 transition-all focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/20">
@@ -360,7 +360,7 @@ export default function AddTransaction() {
                   type="number"
                   step="any"
                   name="amount"
-                  className="w-full min-w-0 flex-1 bg-transparent px-2 py-2.5 text-sky-900 font-semibold outline-none"
+                  className="w-full min-w-0 flex-1 bg-transparent px-2 py-2 text-sky-900 text-sm font-semibold outline-none"
                   placeholder="0.00"
                   value={form.amount}
                   onChange={handleChange}
@@ -368,7 +368,7 @@ export default function AddTransaction() {
                 />
                 <select
                   name="currency"
-                  className="shrink-0 border-l border-sky-100 bg-sky-50/60 px-3 py-2.5 text-sky-900 font-bold text-sm outline-none"
+                  className="shrink-0 border-l border-sky-100 bg-sky-50/60 px-2.5 py-2 text-sky-900 font-bold text-xs outline-none"
                   value={form.currency}
                   onChange={handleChange}
                 >
@@ -380,7 +380,7 @@ export default function AddTransaction() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1">
                 Equivalent Amount
               </label>
               <div className="flex overflow-hidden rounded-xl border border-sky-100 bg-white/40 transition-all focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/20">
@@ -391,14 +391,14 @@ export default function AddTransaction() {
                   type="number"
                   step="any"
                   name="equivalent_amount"
-                  className="w-full min-w-0 flex-1 bg-transparent px-2 py-2.5 text-sky-900 font-semibold outline-none"
+                  className="w-full min-w-0 flex-1 bg-transparent px-2 py-2 text-sky-900 text-sm font-semibold outline-none"
                   placeholder="0.00"
                   value={form.equivalent_amount}
                   onChange={handleChange}
                 />
                 <select
                   name="equivalent_currency"
-                  className="shrink-0 border-l border-sky-100 bg-sky-50/60 px-3 py-2.5 text-sky-900 font-bold text-sm outline-none"
+                  className="shrink-0 border-l border-sky-100 bg-sky-50/60 px-2.5 py-2 text-sky-900 font-bold text-xs outline-none"
                   value={form.equivalent_currency}
                   onChange={handleChange}
                 >
@@ -410,12 +410,12 @@ export default function AddTransaction() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1">
                 Payment Method
               </label>
               <select
                 name="payment_method"
-                className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 transition-all font-semibold"
+                className="w-full px-3.5 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 text-sm transition-all font-semibold"
                 value={form.payment_method}
                 onChange={handleChange}
               >
@@ -426,12 +426,12 @@ export default function AddTransaction() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1">
                 Bank Account
               </label>
               <select
                 name="bank_account_id"
-                className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 transition-all font-semibold"
+                className="w-full px-3.5 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 text-sm transition-all font-semibold"
                 value={form.bank_account_id}
                 onChange={handleChange}
               >
@@ -444,19 +444,19 @@ export default function AddTransaction() {
               </select>
             </div>
 
-            <div className="md:col-span-2 mt-2 flex items-center gap-2.5 border-b border-sky-100 pb-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-sky-600"><UserCheck size={14} /></span>
-              <h4 className="text-xs font-black uppercase tracking-wider text-sky-800">Recipient &amp; Status</h4>
+            <div className="md:col-span-2 mt-1 flex items-center gap-2 border-b border-sky-100 pb-1.5">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-sky-100 text-sky-600"><UserCheck size={14} /></span>
+              <h4 className="text-[11px] font-black uppercase tracking-wider text-sky-800">Recipient &amp; Status</h4>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1">
                 Receiver / Beneficiary Name
               </label>
               <input
                 type="text"
                 name="receiver_name"
-                className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 transition-all font-semibold"
+                className="w-full px-3.5 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 text-sm transition-all font-semibold"
                 placeholder="Finance Dept, Cashier office"
                 value={form.receiver_name}
                 onChange={handleChange}
@@ -464,7 +464,7 @@ export default function AddTransaction() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-2">
+              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
                 Status
               </label>
               <div className="flex flex-wrap gap-2" role="group" aria-label="Status">
@@ -478,7 +478,7 @@ export default function AddTransaction() {
                     type="button"
                     onClick={() => setForm((prev) => ({ ...prev, status: value }))}
                     aria-pressed={form.status === value}
-                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-bold transition-all ${
+                    className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold transition-all ${
                       form.status === value ? active : 'border-sky-100 bg-white/40 text-sky-700 hover:bg-sky-50'
                     }`}
                   >
@@ -489,19 +489,19 @@ export default function AddTransaction() {
               </div>
             </div>
 
-            <div className="md:col-span-2 mt-2 flex items-center gap-2.5 border-b border-sky-100 pb-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100 text-sky-600"><StickyNote size={14} /></span>
-              <h4 className="text-xs font-black uppercase tracking-wider text-sky-800">Notes &amp; Attachments</h4>
+            <div className="md:col-span-2 mt-1 flex items-center gap-2 border-b border-sky-100 pb-1.5">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-sky-100 text-sky-600"><StickyNote size={14} /></span>
+              <h4 className="text-[11px] font-black uppercase tracking-wider text-sky-800">Notes &amp; Attachments</h4>
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1">
                 Description / Notes
               </label>
               <textarea
                 name="description"
                 rows="3"
-                className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 transition-all font-semibold"
+                className="w-full px-3.5 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 text-sm transition-all font-semibold"
                 placeholder="Add receipt confirmation, exchange rate details, etc."
                 value={form.description}
                 onChange={handleChange}
@@ -509,10 +509,10 @@ export default function AddTransaction() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-sky-900/60 uppercase tracking-wide mb-1.5">
+              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1">
                 Upload Receipt Slip (PDF/Image)
               </label>
-              <div className="mt-1 flex justify-center rounded-2xl border-2 border-dashed border-sky-100 bg-white/30 px-6 pb-5 pt-5">
+              <div className="mt-1 flex justify-center rounded-2xl border-2 border-dashed border-sky-100 bg-white/30 px-5 pb-4 pt-4">
                 <div className="space-y-1 text-center">
                   <div className="flex text-sm text-sky-600 justify-center">
                     <label className="relative cursor-pointer bg-white/40 rounded-md font-bold text-sky-500 hover:text-sky-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-sky-500/20 px-2 py-1 border border-sky-100">
@@ -549,7 +549,7 @@ export default function AddTransaction() {
                 type="button"
                 onClick={handleSave}
                 disabled={loading}
-                className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 text-sm font-extrabold text-white shadow-lg shadow-sky-500/20 transition-all hover:from-sky-700 hover:to-blue-700 disabled:opacity-50 ios-button-tap"
+                className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 text-sm font-extrabold text-white shadow-lg shadow-sky-500/20 transition-all hover:from-sky-700 hover:to-blue-700 disabled:opacity-50 ios-button-tap"
               >
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                 <span>
@@ -561,7 +561,7 @@ export default function AddTransaction() {
                 type="button"
                 onClick={handleSaveAndPrint}
                 disabled={loading}
-                className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-sky-100 bg-white/70 text-sm font-extrabold text-sky-800 shadow-md transition-all hover:bg-sky-50 disabled:opacity-50 ios-button-tap"
+                className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-sky-100 bg-white/70 text-sm font-extrabold text-sky-800 shadow-md transition-all hover:bg-sky-50 disabled:opacity-50 ios-button-tap"
               >
                 <Printer size={16} />
                 <span>
@@ -573,7 +573,7 @@ export default function AddTransaction() {
                 type="button"
                 onClick={handleDownloadPDF}
                 disabled={loading}
-                className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-sky-100 bg-white/70 text-sm font-extrabold text-sky-800 shadow-md transition-all hover:bg-sky-50 disabled:opacity-50 ios-button-tap"
+                className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-sky-100 bg-white/70 text-sm font-extrabold text-sky-800 shadow-md transition-all hover:bg-sky-50 disabled:opacity-50 ios-button-tap"
               >
                 <Download size={16} />
                 <span>
@@ -587,11 +587,11 @@ export default function AddTransaction() {
         </GlassCard>
 
         <div className="min-w-0 space-y-4 lg:sticky lg:top-6 lg:self-start">
-          <h3 className="pl-1 text-sm font-extrabold uppercase tracking-[0.14em] text-slate-500 flex items-center justify-between">
+          <h3 className="pl-1 text-xs font-extrabold uppercase tracking-[0.14em] text-slate-500 flex items-center justify-between">
             {t('transaction.live_receipt_preview')}
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
           </h3>
-          <div className="relative rounded-[32px] bg-gradient-to-br from-slate-100 to-sky-50/50 border border-white/80 p-6 md:p-8 flex justify-center items-start overflow-hidden shadow-[inset_0_2px_20px_rgba(0,0,0,0.03)] min-h-[500px]">
+          <div className="relative rounded-[28px] bg-gradient-to-br from-slate-100 to-sky-50/50 border border-white/80 p-4 md:p-5 flex justify-center items-start overflow-hidden shadow-[inset_0_2px_20px_rgba(0,0,0,0.03)] min-h-[380px]">
             <div className="receipt-preview-scroll w-full h-full">
               <ReceiptDocument
                 transaction={form}

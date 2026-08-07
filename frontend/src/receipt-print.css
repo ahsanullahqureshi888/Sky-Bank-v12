@@ -105,11 +105,11 @@
 .receipt-standalone-page { margin: 0; padding: 0; background: #fff; }
 
 .receipt-preview-scroll { width: 100%; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; }
-.receipt-preview-scroll .receipt-sheet { width: 194mm; max-width: none; transform-origin: top center; zoom: 0.7; box-shadow: 0 32px 64px -12px rgba(15, 42, 74, 0.2), 0 0 1px rgba(15, 42, 74, 0.1); border-color: #e2e8f0; }
-@media (max-width: 1400px) { .receipt-preview-scroll .receipt-sheet { zoom: 0.6; } }
-@media (max-width: 1200px) { .receipt-preview-scroll .receipt-sheet { zoom: 0.65; } }
-@media (max-width: 900px) { .receipt-preview-scroll .receipt-sheet { zoom: 0.55; } }
-@media (max-width: 600px) { .receipt-preview-scroll .receipt-sheet { zoom: 0.45; } }
+.receipt-preview-scroll .receipt-sheet { width: 194mm; max-width: none; transform-origin: top center; zoom: 0.62; box-shadow: 0 32px 64px -12px rgba(15, 42, 74, 0.2), 0 0 1px rgba(15, 42, 74, 0.1); border-color: #e2e8f0; }
+@media (max-width: 1400px) { .receipt-preview-scroll .receipt-sheet { zoom: 0.53; } }
+@media (max-width: 1200px) { .receipt-preview-scroll .receipt-sheet { zoom: 0.57; } }
+@media (max-width: 900px) { .receipt-preview-scroll .receipt-sheet { zoom: 0.48; } }
+@media (max-width: 600px) { .receipt-preview-scroll .receipt-sheet { zoom: 0.40; } }
 
 /* Apply the exact same compact layout and font scaling to the PDF generation stage */
 .receipt-pdf-stage .receipt-brand-header,
