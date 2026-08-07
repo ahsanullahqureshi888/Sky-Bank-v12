@@ -63,6 +63,37 @@
 .receipt-summary-grid > div { min-width: 0; padding: 4mm 4.5mm; border-right: 1px dashed var(--receipt-border); display: flex; flex-direction: column; justify-content: center; }
 .receipt-summary-grid > div:last-child { border-right: 0; }
 .receipt-summary-grid strong { display: block; margin-top: 3mm; overflow-wrap: anywhere; color: #0f172a; font-size: 11.5pt; font-family: 'SF Pro Display', Inter, sans-serif; font-weight: 900; line-height: 1.2; }
+.receipt-amount-display { display: flex; align-items: center; gap: 2mm; min-width: 0; margin-top: 2mm; }
+.receipt-amount-value { display: inline-flex; min-width: 0; align-items: baseline; gap: 1mm; }
+.receipt-summary-main .receipt-amount-value strong { margin: 0; font-size: 15pt; white-space: nowrap; }
+.receipt-amount-in .receipt-amount-value strong,
+.receipt-direction-in { color: #059669; }
+.receipt-amount-out .receipt-amount-value strong,
+.receipt-direction-out { color: #e11d48; }
+.receipt-amount-display > .receipt-currency { flex-shrink: 0; color: #0369a1; font-size: 0.75em; font-weight: 800; letter-spacing: 0.04em; }
+.receipt-type-badge-wrap { margin-top: 2mm; }
+.receipt-type-badge,
+.receipt-status-badge { display: inline-flex; align-items: center; gap: 1mm; border-radius: 6px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+.receipt-type-badge { padding: 1.5mm 3mm; font-size: 8pt; }
+.receipt-type-received { color: #059669; background: #ecfdf5; border: 1px solid #a7f3d0; }
+.receipt-type-paid { color: #e11d48; background: #fff1f2; border: 1px solid #fecdd3; }
+.receipt-type-import { color: #2563eb; background: #eff6ff; border: 1px solid #bfdbfe; }
+.receipt-type-export { color: #d97706; background: #fffbeb; border: 1px solid #fde68a; }
+.receipt-status-badge { padding: 1mm 2.5mm; font-size: 7.5pt; letter-spacing: 0.05em; }
+.receipt-status-completed { color: #059669; background: #ecfdf5; border: 1px solid #a7f3d0; }
+.receipt-status-pending { color: #d97706; background: #fffbeb; border: 1px solid #fde68a; }
+.receipt-status-cancelled { color: #e11d48; background: #fff1f2; border: 1px solid #fecdd3; }
+.receipt-currency-seal { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 14mm; height: 14mm; border-radius: 50%; font-size: 12pt; font-weight: 900; box-shadow: inset 0 1px 3px rgba(0,0,0,0.06); }
+.receipt-currency-usd { color: #059669; background: #ecfdf5; border: 2px solid #059669; }
+.receipt-currency-toman { color: #2563eb; background: #eff6ff; border: 2px solid #2563eb; }
+.receipt-currency-dirham { color: #7c3aed; background: #f5f3ff; border: 2px solid #7c3aed; }
+.receipt-currency-afghani { color: #d97706; background: #fffbeb; border: 2px solid #d97706; }
+.receipt-currency-default { color: #0f2a4a; background: #f1f5f9; border: 2px solid #0f2a4a; }
+.receipt-number-bar { display: flex; align-items: center; gap: 1.5mm; font-family: 'Courier New', monospace; }
+.receipt-number-prefix { color: #64748b; font-size: 7pt; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.receipt-number-digits { color: #0f2a4a; font-size: 10pt; font-weight: 900; letter-spacing: 0.15em; }
+.receipt-verified-badge { display: inline-flex; align-items: center; gap: 1mm; margin-left: 3mm; color: #059669; font-size: 7.5pt; font-weight: 900; }
+
 .receipt-summary-main strong { color: var(--receipt-navy); font-size: 16pt; }
 .receipt-completed-text { color: #059669 !important; }
 
@@ -98,15 +129,14 @@
 .receipt-document-footer p { display: inline-block; margin: 0 1.5mm; font-size: 7pt; line-height: 1.35; }
 .receipt-document-footer > div { display: flex; justify-content: space-between; margin-top: 1mm; color: #2563eb; font-size: 6.5pt; font-weight: 700; flex-shrink: 0; }
 
-/* New receipt UI elements */
-.receipt-amount-display { display: flex; align-items: center; gap: 2mm; margin-top: 2mm; }
+/* Receipt compatibility and print-stage details */
 .receipt-status-cell { padding: 1mm 0; }
 .receipt-summary-amount { position: relative; }
 .receipt-summary-amount .receipt-currency { font-weight: 800; }
 
 /* PDF stage adjustments for new elements */
 .receipt-pdf-stage .receipt-amount-display { gap: 1mm; margin-top: 1mm; }
-.receipt-pdf-stage .receipt-amount-display strong { font-size: 12pt; }
+.receipt-pdf-stage .receipt-amount-value strong { font-size: 12pt; }
 .receipt-pdf-stage .receipt-summary-amount .receipt-currency { font-size: 6.5pt; }
 
 .receipt-summary-grid > div { padding-inline: 2mm; }
