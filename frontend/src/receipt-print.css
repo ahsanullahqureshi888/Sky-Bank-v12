@@ -211,15 +211,15 @@
   align-items: flex-start; 
   overflow-y: auto; 
   overflow-x: auto; 
-  padding: 12px;
+  padding: 6px;
   scroll-behavior: smooth;
 }
 .receipt-preview-scroll::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 .receipt-preview-scroll::-webkit-scrollbar-track {
-  background: rgba(241, 245, 249, 0.5);
+  background: rgba(241, 245, 249, 0.4);
   border-radius: 8px;
 }
 .receipt-preview-scroll::-webkit-scrollbar-thumb {
@@ -233,10 +233,10 @@
   width: 194mm; 
   max-width: none; 
   transform-origin: top center; 
-  box-shadow: 0 24px 48px -8px rgba(15, 42, 74, 0.18), 0 0 1px rgba(15, 42, 74, 0.1); 
+  box-shadow: 0 20px 40px -6px rgba(15, 42, 74, 0.16), 0 0 1px rgba(15, 42, 74, 0.1); 
   border-color: #cbd5e1;
   flex-shrink: 0;
-  margin-bottom: 24px;
+  margin-bottom: 0;
 }
 
 /* Apply the exact same compact layout and font scaling to the PDF generation stage */

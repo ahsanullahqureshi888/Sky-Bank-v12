@@ -65,7 +65,7 @@ export default function AddTransaction() {
   const [uploadingFile, setUploadingFile] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [customRate, setCustomRate] = useState('');
-  const [previewZoom, setPreviewZoom] = useState(0.74);
+  const [previewZoom, setPreviewZoom] = useState(0.54);
   const [showFullscreenModal, setShowFullscreenModal] = useState(false);
 
   const calculateEquivalent = (amt, fromCurr, toCurr, rate) => {
@@ -677,10 +677,10 @@ export default function AddTransaction() {
             </h3>
 
             {/* Interactive Zoom & View Controls */}
-            <div className="flex items-center gap-1 bg-white/90 backdrop-blur-md p-1 rounded-xl border border-sky-100 shadow-sm text-xs">
+            <div className="flex items-center gap-1 bg-white/95 backdrop-blur-md p-1 rounded-xl border border-sky-100 shadow-sm text-xs">
               <button
                 type="button"
-                onClick={() => setPreviewZoom((z) => Math.max(0.45, parseFloat((z - 0.08).toFixed(2))))}
+                onClick={() => setPreviewZoom((z) => Math.max(0.35, parseFloat((z - 0.05).toFixed(2))))}
                 className="p-1 hover:bg-sky-50 rounded-lg text-slate-600 hover:text-sky-700 transition-colors"
                 title="Zoom Out"
               >
@@ -691,7 +691,7 @@ export default function AddTransaction() {
               </span>
               <button
                 type="button"
-                onClick={() => setPreviewZoom((z) => Math.min(1.1, parseFloat((z + 0.08).toFixed(2))))}
+                onClick={() => setPreviewZoom((z) => Math.min(1.1, parseFloat((z + 0.05).toFixed(2))))}
                 className="p-1 hover:bg-sky-50 rounded-lg text-slate-600 hover:text-sky-700 transition-colors"
                 title="Zoom In"
               >
@@ -700,11 +700,23 @@ export default function AddTransaction() {
               <div className="w-[1px] h-3 bg-slate-200 mx-0.5" />
               <button
                 type="button"
-                onClick={() => setPreviewZoom(0.74)}
-                className="px-1.5 py-0.5 hover:bg-sky-50 rounded-md text-[10px] font-bold text-sky-600 transition-colors"
-                title="Reset Fit"
+                onClick={() => setPreviewZoom(0.54)}
+                className={`px-2 py-0.5 rounded-md text-[10px] font-black transition-all ${
+                  previewZoom === 0.54 ? 'bg-sky-600 text-white shadow-xs' : 'hover:bg-sky-50 text-sky-600 font-bold'
+                }`}
+                title="Fit 1-Page View (See All At Once)"
               >
-                Fit
+                1-Page
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewZoom(0.74)}
+                className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold transition-all ${
+                  previewZoom === 0.74 ? 'bg-sky-600 text-white shadow-xs' : 'hover:bg-sky-50 text-sky-600'
+                }`}
+                title="Large View"
+              >
+                Large
               </button>
               <button
                 type="button"
@@ -717,12 +729,12 @@ export default function AddTransaction() {
             </div>
           </div>
 
-          {/* Smooth Scrollable Receipt Stage */}
-          <div className="relative rounded-[24px] bg-gradient-to-br from-slate-100 via-sky-50/40 to-slate-200/50 border border-slate-200/80 p-2 md:p-3 flex justify-center items-start shadow-[inset_0_2px_12px_rgba(0,0,0,0.03)] h-[760px] max-h-[82vh] overflow-hidden">
+          {/* 1-Page Full Receipt View Stage Container */}
+          <div className="relative rounded-[24px] bg-gradient-to-br from-slate-100 via-sky-50/40 to-slate-200/50 border border-slate-200/80 p-2 md:p-3 flex justify-center items-start shadow-[inset_0_2px_12px_rgba(0,0,0,0.03)] min-h-[580px] max-h-[720px] overflow-hidden">
             <div className="receipt-preview-scroll w-full h-full">
               <div
-                className="transition-transform duration-150 origin-top flex justify-center"
-                style={{ transform: `scale(${previewZoom})` }}
+                className="transition-all duration-200 origin-top flex justify-center"
+                style={{ transform: `scale(${previewZoom})`, height: `${previewZoom * 1060}px` }}
               >
                 <ReceiptDocument
                   transaction={form}
