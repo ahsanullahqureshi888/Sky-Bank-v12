@@ -14,6 +14,8 @@ app.add_middleware(
     allow_origins=[
         "http://127.0.0.1:5173", 
         "http://localhost:5173",
+        "https://sky-bank-v12-3j1vqlgku-ahsanullahqureshi888-6759s-projects.vercel.app",
+        "https://sky-bank-v12.vercel.app",
         "https://frontend-sable-ten-54.vercel.app",
         "https://frontend-qz56kqsg7-sky-ariana-balam-bar-baran.vercel.app",
         "https://sky-banking-frontend.vercel.app",
