@@ -203,13 +203,41 @@
 .receipt-pdf-stage .receipt-sheet { width: 194mm; height: 281mm; border-radius: 0; box-shadow: none; }
 .receipt-standalone-page { margin: 0; padding: 0; background: #fff; }
 
-.receipt-preview-scroll { width: 100%; display: flex; justify-content: center; align-items: flex-start; overflow: hidden; padding: 2px; }
-.receipt-preview-scroll .receipt-sheet { width: 194mm; max-width: none; transform-origin: top center; zoom: 0.74; box-shadow: 0 24px 48px -8px rgba(15, 42, 74, 0.18), 0 0 1px rgba(15, 42, 74, 0.1); border-color: #cbd5e1; }
-@media (max-width: 1536px) { .receipt-preview-scroll .receipt-sheet { zoom: 0.68; } }
-@media (max-width: 1280px) { .receipt-preview-scroll .receipt-sheet { zoom: 0.58; } }
-@media (max-width: 1200px) { .receipt-preview-scroll .receipt-sheet { zoom: 0.57; } }
-@media (max-width: 900px) { .receipt-preview-scroll .receipt-sheet { zoom: 0.48; } }
-@media (max-width: 600px) { .receipt-preview-scroll .receipt-sheet { zoom: 0.40; } }
+.receipt-preview-scroll { 
+  width: 100%; 
+  height: 100%;
+  display: flex; 
+  justify-content: center; 
+  align-items: flex-start; 
+  overflow-y: auto; 
+  overflow-x: auto; 
+  padding: 12px;
+  scroll-behavior: smooth;
+}
+.receipt-preview-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.receipt-preview-scroll::-webkit-scrollbar-track {
+  background: rgba(241, 245, 249, 0.5);
+  border-radius: 8px;
+}
+.receipt-preview-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 8px;
+}
+.receipt-preview-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
+.receipt-preview-scroll .receipt-sheet { 
+  width: 194mm; 
+  max-width: none; 
+  transform-origin: top center; 
+  box-shadow: 0 24px 48px -8px rgba(15, 42, 74, 0.18), 0 0 1px rgba(15, 42, 74, 0.1); 
+  border-color: #cbd5e1;
+  flex-shrink: 0;
+  margin-bottom: 24px;
+}
 
 /* Apply the exact same compact layout and font scaling to the PDF generation stage */
 .receipt-pdf-stage .receipt-brand-header,

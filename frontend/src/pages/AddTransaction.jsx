@@ -22,6 +22,10 @@ import {
   Wallet,
   UserCheck,
   StickyNote,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  X,
 } from 'lucide-react';
 import { transactionAPI, bankAPI, customerAPI, settingsAPI } from '../api/client';
 import GlassCard from '../components/GlassCard';
@@ -61,6 +65,8 @@ export default function AddTransaction() {
   const [uploadingFile, setUploadingFile] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [customRate, setCustomRate] = useState('');
+  const [previewZoom, setPreviewZoom] = useState(0.74);
+  const [showFullscreenModal, setShowFullscreenModal] = useState(false);
 
   const calculateEquivalent = (amt, fromCurr, toCurr, rate) => {
     const num = parseFloat(amt);
@@ -663,24 +669,119 @@ export default function AddTransaction() {
           </form>
         </GlassCard>
 
-        <div className="min-w-0 space-y-4 lg:sticky lg:top-6 lg:self-start">
-          <h3 className="pl-1 text-xs font-extrabold uppercase tracking-[0.14em] text-slate-500 flex items-center justify-between">
-            {t('transaction.live_receipt_preview')}
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
-          </h3>
-          <div className="relative rounded-[28px] bg-gradient-to-br from-slate-100 to-sky-50/50 border border-white/80 p-4 md:p-5 flex justify-center items-start overflow-hidden shadow-[inset_0_2px_20px_rgba(0,0,0,0.03)] min-h-[380px]">
+        <div className="min-w-0 space-y-3 lg:sticky lg:top-6 lg:self-start">
+          <div className="flex items-center justify-between gap-2 px-1">
+            <h3 className="text-xs font-extrabold uppercase tracking-[0.14em] text-slate-600 flex items-center gap-2">
+              <span>{t('transaction.live_receipt_preview')}</span>
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+            </h3>
+
+            {/* Interactive Zoom & View Controls */}
+            <div className="flex items-center gap-1 bg-white/90 backdrop-blur-md p-1 rounded-xl border border-sky-100 shadow-sm text-xs">
+              <button
+                type="button"
+                onClick={() => setPreviewZoom((z) => Math.max(0.45, parseFloat((z - 0.08).toFixed(2))))}
+                className="p-1 hover:bg-sky-50 rounded-lg text-slate-600 hover:text-sky-700 transition-colors"
+                title="Zoom Out"
+              >
+                <ZoomOut size={14} />
+              </button>
+              <span className="text-[10px] font-black text-slate-700 min-w-[34px] text-center">
+                {Math.round(previewZoom * 100)}%
+              </span>
+              <button
+                type="button"
+                onClick={() => setPreviewZoom((z) => Math.min(1.1, parseFloat((z + 0.08).toFixed(2))))}
+                className="p-1 hover:bg-sky-50 rounded-lg text-slate-600 hover:text-sky-700 transition-colors"
+                title="Zoom In"
+              >
+                <ZoomIn size={14} />
+              </button>
+              <div className="w-[1px] h-3 bg-slate-200 mx-0.5" />
+              <button
+                type="button"
+                onClick={() => setPreviewZoom(0.74)}
+                className="px-1.5 py-0.5 hover:bg-sky-50 rounded-md text-[10px] font-bold text-sky-600 transition-colors"
+                title="Reset Fit"
+              >
+                Fit
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFullscreenModal(true)}
+                className="p-1 hover:bg-sky-100/80 bg-sky-50 rounded-lg text-sky-700 transition-colors ml-0.5"
+                title="Expand Full Screen"
+              >
+                <Maximize2 size={14} />
+              </button>
+            </div>
+          </div>
+
+          {/* Smooth Scrollable Receipt Stage */}
+          <div className="relative rounded-[24px] bg-gradient-to-br from-slate-100 via-sky-50/40 to-slate-200/50 border border-slate-200/80 p-2 md:p-3 flex justify-center items-start shadow-[inset_0_2px_12px_rgba(0,0,0,0.03)] h-[760px] max-h-[82vh] overflow-hidden">
             <div className="receipt-preview-scroll w-full h-full">
-              <ReceiptDocument
-                transaction={form}
-                bankAccount={selectedBank}
-                settings={settings}
-                language={i18n.resolvedLanguage}
-              />
+              <div
+                className="transition-transform duration-150 origin-top flex justify-center"
+                style={{ transform: `scale(${previewZoom})` }}
+              >
+                <ReceiptDocument
+                  transaction={form}
+                  bankAccount={selectedBank}
+                  settings={settings}
+                  language={i18n.resolvedLanguage}
+                />
+              </div>
             </div>
           </div>
         </div>
 
       </div>
+
+      {/* Full Screen Live Receipt Modal */}
+      {showFullscreenModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-6 animate-fadeIn">
+          <div className="w-full max-w-4xl flex items-center justify-between bg-slate-900 text-white p-4 rounded-t-2xl border-b border-slate-800 shadow-xl">
+            <div className="flex items-center gap-3">
+              <span className="font-black text-sm uppercase tracking-wider text-sky-400">Official Money Receipt Preview</span>
+              <span className="text-[11px] font-bold text-slate-300 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+                {form.receipt_no || 'LIVE DRAFT'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSaveAndPrint}
+                className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md transition-all"
+              >
+                <Printer size={14} /> Print
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadPDF}
+                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md transition-all"
+              >
+                <Download size={14} /> Download PDF
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFullscreenModal(false)}
+                className="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl transition-colors ml-1"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+          <div className="w-full max-w-4xl bg-slate-100/90 p-4 sm:p-8 rounded-b-2xl max-h-[85vh] overflow-y-auto flex justify-center shadow-2xl custom-scrollbar">
+            <ReceiptDocument
+              transaction={form}
+              bankAccount={selectedBank}
+              settings={settings}
+              language={i18n.resolvedLanguage}
+            />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
