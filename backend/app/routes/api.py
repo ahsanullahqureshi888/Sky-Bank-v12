@@ -198,6 +198,30 @@ def transaction_pdf(transaction: models.Transaction, settings: models.Settings |
     return make_pdf("\n".join(lines))
 
 
+@router.get("/health")
+def health_check():
+    return {"status": "healthy", "system": "Sky Bank v12", "timestamp": datetime.utcnow().isoformat()}
+
+
+@router.get("/health/db-check")
+def db_health_check(db: Session = Depends(get_db)):
+    try:
+        users_count = db.scalar(select(func.count(models.User.id)))
+        customers_count = db.scalar(select(func.count(models.Customer.id)))
+        transactions_count = db.scalar(select(func.count(models.Transaction.id)))
+        banks_count = db.scalar(select(func.count(models.BankAccount.id)))
+        return {
+            "status": "connected",
+            "database": "sky_banking.db",
+            "users": users_count,
+            "customers": customers_count,
+            "transactions": transactions_count,
+            "bank_accounts": banks_count,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Database health check failed: {exc}") from exc
+
+
 @router.post("/auth/register", response_model=schemas.UserRead)
 def register(payload: schemas.UserCreate, db: Session = Depends(get_db), user: models.User = Depends(require_role("Admin"))):
     if db.scalar(select(models.User).where(models.User.email == payload.email)):
@@ -354,8 +378,12 @@ def update_customer(
         raise HTTPException(status_code=404, detail="Customer not found")
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(customer, key, value)
-    log_api_action(request, db, user.id, "update", "customers", customer.id, f"Updated customer {customer.name}")
-    db.commit()
+    try:
+        log_api_action(request, db, user.id, "update", "customers", customer.id, f"Updated customer {customer.name}")
+        db.commit()
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Customer update failed. No changes were saved.") from exc
     db.refresh(customer)
     return customer
 
@@ -461,6 +489,7 @@ def list_transactions(
     db: Session = Depends(get_db),
     _: models.User = Depends(get_current_user),
     customer: Optional[str] = None,
+    search: Optional[str] = None,
     currency: Optional[str] = None,
     bank_account_id: Optional[int] = None,
     payment_method: Optional[str] = None,
@@ -473,6 +502,16 @@ def list_transactions(
     type: Optional[str] = None,
 ):
     query = select(models.Transaction).join(models.Customer).order_by(models.Transaction.date.desc(), models.Transaction.id.desc())
+    if search:
+        pattern = f"%{search.strip()}%"
+        query = query.where(
+            (models.Customer.name.ilike(pattern))
+            | (models.Transaction.receipt_no.ilike(pattern))
+            | (models.Transaction.subject.ilike(pattern))
+            | (models.Transaction.company_name.ilike(pattern))
+            | (models.Transaction.description.ilike(pattern))
+            | (models.Transaction.receiver_name.ilike(pattern))
+        )
     if customer:
         query = query.where(models.Customer.name.ilike(f"%{customer}%"))
     if currency:

@@ -60,6 +60,27 @@ export default function AddTransaction() {
   const [loading, setLoading] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [customRate, setCustomRate] = useState('');
+
+  const calculateEquivalent = (amt, fromCurr, toCurr, rate) => {
+    const num = parseFloat(amt);
+    if (isNaN(num) || num <= 0) return '';
+    if (fromCurr === toCurr) return String(num);
+    if (rate && !isNaN(parseFloat(rate)) && parseFloat(rate) > 0) {
+      return String((num * parseFloat(rate)).toFixed(2));
+    }
+    const ratesInUSD = {
+      USD: 1,
+      Afghani: 70.5,
+      Dirham: 3.67,
+      Toman: 60000,
+    };
+    const fromUSD = ratesInUSD[fromCurr] || 1;
+    const toUSD = ratesInUSD[toCurr] || 1;
+    const usdValue = num / fromUSD;
+    const converted = usdValue * toUSD;
+    return String(converted.toFixed(2));
+  };
   
   const navigate = useNavigate();
   const { id } = useParams();
@@ -422,9 +443,23 @@ export default function AddTransaction() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1">
-                Equivalent Amount
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide">
+                  Equivalent Amount
+                </label>
+                {form.amount && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const calculated = calculateEquivalent(form.amount, form.currency, form.equivalent_currency, customRate);
+                      setForm((prev) => ({ ...prev, equivalent_amount: calculated }));
+                    }}
+                    className="text-[10px] font-extrabold text-sky-600 hover:text-sky-800 bg-sky-100/70 hover:bg-sky-200/70 px-2 py-0.5 rounded-md transition-colors"
+                  >
+                    ⚡ Auto Convert
+                  </button>
+                )}
+              </div>
               <div className="flex overflow-hidden rounded-xl border border-sky-100 bg-white/40 transition-all focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-500/20">
                 <div className="flex items-center pl-4 text-sky-400">
                   <ArrowRightLeft size={15} strokeWidth={2.5} />

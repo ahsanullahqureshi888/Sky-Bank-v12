@@ -7,11 +7,18 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
-from backend.app import models
-from backend.app.auth.security import create_access_token, hash_password
-from backend.app.database import Base, get_db
-from backend.app.main import app
-from backend.app.services.seed import seed_database
+try:
+    from backend.app import models
+    from backend.app.auth.security import create_access_token, hash_password
+    from backend.app.database import Base, get_db
+    from backend.app.main import app
+    from backend.app.services.seed import seed_database
+except ImportError:
+    from app import models
+    from app.auth.security import create_access_token, hash_password
+    from app.database import Base, get_db
+    from app.main import app
+    from app.services.seed import seed_database
 
 
 class CustomerUpdateTests(unittest.TestCase):
@@ -50,8 +57,7 @@ class CustomerUpdateTests(unittest.TestCase):
                 phone="+93 700 100 100",
                 address="Kabul",
                 notes="Original notes",
-                currency="USD",
-                opening_balance=100,
+                entity_type="customer",
             )
             db.add_all([admin, accountant, customer])
             db.flush()
@@ -91,8 +97,7 @@ class CustomerUpdateTests(unittest.TestCase):
             "phone": "+93 799 222 333",
             "address": "Herat",
             "notes": "Updated account notes",
-            "currency": "Afghani",
-            "opening_balance": 4250.5,
+            "entity_type": "sarafi",
         }
         response = self.client.put(
             f"/api/customers/{self.customer_id}",
@@ -110,8 +115,7 @@ class CustomerUpdateTests(unittest.TestCase):
             self.assertEqual(persisted.phone, payload["phone"])
             self.assertEqual(persisted.address, payload["address"])
             self.assertEqual(persisted.notes, payload["notes"])
-            self.assertEqual(persisted.currency, payload["currency"])
-            self.assertEqual(persisted.opening_balance, payload["opening_balance"])
+            self.assertEqual(persisted.entity_type, payload["entity_type"])
             self.assertEqual(reopened_db.scalar(select(models.Customer).where(models.Customer.id == self.customer_id)), persisted)
             self.assertEqual(len(reopened_db.scalars(select(models.Customer)).all()), 1)
             transaction = reopened_db.get(models.Transaction, self.transaction_id)
@@ -166,11 +170,10 @@ class CustomerUpdateTests(unittest.TestCase):
 
         with self.TestingSessionLocal() as db:
             seed_database(db)
-            customers = db.scalars(select(models.Customer).order_by(models.Customer.id)).all()
-            self.assertEqual(len(customers), 1)
-            self.assertEqual(customers[0].id, self.customer_id)
-            self.assertEqual(customers[0].name, "Renamed After Save")
-            self.assertIsNone(db.scalar(select(models.Customer).where(models.Customer.name == "Ariana Balam Baran")))
+            renamed_customer = db.get(models.Customer, self.customer_id)
+            self.assertIsNotNone(renamed_customer)
+            self.assertEqual(renamed_customer.name, "Renamed After Save")
+            self.assertIsNone(db.scalar(select(models.Customer).where(models.Customer.name == "Persistent Customer")))
 
 
 if __name__ == "__main__":

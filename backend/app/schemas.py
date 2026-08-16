@@ -207,6 +207,7 @@ class SettingsRead(BaseModel):
     auto_backup: bool
     last_backup_at: Optional[str]
     next_receipt_number: int
+    receipt_background: Optional[str] = "/afghan-blue-mosque.jpg"
 
     model_config = {"from_attributes": True}
 
@@ -223,6 +224,7 @@ class SettingsUpdate(BaseModel):
     auto_backup: Optional[bool] = None
     last_backup_at: Optional[str] = None
     next_receipt_number: Optional[int] = None
+    receipt_background: Optional[str] = None
 
 
 class DashboardSummary(BaseModel):

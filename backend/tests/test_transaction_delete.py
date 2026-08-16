@@ -8,12 +8,20 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
-from backend.app import models
-from backend.app.auth.security import create_access_token, hash_password
-from backend.app.database import Base, get_db
-from backend.app.main import app
-from backend.app.services.ledger import recalculate_after_transaction
-from backend.app.services.seed import seed_database
+try:
+    from backend.app import models
+    from backend.app.auth.security import create_access_token, hash_password
+    from backend.app.database import Base, get_db
+    from backend.app.main import app
+    from backend.app.services.ledger import recalculate_after_transaction
+    from backend.app.services.seed import seed_database
+except ImportError:
+    from app import models
+    from app.auth.security import create_access_token, hash_password
+    from app.database import Base, get_db
+    from app.main import app
+    from app.services.ledger import recalculate_after_transaction
+    from app.services.seed import seed_database
 
 
 class TransactionDeleteTests(unittest.TestCase):

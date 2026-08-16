@@ -136,7 +136,7 @@ class Settings(Base):
     email: Mapped[str | None] = mapped_column(String(160), nullable=True)
     receipt_footer: Mapped[str | None] = mapped_column(Text, nullable=True)
     default_currency: Mapped[str] = mapped_column(String(40), default="USD")
-    receipt_prefix: Mapped[str] = mapped_column(String(40), default="TX")
     auto_backup: Mapped[bool] = mapped_column(Boolean, default=False)
     last_backup_at: Mapped[str | None] = mapped_column(String(100), nullable=True)
     next_receipt_number: Mapped[int] = mapped_column(Integer, default=1)
+    receipt_background: Mapped[str | None] = mapped_column(String(255), default="/afghan-blue-mosque.jpg")

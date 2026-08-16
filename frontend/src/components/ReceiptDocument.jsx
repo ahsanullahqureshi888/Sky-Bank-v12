@@ -154,8 +154,8 @@ function StatusBadge({ status }) {
   const Icon = config.icon;
   return (
     <span className={`receipt-status-badge ${config.className}`}>
-      <Icon size={10} strokeWidth={2.5} />
-      {status}
+      <Icon size={11} strokeWidth={2.5} className="shrink-0" />
+      <span className="whitespace-nowrap">{status ? String(status).toUpperCase() : 'COMPLETED'}</span>
     </span>
   );
 }
@@ -221,6 +221,13 @@ export default function ReceiptDocument({
 
   return (
     <article id="receipt-print-area" className="receipt-sheet relative overflow-hidden" aria-label={tEn('receipt.document_title')}>
+      {/* Inner Security Micro-Guilloche Frame */}
+      <div className="receipt-security-frame" aria-hidden="true" />
+
+      {/* Afghan Banknote Landmark Security Watermark Layer */}
+      <div className="receipt-landmark-bg" aria-hidden="true">
+        <img src={settings?.receipt_background || '/afghan-blue-mosque.jpg'} alt="" crossOrigin="anonymous" />
+      </div>
       <div className="receipt-watermark" aria-hidden="true">
         <img src={getLogoUrl(settings)} alt="" crossOrigin="anonymous" />
       </div>

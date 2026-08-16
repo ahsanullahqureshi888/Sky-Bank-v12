@@ -3,6 +3,13 @@ import { Settings as SettingsIcon, Save, Upload, Loader2, Image as ImageIcon, Ch
 import { settingsAPI } from '../api/client';
 import GlassCard from '../components/GlassCard';
 
+const LANDMARK_BACKGROUNDS = [
+  { id: '/afghan-blue-mosque.jpg', name: 'Blue Mosque', location: 'Mazar-i-Sharif', preview: '/afghan-blue-mosque.jpg' },
+  { id: '/afghan-darul-aman.jpg', name: 'Darul Aman Palace', location: 'Kabul', preview: '/afghan-darul-aman.jpg' },
+  { id: '/afghan-qala-bost.jpg', name: 'Arch of Qala-e-Bost', location: 'Helmand', preview: '/afghan-qala-bost.jpg' },
+  { id: '/afghan-band-e-amir.jpg', name: 'Band-e-Amir Lakes', location: 'Bamyan', preview: '/afghan-band-e-amir.jpg' },
+];
+
 export default function Settings() {
   const [form, setForm] = useState({
     company_name: '',
@@ -13,6 +20,7 @@ export default function Settings() {
     default_currency: 'USD',
     receipt_prefix: 'TX',
     next_receipt_number: 1,
+    receipt_background: '/afghan-blue-mosque.jpg',
   });
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState('');
@@ -36,6 +44,7 @@ export default function Settings() {
             default_currency: d.default_currency || 'USD',
             receipt_prefix: d.receipt_prefix || 'TX',
             next_receipt_number: d.next_receipt_number || 1,
+            receipt_background: d.receipt_background || '/afghan-blue-mosque.jpg',
           });
           if (d.logo_path) {
             setLogoPreview(d.logo_path);
@@ -251,6 +260,45 @@ export default function Settings() {
                   value={form.receipt_footer}
                   onChange={handleChange}
                 />
+              </div>
+
+              <div className="md:col-span-2 space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[10px] font-black text-sky-600 uppercase tracking-[0.12em]">
+                    🇦🇫 Official Afghanistan Landmark Security Watermark
+                  </label>
+                  <span className="text-[10px] font-bold text-slate-400">Select receipt background image</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {LANDMARK_BACKGROUNDS.map((bg) => {
+                    const isSelected = form.receipt_background === bg.id;
+                    return (
+                      <button
+                        key={bg.id}
+                        type="button"
+                        onClick={() => setForm((prev) => ({ ...prev, receipt_background: bg.id }))}
+                        className={`relative flex flex-col items-center justify-between p-2.5 rounded-2xl border-2 transition-all ${
+                          isSelected
+                            ? 'border-sky-600 bg-sky-50/80 shadow-md ring-2 ring-sky-500/20'
+                            : 'border-slate-200/80 bg-white hover:border-sky-300'
+                        }`}
+                      >
+                        <div className="relative w-full h-24 rounded-xl overflow-hidden bg-slate-100 border border-slate-200/60 mb-2">
+                          <img src={bg.preview} alt={bg.name} className="w-full h-full object-cover" />
+                          {isSelected && (
+                            <div className="absolute inset-0 bg-sky-600/25 backdrop-blur-[1px] flex items-center justify-center">
+                              <span className="bg-sky-600 text-white rounded-full p-1 shadow-md">
+                                <CheckCircle size={16} />
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-[11px] font-black text-slate-900 text-center leading-tight">{bg.name}</span>
+                        <span className="text-[9px] font-bold text-sky-600 text-center mt-0.5">{bg.location}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
