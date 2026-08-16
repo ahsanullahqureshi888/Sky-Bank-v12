@@ -44,3 +44,5 @@ frosted_glass_temp/
 .codex/
 .vercel.previous-*/
 .vercel_python_packages/
+
+.vercel
