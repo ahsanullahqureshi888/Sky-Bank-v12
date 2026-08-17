@@ -226,7 +226,15 @@ export default function ReceiptDocument({
 
       {/* Afghan Banknote Landmark Security Watermark Layer */}
       <div className="receipt-landmark-bg" aria-hidden="true">
-        <img src={settings?.receipt_background || '/afghan-blue-mosque.jpg'} alt="" crossOrigin="anonymous" />
+        <img
+          src={settings?.receipt_background || (typeof window !== 'undefined' && window.localStorage.getItem('sky_receipt_bg')) || '/afghan-blue-mosque.jpg'}
+          alt=""
+          onError={(e) => {
+            if (!e.target.src.endsWith('/afghan-blue-mosque.jpg')) {
+              e.target.src = '/afghan-blue-mosque.jpg';
+            }
+          }}
+        />
       </div>
       <div className="receipt-watermark" aria-hidden="true">
         <img src={getLogoUrl(settings)} alt="" crossOrigin="anonymous" />

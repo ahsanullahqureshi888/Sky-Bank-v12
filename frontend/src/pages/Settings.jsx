@@ -46,6 +46,10 @@ export default function Settings() {
             next_receipt_number: d.next_receipt_number || 1,
             receipt_background: d.receipt_background || '/afghan-blue-mosque.jpg',
           });
+          if (d.receipt_background) {
+            localStorage.setItem('sky_receipt_bg', d.receipt_background);
+          }
+          localStorage.setItem('sky_banking_settings', JSON.stringify(d));
           if (d.logo_path) {
             setLogoPreview(d.logo_path);
           }
@@ -84,6 +88,12 @@ export default function Settings() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleSelectBackground = (bgId) => {
+    setForm((prev) => ({ ...prev, receipt_background: bgId }));
+    localStorage.setItem('sky_receipt_bg', bgId);
+    window.dispatchEvent(new CustomEvent('sky_settings_updated', { detail: { ...form, receipt_background: bgId } }));
+  };
+
   const handleLogoChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -103,14 +113,19 @@ export default function Settings() {
         next_receipt_number: Number(form.next_receipt_number || 1),
       };
       // Save metadata
-      await settingsAPI.update(payload);
+      const res = await settingsAPI.update(payload);
+      const updatedData = res.data || payload;
 
       // Save logo file if exists
       if (logoFile) {
         await settingsAPI.uploadLogo(logoFile);
       }
 
-      setMessage('Branding settings updated successfully. Reload to apply.');
+      localStorage.setItem('sky_receipt_bg', payload.receipt_background);
+      localStorage.setItem('sky_banking_settings', JSON.stringify(updatedData));
+      window.dispatchEvent(new CustomEvent('sky_settings_updated', { detail: updatedData }));
+
+      setMessage('Branding settings & background image updated successfully across all receipts!');
       loadCurrencySequences();
     } catch (err) {
       console.error(err);
@@ -276,7 +291,7 @@ export default function Settings() {
                       <button
                         key={bg.id}
                         type="button"
-                        onClick={() => setForm((prev) => ({ ...prev, receipt_background: bg.id }))}
+                        onClick={() => handleSelectBackground(bg.id)}
                         className={`relative flex flex-col items-center justify-between p-2.5 rounded-2xl border-2 transition-all ${
                           isSelected
                             ? 'border-sky-600 bg-sky-50/80 shadow-md ring-2 ring-sky-500/20'

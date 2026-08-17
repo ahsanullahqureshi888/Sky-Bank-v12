@@ -111,6 +111,16 @@ export default function TransactionHistory() {
   };
 
   useEffect(() => {
+    const handleSettingsUpdated = (e) => {
+      if (e.detail) {
+        setSettings((prev) => ({ ...prev, ...e.detail }));
+      }
+    };
+    window.addEventListener('sky_settings_updated', handleSettingsUpdated);
+    return () => window.removeEventListener('sky_settings_updated', handleSettingsUpdated);
+  }, []);
+
+  useEffect(() => {
     Promise.all([bankAPI.list(), settingsAPI.get()])
       .then(([bankResponse, settingsResponse]) => {
         setBanks(Array.isArray(bankResponse.data) ? bankResponse.data : []);

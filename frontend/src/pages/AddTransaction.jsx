@@ -93,6 +93,16 @@ export default function AddTransaction() {
   const location = useLocation();
 
   useEffect(() => {
+    const handleSettingsUpdated = (e) => {
+      if (e.detail) {
+        setSettings((prev) => ({ ...prev, ...e.detail }));
+      }
+    };
+    window.addEventListener('sky_settings_updated', handleSettingsUpdated);
+    return () => window.removeEventListener('sky_settings_updated', handleSettingsUpdated);
+  }, []);
+
+  useEffect(() => {
     // Load banks & settings
     const loadPrerequisites = async () => {
       try {
