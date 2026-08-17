@@ -65,7 +65,7 @@ export default function AddTransaction() {
   const [uploadingFile, setUploadingFile] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [customRate, setCustomRate] = useState('');
-  const [previewZoom, setPreviewZoom] = useState(0.54);
+  const [previewZoom, setPreviewZoom] = useState(0.48);
   const [showFullscreenModal, setShowFullscreenModal] = useState(false);
 
   const calculateEquivalent = (amt, fromCurr, toCurr, rate) => {
@@ -710,9 +710,9 @@ export default function AddTransaction() {
               <div className="w-[1px] h-3 bg-slate-200 mx-0.5" />
               <button
                 type="button"
-                onClick={() => setPreviewZoom(0.54)}
+                onClick={() => setPreviewZoom(0.48)}
                 className={`px-2 py-0.5 rounded-md text-[10px] font-black transition-all ${
-                  previewZoom === 0.54 ? 'bg-sky-600 text-white shadow-xs' : 'hover:bg-sky-50 text-sky-600 font-bold'
+                  previewZoom <= 0.50 ? 'bg-sky-600 text-white shadow-xs' : 'hover:bg-sky-50 text-sky-600 font-bold'
                 }`}
                 title="Fit 1-Page View (See All At Once)"
               >
@@ -720,9 +720,9 @@ export default function AddTransaction() {
               </button>
               <button
                 type="button"
-                onClick={() => setPreviewZoom(0.74)}
+                onClick={() => setPreviewZoom(0.70)}
                 className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold transition-all ${
-                  previewZoom === 0.74 ? 'bg-sky-600 text-white shadow-xs' : 'hover:bg-sky-50 text-sky-600'
+                  previewZoom === 0.70 ? 'bg-sky-600 text-white shadow-xs' : 'hover:bg-sky-50 text-sky-600'
                 }`}
                 title="Large View"
               >
@@ -740,14 +740,14 @@ export default function AddTransaction() {
           </div>
 
           {/* 1-Page Full Receipt View Stage Container */}
-          <div className="relative rounded-[24px] bg-gradient-to-br from-slate-100 via-sky-50/40 to-slate-200/50 border border-slate-200/80 p-2 md:p-3 flex justify-center items-start shadow-[inset_0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
-            <div className="receipt-preview-scroll w-full max-h-[calc(100vh-140px)] flex justify-center items-start overflow-x-auto overflow-y-auto">
+          <div className="relative rounded-[24px] bg-gradient-to-br from-slate-100 via-sky-50/40 to-slate-200/50 border border-slate-200/80 p-2 flex justify-center items-start shadow-[inset_0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
+            <div className={`receipt-preview-scroll w-full flex justify-center items-start ${previewZoom <= 0.50 ? 'overflow-hidden max-h-[520px]' : 'overflow-x-auto overflow-y-auto max-h-[calc(100vh-140px)]'}`}>
               <div
                 className="transition-all duration-200 origin-top flex justify-center shrink-0"
                 style={{
                   transform: `scale(${previewZoom})`,
                   transformOrigin: 'top center',
-                  height: `${Math.round(previewZoom * 1140)}px`,
+                  height: `${Math.round(previewZoom * 1050)}px`,
                   width: `${Math.round(733 * previewZoom)}px`,
                   minWidth: `${Math.round(733 * previewZoom)}px`,
                 }}
