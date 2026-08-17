@@ -209,7 +209,6 @@
 
 .receipt-preview-scroll { 
   width: 100%; 
-  height: 100%;
   display: flex; 
   justify-content: center; 
   align-items: flex-start; 
@@ -235,6 +234,7 @@
 }
 .receipt-preview-scroll .receipt-sheet { 
   width: 194mm; 
+  min-width: 194mm;
   max-width: none; 
   transform-origin: top center; 
   box-shadow: 0 20px 40px -6px rgba(15, 42, 74, 0.16), 0 0 1px rgba(15, 42, 74, 0.1); 
