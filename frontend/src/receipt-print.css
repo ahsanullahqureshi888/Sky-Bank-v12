@@ -46,9 +46,9 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 180mm;
-  height: 180mm;
-  opacity: 0.22;
+  width: 186mm;
+  height: 186mm;
+  opacity: 0.24;
   pointer-events: none;
   z-index: 1;
   display: flex;
@@ -62,7 +62,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: contrast(160%) brightness(85%);
+  filter: contrast(170%) brightness(84%);
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
@@ -285,9 +285,16 @@
 .receipt-pdf-stage .receipt-signature-name { font-size: 10pt; padding: 0 1.5mm; margin-bottom: -1mm; }
 .receipt-pdf-stage .receipt-stamp-mark { height: 7mm; margin: 0 auto 1mm; border-radius: 5px; }
 
-.receipt-pdf-stage .receipt-document-footer { margin-top: 1.5mm; padding-top: 1mm; }
-.receipt-pdf-stage .receipt-document-footer p { margin-inline: 1mm; font-size: 5.5pt; line-height: 1.2; }
-.receipt-pdf-stage .receipt-document-footer > div { margin-top: 0.5mm; padding-inline: 1.5mm; }
+.receipt-pdf-stage .receipt-landmark-bg {
+  width: 186mm !important;
+  height: 186mm !important;
+  opacity: 0.35 !important;
+  mix-blend-mode: multiply !important;
+  z-index: 1 !important;
+}
+.receipt-pdf-stage .receipt-landmark-bg img {
+  filter: contrast(200%) brightness(76%) saturate(120%) !important;
+}
 
 @media print {
   @page { size: A4 portrait; margin: 5mm; }
@@ -346,9 +353,9 @@
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    width: 180mm !important;
-    height: 180mm !important;
-    opacity: 0.28 !important;
+    width: 186mm !important;
+    height: 186mm !important;
+    opacity: 0.35 !important;
     z-index: 1 !important;
     display: flex !important;
     align-items: center !important;
@@ -363,7 +370,7 @@
     width: 100% !important;
     height: 100% !important;
     object-fit: contain !important;
-    filter: contrast(180%) brightness(82%) !important;
+    filter: contrast(200%) brightness(76%) saturate(120%) !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
