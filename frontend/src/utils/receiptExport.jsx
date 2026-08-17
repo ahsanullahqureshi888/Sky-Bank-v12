@@ -86,6 +86,17 @@ export const printReceipt = ({ transaction, bankAccount, settings, language }) =
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>${safeFilename(transaction?.receipt_no || 'Receipt')}</title>
+        <style>
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          @page {
+            size: A4 portrait;
+            margin: 5mm;
+          }
+        </style>
         ${stylesheetMarkup()}
       </head>
       <body class="receipt-standalone-page">
