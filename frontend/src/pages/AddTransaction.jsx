@@ -26,6 +26,9 @@ import {
   ZoomOut,
   Maximize2,
   X,
+  Plus,
+  UserPlus,
+  RefreshCw,
 } from 'lucide-react';
 import { transactionAPI, bankAPI, customerAPI, settingsAPI } from '../api/client';
 import GlassCard from '../components/GlassCard';
@@ -65,8 +68,16 @@ export default function AddTransaction() {
   const [uploadingFile, setUploadingFile] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [customRate, setCustomRate] = useState('');
-  const [previewZoom, setPreviewZoom] = useState(0.48);
+  const [previewZoom, setPreviewZoom] = useState(0.42);
   const [showFullscreenModal, setShowFullscreenModal] = useState(false);
+
+  // Quick Customer Creation Modal State
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [newCustomerName, setNewCustomerName] = useState('');
+  const [newCustomerPhone, setNewCustomerPhone] = useState('');
+  const [newCustomerType, setNewCustomerType] = useState('customer');
+  const [creatingCustomer, setCreatingCustomer] = useState(false);
+  const [refreshingReceiptNo, setRefreshingReceiptNo] = useState(false);
 
   const calculateEquivalent = (amt, fromCurr, toCurr, rate) => {
     const num = parseFloat(amt);
@@ -138,19 +149,7 @@ export default function AddTransaction() {
             description: tx.description || '',
           });
         } else {
-          try {
-            const nextRes = await settingsAPI.getNextReceiptNo(form.currency || 'USD');
-            setForm((prev) => ({
-              ...prev,
-            receipt_no: nextRes.data?.receipt_no || `TX-${Date.now().toString().slice(-6)}`,
-            }));
-          } catch (nextErr) {
-            console.error(nextErr);
-            setForm((prev) => ({
-              ...prev,
-              receipt_no: `TX-${Date.now().toString().slice(-6)}`,
-            }));
-          }
+          refreshReceiptNo(form.currency || 'USD');
         }
       } catch (err) {
         console.error('Failed to load transaction prerequisites', err);
@@ -158,6 +157,52 @@ export default function AddTransaction() {
     };
     loadPrerequisites();
   }, [id, location.state]);
+
+  const refreshReceiptNo = async (curr = form.currency || 'USD') => {
+    setRefreshingReceiptNo(true);
+    try {
+      const nextRes = await settingsAPI.getNextReceiptNo(curr);
+      if (nextRes.data?.receipt_no) {
+        setForm((prev) => ({ ...prev, receipt_no: nextRes.data.receipt_no }));
+        setRefreshingReceiptNo(false);
+        return;
+      }
+    } catch (err) {
+      console.error('Failed to fetch receipt number', err);
+    }
+    const prefix = settings?.receipt_prefix || 'TX';
+    const fallbackNo = `${prefix}-${curr}-${String(Math.floor(Date.now() / 1000) % 10000).padStart(4, '0')}`;
+    setForm((prev) => ({ ...prev, receipt_no: fallbackNo }));
+    setRefreshingReceiptNo(false);
+  };
+
+  const handleQuickAddCustomer = async (e) => {
+    e.preventDefault();
+    if (!newCustomerName.trim()) return;
+    setCreatingCustomer(true);
+    try {
+      const res = await customerAPI.create({
+        name: newCustomerName.trim(),
+        phone: newCustomerPhone.trim() || null,
+        entity_type: newCustomerType,
+      });
+      const newCust = res.data;
+      setCustomers((prev) => [...prev, newCust]);
+      setForm((prev) => ({
+        ...prev,
+        customer_id: String(newCust.id),
+        customer_name: newCust.name,
+      }));
+      setNewCustomerName('');
+      setNewCustomerPhone('');
+      setShowCustomerModal(false);
+    } catch (err) {
+      console.error('Failed to create customer', err);
+      alert('Failed to create customer. Ensure the name is unique.');
+    } finally {
+      setCreatingCustomer(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -167,19 +212,7 @@ export default function AddTransaction() {
   // Re-fetch receipt number when currency changes (only for new transactions, not editing)
   useEffect(() => {
     if (id || !form.currency) return;
-    let cancelled = false;
-    const fetchNewReceiptNo = async () => {
-      try {
-        const nextRes = await settingsAPI.getNextReceiptNo(form.currency);
-        if (!cancelled && nextRes.data?.receipt_no) {
-          setForm((prev) => ({ ...prev, receipt_no: nextRes.data.receipt_no }));
-        }
-      } catch (err) {
-        console.error('Failed to fetch receipt number for currency', form.currency, err);
-      }
-    };
-    fetchNewReceiptNo();
-    return () => { cancelled = true; };
+    refreshReceiptNo(form.currency);
   }, [form.currency, id]);
 
   const handleFileChange = (e) => {
@@ -306,13 +339,26 @@ export default function AddTransaction() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1">
-                Receipt No / Payment No <span className="text-rose-500">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide">
+                  Receipt No / Payment No <span className="text-rose-500">*</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => refreshReceiptNo()}
+                  disabled={refreshingReceiptNo}
+                  className="inline-flex items-center gap-1 text-[10px] font-black text-sky-600 hover:text-sky-800 transition-colors"
+                  title="Auto Generate / Refresh Receipt Number"
+                >
+                  <RefreshCw size={11} className={refreshingReceiptNo ? 'animate-spin' : ''} />
+                  <span>{refreshingReceiptNo ? 'Generating...' : 'Auto No'}</span>
+                </button>
+              </div>
               <input
                 type="text"
                 name="receipt_no"
                 className="w-full px-3.5 py-2 rounded-xl border border-sky-100 bg-white/40 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-sky-900 text-sm transition-all font-semibold"
+                placeholder="Auto-generating..."
                 value={form.receipt_no}
                 onChange={handleChange}
                 required
@@ -366,9 +412,19 @@ export default function AddTransaction() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide mb-1">
-                Customer <span className="text-rose-500">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide">
+                  Customer <span className="text-rose-500">*</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowCustomerModal(true)}
+                  className="inline-flex items-center gap-1 text-[10px] font-black text-sky-600 hover:text-sky-800 transition-colors bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-100 shadow-2xs"
+                >
+                  <UserPlus size={11} />
+                  <span>+ Quick Add</span>
+                </button>
+              </div>
               <select
                 name="customer_id"
                 className="w-full rounded-xl border border-sky-100 bg-white/60 px-3.5 py-2 text-sm font-semibold text-sky-900 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
@@ -389,7 +445,16 @@ export default function AddTransaction() {
                 ))}
               </select>
               {customers.length === 0 && (
-                <p className="mt-1 text-[10px] font-semibold text-amber-600">No customers are available. Create a customer first.</p>
+                <div className="mt-1.5 p-2 rounded-xl bg-amber-50/90 border border-amber-200/80 flex items-center justify-between gap-2">
+                  <p className="text-[11px] font-bold text-amber-800">No customers found.</p>
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomerModal(true)}
+                    className="px-2.5 py-1 rounded-lg bg-amber-600 text-white text-[10px] font-black hover:bg-amber-700 shadow-xs transition-colors"
+                  >
+                    + Create Customer
+                  </button>
+                </div>
               )}
             </div>
 
@@ -710,9 +775,9 @@ export default function AddTransaction() {
               <div className="w-[1px] h-3 bg-slate-200 mx-0.5" />
               <button
                 type="button"
-                onClick={() => setPreviewZoom(0.48)}
+                onClick={() => setPreviewZoom(0.42)}
                 className={`px-2 py-0.5 rounded-md text-[10px] font-black transition-all ${
-                  previewZoom <= 0.50 ? 'bg-sky-600 text-white shadow-xs' : 'hover:bg-sky-50 text-sky-600 font-bold'
+                  previewZoom <= 0.45 ? 'bg-sky-600 text-white shadow-xs' : 'hover:bg-sky-50 text-sky-600 font-bold'
                 }`}
                 title="Fit 1-Page View (See All At Once)"
               >
@@ -806,6 +871,98 @@ export default function AddTransaction() {
               settings={settings}
               language={i18n.resolvedLanguage}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Quick Add Customer Modal */}
+      {showCustomerModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-sky-100 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-100 text-sky-600">
+                  <UserPlus size={16} />
+                </span>
+                <h3 className="text-base font-black text-slate-900">Add New Customer</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCustomerModal(false)}
+                className="p-1 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-700 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleQuickAddCustomer} className="space-y-3">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1">
+                  Customer / Company Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newCustomerName}
+                  onChange={(e) => setNewCustomerName(e.target.value)}
+                  placeholder="e.g. Ahmad Shah Trading or John Doe"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  value={newCustomerPhone}
+                  onChange={(e) => setNewCustomerPhone(e.target.value)}
+                  placeholder="e.g. +93 799 123456"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1">
+                  Entity Type
+                </label>
+                <select
+                  value={newCustomerType}
+                  onChange={(e) => setNewCustomerType(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                >
+                  <option value="customer">Customer / Individual</option>
+                  <option value="sarafi">Sarafi / Exchange Market</option>
+                  <option value="company">Company / Transport Firm</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowCustomerModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creatingCustomer || !newCustomerName.trim()}
+                  className="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-black shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {creatingCustomer ? (
+                    <>
+                      <Loader2 size={13} className="animate-spin" /> Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={13} /> Save &amp; Select
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
