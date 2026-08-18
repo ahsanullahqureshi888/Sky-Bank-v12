@@ -243,6 +243,19 @@
   margin-bottom: 0;
 }
 
+.receipt-preview-scroll .receipt-brand-header,
+.receipt-preview-scroll .receipt-summary-grid,
+.receipt-preview-scroll .receipt-section,
+.receipt-preview-scroll .receipt-notes-box,
+.receipt-preview-scroll .receipt-authorization { margin-bottom: 1.5mm; border-radius: 10px; flex-shrink: 0; }
+.receipt-preview-scroll .receipt-brand-content { padding: 2mm; }
+.receipt-preview-scroll .receipt-meta-card dt,
+.receipt-preview-scroll .receipt-meta-card dd { padding: 1.5mm 2.5mm; }
+.receipt-preview-scroll .receipt-detail-row dt,
+.receipt-preview-scroll .receipt-detail-row dd { padding: 1.5mm 3mm; }
+.receipt-preview-scroll .receipt-signature-box { min-height: 18mm; padding: 2mm; }
+.receipt-preview-scroll .receipt-signature-space { height: 8mm; min-height: 8mm; margin-bottom: 2mm; }
+
 /* Apply the exact same compact layout and font scaling to the PDF generation stage */
 .receipt-pdf-stage .receipt-brand-header,
 .receipt-pdf-stage .receipt-title-band,
