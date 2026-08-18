@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import {
   Save,
@@ -29,6 +29,7 @@ import {
   Plus,
   UserPlus,
   RefreshCw,
+  Search,
 } from 'lucide-react';
 import { transactionAPI, bankAPI, customerAPI, settingsAPI } from '../api/client';
 import GlassCard from '../components/GlassCard';
@@ -114,19 +115,31 @@ export default function AddTransaction() {
   }, []);
 
   const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [customerSearchFilter, setCustomerSearchFilter] = useState('');
 
   const fetchCustomersList = async () => {
     setLoadingCustomers(true);
     try {
       const res = await customerAPI.list();
-      const cList = Array.isArray(res.data) ? res.data : [];
+      const raw = res.data;
+      let cList = [];
+      if (Array.isArray(raw)) cList = raw;
+      else if (Array.isArray(raw?.data)) cList = raw.data;
+      else if (Array.isArray(raw?.customers)) cList = raw.customers;
+
       setCustomers(cList);
       if (cList.length > 0) {
-        setForm((prev) => ({
-          ...prev,
-          customer_id: prev.customer_id || String(cList[0].id),
-          customer_name: prev.customer_name || cList[0].name,
-        }));
+        setForm((prev) => {
+          const existing = cList.find((c) => String(c.id) === String(prev.customer_id));
+          if (existing) {
+            return { ...prev, customer_name: existing.name };
+          }
+          return {
+            ...prev,
+            customer_id: String(cList[0].id),
+            customer_name: cList[0].name,
+          };
+        });
       }
     } catch (err) {
       console.error('Failed to reload customers', err);
@@ -134,6 +147,36 @@ export default function AddTransaction() {
       setLoadingCustomers(false);
     }
   };
+
+  const filteredCustomerOptions = useMemo(() => {
+    const query = customerSearchFilter.trim().toLowerCase();
+    if (!query) return customers;
+    return customers.filter((c) =>
+      String(c.name || '').toLowerCase().includes(query) ||
+      String(c.phone || '').toLowerCase().includes(query) ||
+      String(c.entity_type || '').toLowerCase().includes(query)
+    );
+  }, [customers, customerSearchFilter]);
+
+  useEffect(() => {
+    // Initial fetch
+    fetchCustomersList();
+
+    // Auto retry after 1.2 seconds if customers list is initially empty
+    const retryTimer = setTimeout(() => {
+      if (customers.length === 0) {
+        fetchCustomersList();
+      }
+    }, 1200);
+
+    const handleFocus = () => fetchCustomersList();
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearTimeout(retryTimer);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   useEffect(() => {
     // Load banks, customers & settings independently so one failure does not block the rest
@@ -150,7 +193,12 @@ export default function AddTransaction() {
         }
 
         if (customerRes.status === 'fulfilled') {
-          const cList = Array.isArray(customerRes.value.data) ? customerRes.value.data : [];
+          const raw = customerRes.value.data;
+          let cList = [];
+          if (Array.isArray(raw)) cList = raw;
+          else if (Array.isArray(raw?.data)) cList = raw.data;
+          else if (Array.isArray(raw?.customers)) cList = raw.customers;
+
           setCustomers(cList);
           if (cList.length > 0 && !id) {
             setForm((prev) => ({
@@ -451,10 +499,17 @@ export default function AddTransaction() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide">
-                  Customer <span className="text-rose-500">*</span>
-                </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide">
+                    Customer <span className="text-rose-500">*</span>
+                  </label>
+                  {customers.length > 0 && (
+                    <span className="text-[10px] bg-sky-100/80 text-sky-800 px-2 py-0.5 rounded-md font-extrabold border border-sky-200/50">
+                      {customers.length} Available
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
@@ -476,6 +531,20 @@ export default function AddTransaction() {
                   </button>
                 </div>
               </div>
+
+              {customers.length > 3 && (
+                <div className="relative mb-1.5">
+                  <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={customerSearchFilter}
+                    onChange={(e) => setCustomerSearchFilter(e.target.value)}
+                    placeholder="Search by customer name, phone, or sarafi..."
+                    className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-sky-100 bg-white/50 text-xs text-sky-900 font-semibold focus:outline-none focus:ring-1 focus:ring-sky-500"
+                  />
+                </div>
+              )}
+
               <select
                 name="customer_id"
                 className="w-full rounded-xl border border-sky-100 bg-white/60 px-3.5 py-2 text-sm font-semibold text-sky-900 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
@@ -490,10 +559,10 @@ export default function AddTransaction() {
                 }}
                 required
               >
-                <option value="">Select a customer</option>
-                {customers.map((customer) => (
+                <option value="">Select a customer ({filteredCustomerOptions.length})</option>
+                {filteredCustomerOptions.map((customer) => (
                   <option key={customer.id} value={customer.id}>
-                    {customer.name} {customer.entity_type && customer.entity_type !== 'customer' ? `(${customer.entity_type})` : ''}
+                    {customer.name} {customer.phone ? `(${customer.phone})` : ''} {customer.entity_type && customer.entity_type !== 'customer' ? `[${customer.entity_type}]` : ''}
                   </option>
                 ))}
               </select>
