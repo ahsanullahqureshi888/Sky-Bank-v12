@@ -113,18 +113,57 @@ export default function AddTransaction() {
     return () => window.removeEventListener('sky_settings_updated', handleSettingsUpdated);
   }, []);
 
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
+
+  const fetchCustomersList = async () => {
+    setLoadingCustomers(true);
+    try {
+      const res = await customerAPI.list();
+      const cList = Array.isArray(res.data) ? res.data : [];
+      setCustomers(cList);
+      if (cList.length > 0) {
+        setForm((prev) => ({
+          ...prev,
+          customer_id: prev.customer_id || String(cList[0].id),
+          customer_name: prev.customer_name || cList[0].name,
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to reload customers', err);
+    } finally {
+      setLoadingCustomers(false);
+    }
+  };
+
   useEffect(() => {
-    // Load banks & settings
+    // Load banks, customers & settings independently so one failure does not block the rest
     const loadPrerequisites = async () => {
       try {
-        const [bankRes, customerRes, settingsRes] = await Promise.all([
+        const [bankRes, customerRes, settingsRes] = await Promise.allSettled([
           bankAPI.list(),
           customerAPI.list(),
           settingsAPI.get(),
         ]);
-        setBanks(Array.isArray(bankRes.data) ? bankRes.data : []);
-        setCustomers(Array.isArray(customerRes.data) ? customerRes.data : []);
-        setSettings(settingsRes.data && typeof settingsRes.data === 'object' ? settingsRes.data : null);
+
+        if (bankRes.status === 'fulfilled') {
+          setBanks(Array.isArray(bankRes.value.data) ? bankRes.value.data : []);
+        }
+
+        if (customerRes.status === 'fulfilled') {
+          const cList = Array.isArray(customerRes.value.data) ? customerRes.value.data : [];
+          setCustomers(cList);
+          if (cList.length > 0 && !id) {
+            setForm((prev) => ({
+              ...prev,
+              customer_id: prev.customer_id || String(cList[0].id),
+              customer_name: prev.customer_name || cList[0].name,
+            }));
+          }
+        }
+
+        if (settingsRes.status === 'fulfilled') {
+          setSettings(settingsRes.value.data && typeof settingsRes.value.data === 'object' ? settingsRes.value.data : null);
+        }
 
         // Check if editing
         if (id) {
@@ -416,14 +455,26 @@ export default function AddTransaction() {
                 <label className="block text-[11px] font-bold text-sky-900/60 uppercase tracking-wide">
                   Customer <span className="text-rose-500">*</span>
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setShowCustomerModal(true)}
-                  className="inline-flex items-center gap-1 text-[10px] font-black text-sky-600 hover:text-sky-800 transition-colors bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-100 shadow-2xs"
-                >
-                  <UserPlus size={11} />
-                  <span>+ Quick Add</span>
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={fetchCustomersList}
+                    disabled={loadingCustomers}
+                    className="inline-flex items-center gap-1 text-[10px] font-black text-sky-600 hover:text-sky-800 transition-colors bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-100 shadow-2xs"
+                    title="Refresh customers from database"
+                  >
+                    <RefreshCw size={10} className={loadingCustomers ? 'animate-spin' : ''} />
+                    <span>{loadingCustomers ? 'Loading...' : 'Refresh'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomerModal(true)}
+                    className="inline-flex items-center gap-1 text-[10px] font-black text-sky-600 hover:text-sky-800 transition-colors bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-100 shadow-2xs"
+                  >
+                    <UserPlus size={11} />
+                    <span>+ Quick Add</span>
+                  </button>
+                </div>
               </div>
               <select
                 name="customer_id"
@@ -441,19 +492,30 @@ export default function AddTransaction() {
               >
                 <option value="">Select a customer</option>
                 {customers.map((customer) => (
-                  <option key={customer.id} value={customer.id}>{customer.name}</option>
+                  <option key={customer.id} value={customer.id}>
+                    {customer.name} {customer.entity_type && customer.entity_type !== 'customer' ? `(${customer.entity_type})` : ''}
+                  </option>
                 ))}
               </select>
               {customers.length === 0 && (
                 <div className="mt-1.5 p-2 rounded-xl bg-amber-50/90 border border-amber-200/80 flex items-center justify-between gap-2">
                   <p className="text-[11px] font-bold text-amber-800">No customers found.</p>
-                  <button
-                    type="button"
-                    onClick={() => setShowCustomerModal(true)}
-                    className="px-2.5 py-1 rounded-lg bg-amber-600 text-white text-[10px] font-black hover:bg-amber-700 shadow-xs transition-colors"
-                  >
-                    + Create Customer
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={fetchCustomersList}
+                      className="px-2 py-1 rounded-lg bg-amber-100 text-amber-900 text-[10px] font-bold hover:bg-amber-200 transition-colors"
+                    >
+                      Retry Load
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowCustomerModal(true)}
+                      className="px-2.5 py-1 rounded-lg bg-amber-600 text-white text-[10px] font-black hover:bg-amber-700 shadow-xs transition-colors"
+                    >
+                      + Create Customer
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
