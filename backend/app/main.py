@@ -1,13 +1,33 @@
-from fastapi import FastAPI
+import os
+from contextlib import asynccontextmanager
+from datetime import datetime
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from sqlalchemy import select, func, text
+from sqlalchemy.orm import Session
 
-from .database import Base, SessionLocal, engine
+from .database import Base, SessionLocal, engine, get_db, is_sqlite
 from .routes.api import router
 from .services.migrations import run_migrations
 from .services.seed import seed_database
+from . import models
 
 
-app = FastAPI(title="Sky Banking API", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize DB schema, execute migrations and seed default data
+    Base.metadata.create_all(bind=engine)
+    run_migrations(engine)
+    with SessionLocal() as db:
+        seed_database(db)
+    yield
+
+
+app = FastAPI(title="Sky Banking API", version="1.0.0", lifespan=lifespan)
+
+# Compress JSON API responses > 1000 bytes for faster loading
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,26 +51,28 @@ app.add_middleware(
 app.include_router(router, prefix="/api")
 
 
-@app.on_event("startup")
-def startup() -> None:
-    Base.metadata.create_all(bind=engine)
-    run_migrations(engine)
-    with SessionLocal() as db:
-        seed_database(db)
-
-
-
-
 @app.get("/")
 def root():
-    return {"name": "Sky Banking API", "status": "ok"}
+    return {
+        "name": "Sky Banking API",
+        "version": "1.0.0",
+        "status": "online",
+        "timestamp": datetime.utcnow().isoformat()
+    }
 
 
 @app.get("/health")
-def health():
-    return {"status": "healthy"}
-
-
 @app.get("/api/health")
-def api_health():
-    return {"status": "healthy"}
+def api_health(db: Session = Depends(get_db)):
+    db_status = "connected"
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception:
+        db_status = "disconnected"
+
+    return {
+        "status": "healthy",
+        "database": db_status,
+        "engine": "sqlite" if is_sqlite else "postgresql",
+        "timestamp": datetime.utcnow().isoformat()
+    }

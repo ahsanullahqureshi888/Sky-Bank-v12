@@ -24,10 +24,10 @@ def recalculate_customer_ledger(db: Session, customer_id: int) -> None:
         if transaction.status == "Cancelled":
             debit = credit = 0.0
         elif transaction.type == "Paid":
-            debit, credit = float(transaction.amount), 0.0
+            debit, credit = round(float(transaction.amount or 0), 2), 0.0
         else:
-            debit, credit = 0.0, float(transaction.amount)
-        balance += credit - debit
+            debit, credit = 0.0, round(float(transaction.amount or 0), 2)
+        balance = round(balance + credit - debit, 2)
         db.add(
             models.CustomerLedger(
                 customer_id=customer_id,
@@ -46,21 +46,21 @@ def recalculate_bank_ledger(db: Session, bank_account_id: int) -> None:
     if not bank:
         return
     db.execute(delete(models.BankLedger).where(models.BankLedger.bank_account_id == bank_account_id))
-    balance = float(bank.opening_balance or 0)
+    balance = round(float(bank.opening_balance or 0), 2)
     rows = db.scalars(
         select(models.Transaction)
         .where(models.Transaction.bank_account_id == bank_account_id)
         .order_by(models.Transaction.date, models.Transaction.id)
     ).all()
     for transaction in rows:
-        value = ledger_value(transaction, bank.currency)
+        value = round(ledger_value(transaction, bank.currency), 2)
         if transaction.status == "Cancelled":
             debit = credit = 0.0
         elif transaction.type == "Paid":
             debit, credit = value, 0.0
         else:
             debit, credit = 0.0, value
-        balance += credit - debit
+        balance = round(balance + credit - debit, 2)
         db.add(
             models.BankLedger(
                 bank_account_id=bank_account_id,

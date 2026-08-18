@@ -77,8 +77,16 @@ engine_options = {
     "connect_args": connect_args,
     "pool_pre_ping": True,
 }
-if os.getenv("VERCEL") == "1" and not is_sqlite:
-    engine_options["poolclass"] = NullPool
+if not is_sqlite:
+    if os.getenv("VERCEL") == "1":
+        engine_options["poolclass"] = NullPool
+    else:
+        engine_options.update({
+            "pool_recycle": 300,
+            "pool_size": 10,
+            "max_overflow": 20,
+            "pool_timeout": 30,
+        })
 
 engine = create_engine(DATABASE_URL, **engine_options)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
