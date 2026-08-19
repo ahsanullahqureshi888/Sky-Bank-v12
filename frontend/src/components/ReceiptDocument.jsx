@@ -309,18 +309,6 @@ export default function ReceiptDocument({
         <div className="receipt-section-heading receipt-section-heading-dark">
           <ReceiptLabel labelKey="receipt.party_details" tEn={tEn} tSecondary={tSecondary} />
         </div>
-        <dl>
-          <DetailRow labelKey="receipt.customer" value={transaction.customer_name} tEn={tEn} tSecondary={tSecondary} />
-          <DetailRow labelKey="receipt.company" value={transaction.company_name} tEn={tEn} tSecondary={tSecondary} />
-          <DetailRow labelKey="receipt.subject" value={transaction.subject} tEn={tEn} tSecondary={tSecondary} />
-          {transaction.type && (
-            <DetailRow labelKey="receipt.type" value={transaction.type.toUpperCase()} tEn={tEn} tSecondary={tSecondary} />
-          )}
-          <DetailRow labelKey="receipt.receiver" value={transaction.receiver_name} tEn={tEn} tSecondary={tSecondary} />
-        </dl>
-      </section>
-
-      <section className="receipt-section">
         <div className="receipt-section-heading">
           <ReceiptLabel labelKey="receipt.payment_information" tEn={tEn} tSecondary={tSecondary} />
         </div>

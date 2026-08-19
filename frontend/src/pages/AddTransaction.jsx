@@ -936,20 +936,20 @@ export default function AddTransaction() {
           </div>
 
           {/* 1-Page Full Receipt View Stage Container */}
-          <div className="relative rounded-[24px] bg-gradient-to-br from-slate-100 via-sky-50/40 to-slate-200/50 border border-slate-200/80 p-3 flex justify-center items-start shadow-[inset_0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden max-h-[calc(100vh-140px)] min-h-[500px]">
-            <div className="receipt-preview-scroll flex justify-center items-start overflow-x-auto overflow-y-auto max-h-[calc(100vh-150px)] p-1">
+          <div className="relative rounded-[24px] bg-gradient-to-br from-slate-100 via-sky-50/50 to-slate-200/60 border border-slate-200/80 p-2 flex justify-center items-start shadow-[inset_0_2px_12px_rgba(0,0,0,0.03)] overflow-y-auto max-h-[calc(100vh-120px)] min-h-[460px]">
+            <div className="receipt-preview-scroll flex justify-center items-start w-full p-1">
               <div
                 style={{
                   width: `${Math.round(733 * previewZoom)}px`,
-                  height: `${Math.round(1100 * previewZoom)}px`,
+                  height: `${Math.round(1020 * previewZoom)}px`,
                 }}
-                className="relative shrink-0 transition-all duration-200"
+                className="relative shrink-0 transition-all duration-200 ease-out shadow-xl rounded-xl border border-slate-300/60 bg-white"
               >
                 <div
                   className="transition-transform duration-200"
                   style={{
                     width: '733px',
-                    minHeight: '1100px',
+                    minHeight: '1020px',
                     transform: `scale(${previewZoom})`,
                     transformOrigin: 'top left',
                   }}
