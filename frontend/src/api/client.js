@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://sky-banking-backend.onrender.com/api' : '/api'),
+  baseURL: import.meta.env.VITE_API_URL || '/api',
 });
 
 export const downloadClientBlob = async (endpoint, filename, params) => {
