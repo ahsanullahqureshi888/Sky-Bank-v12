@@ -1,1 +1,1 @@
-"""Sky Banking FastAPI backend."""
+# Sky Banking API Package

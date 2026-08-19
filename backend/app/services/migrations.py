@@ -16,19 +16,22 @@ MIGRATIONS = {
 
 
 def run_migrations(engine: Engine) -> None:
-    """Apply only missing additive columns; safe to run on every startup."""
     inspector = inspect(engine)
-    with engine.begin() as connection:
-        for migration_key, statement in MIGRATIONS.items():
-            table_name, column_name = migration_key.split(".", 1)
-            if table_name not in inspector.get_table_names():
+    is_postgres = "postgresql" in str(engine.url)
+    with engine.begin() as conn:
+        for key, sql in MIGRATIONS.items():
+            table_name, column_name = key.split(".")
+            if not inspector.has_table(table_name):
                 continue
-            columns = {column["name"] for column in inspector.get_columns(table_name)}
+            columns = [col["name"] for col in inspector.get_columns(table_name)]
             if column_name not in columns:
-                connection.execute(text(statement))
+                try:
+                    conn.execute(text(sql))
+                except Exception as e:
+                    print(f"Migration notice for {key}: {e}")
 
-        inspector = inspect(connection)
-        if "users" in inspector.get_table_names():
+        inspector = inspect(conn)
+        if inspector.has_table("users"):
             indexes = {index["name"] for index in inspector.get_indexes("users")}
             if "ix_users_username" not in indexes:
-                connection.execute(text("CREATE UNIQUE INDEX ix_users_username ON users (username)"))
+                conn.execute(text("CREATE UNIQUE INDEX ix_users_username ON users (username)"))
