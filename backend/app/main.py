@@ -18,9 +18,15 @@ from . import models
 async def lifespan(app: FastAPI):
     # Initialize DB schema, execute migrations and seed default data
     Base.metadata.create_all(bind=engine)
-    run_migrations(engine)
-    with SessionLocal() as db:
-        seed_database(db)
+    try:
+        run_migrations(engine)
+    except Exception as e:
+        print(f"Lifespan migration notice: {e}")
+    try:
+        with SessionLocal() as db:
+            seed_database(db)
+    except Exception as e:
+        print(f"Lifespan seed notice: {e}")
     yield
 
 
