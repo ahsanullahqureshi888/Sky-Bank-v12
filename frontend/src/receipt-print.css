@@ -232,17 +232,13 @@
 .receipt-preview-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 116, 139, 0.6);
 }
-.receipt-preview-scroll .receipt-sheet { 
-  width: 194mm; 
+.receipt-preview-scroll .receipt-sheet {
+  width: 194mm;
   min-width: 194mm;
-  max-width: none; 
+  min-height: 265mm !important;
   height: auto !important;
-  min-height: 260mm;
   max-height: none !important;
   overflow: visible !important;
-  transform-origin: top center; 
-  box-shadow: 0 20px 40px -6px rgba(15, 42, 74, 0.16), 0 0 1px rgba(15, 42, 74, 0.1); 
-  border-color: #cbd5e1;
   flex-shrink: 0;
   margin-top: 0;
   margin-bottom: 0;
