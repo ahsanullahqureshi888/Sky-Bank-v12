@@ -69,7 +69,7 @@ export default function AddTransaction() {
   const [uploadingFile, setUploadingFile] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [customRate, setCustomRate] = useState('');
-  const [previewZoom, setPreviewZoom] = useState(0.42);
+  const [previewZoom, setPreviewZoom] = useState(0.35);
   const [showFullscreenModal, setShowFullscreenModal] = useState(false);
 
   // Quick Customer Creation Modal State
@@ -906,9 +906,9 @@ export default function AddTransaction() {
               <div className="w-[1px] h-3 bg-slate-200 mx-0.5" />
               <button
                 type="button"
-                onClick={() => setPreviewZoom(0.42)}
+                onClick={() => setPreviewZoom(0.35)}
                 className={`px-2 py-0.5 rounded-md text-[10px] font-black transition-all ${
-                  previewZoom <= 0.45 ? 'bg-sky-600 text-white shadow-xs' : 'hover:bg-sky-50 text-sky-600 font-bold'
+                  previewZoom <= 0.40 ? 'bg-sky-600 text-white shadow-xs' : 'hover:bg-sky-50 text-sky-600 font-bold'
                 }`}
                 title="Fit 1-Page View (See All At Once)"
               >
