@@ -20,7 +20,5 @@ backend/app/uploads/*
 __pycache__
 *.pyc
 
-requirements.txt
-pyproject.toml
-uv.lock
-backend/
+.vercel_python_packages
+_uv
