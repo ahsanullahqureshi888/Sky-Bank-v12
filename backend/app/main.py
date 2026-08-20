@@ -45,9 +45,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Sky Banking API", version="1.0.0", lifespan=lifespan)
 
-# Compress JSON API responses > 1000 bytes for faster loading
-app.add_middleware(GZipMiddleware, minimum_size=1000)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
