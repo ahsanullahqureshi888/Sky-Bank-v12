@@ -14,19 +14,32 @@ from .services.seed import seed_database
 from . import models
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Initialize DB schema, execute migrations and seed default data
+def init_db():
     Base.metadata.create_all(bind=engine)
     try:
         run_migrations(engine)
     except Exception as e:
-        print(f"Lifespan migration notice: {e}")
+        print(f"Migration notice: {e}")
     try:
         with SessionLocal() as db:
             seed_database(db)
     except Exception as e:
-        print(f"Lifespan seed notice: {e}")
+        print(f"Seed notice: {e}")
+
+
+# Initialize database schemas and seed default users on module load
+try:
+    init_db()
+except Exception as exc:
+    print(f"Initial DB bootstrap notice: {exc}")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        init_db()
+    except Exception as e:
+        print(f"Lifespan DB notice: {e}")
     yield
 
 
@@ -37,24 +50,15 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://127.0.0.1:5173", 
-        "http://localhost:5173",
-        "https://sky-bank-v12-3j1vqlgku-ahsanullahqureshi888-6759s-projects.vercel.app",
-        "https://sky-bank-v12.vercel.app",
-        "https://skyariana-bank.vercel.app",
-        "https://frontend-sable-ten-54.vercel.app",
-        "https://frontend-qz56kqsg7-sky-ariana-balam-bar-baran.vercel.app",
-        "https://sky-banking-frontend.vercel.app",
-        "https://skybanks.vercel.app"
-    ],
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Register router for both with and without /api prefix to support all Vercel rewrite patterns
 app.include_router(router, prefix="/api")
+app.include_router(router)
 
 
 @app.get("/")
