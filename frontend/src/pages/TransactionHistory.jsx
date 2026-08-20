@@ -20,12 +20,18 @@ import {
   TrendingDown,
   TrendingUp,
   Wallet,
+  Copy,
+  Check,
+  Maximize2,
+  X,
+  Sparkles,
 } from 'lucide-react';
 import { bankAPI, settingsAPI, transactionAPI } from '../api/client';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import GlassCard from '../components/GlassCard';
-import { downloadReceiptPdf, printReceipt } from '../utils/receiptExport';
+import ReceiptDocument from '../components/ReceiptDocument';
+import { downloadReceiptPdf, printReceipt, formatHawalaSummary } from '../utils/receiptExport';
 
 const COMPANY_NAME = 'Sky Ariana Limited';
 const COMPANY_SUBTITLE = 'Money Transaction & Hawala Receipt Management System';
@@ -86,11 +92,30 @@ export default function TransactionHistory() {
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [toast, setToast] = useState(null);
+  const [previewTx, setPreviewTx] = useState(null);
+  const [copiedSummary, setCopiedSummary] = useState(false);
 
   const fileInputRef = useRef(null);
   const [activeUploadId, setActiveUploadId] = useState(null);
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
   const navigate = useNavigate();
+
+  const handleCopySummary = async (tx) => {
+    if (!tx) return;
+    try {
+      const bankAccount = banks.find((bank) => bank.id === Number(tx.bank_account_id));
+      const text = formatHawalaSummary({
+        transaction: tx,
+        bankAccount,
+        settings,
+      });
+      await navigator.clipboard.writeText(text);
+      setCopiedSummary(true);
+      setTimeout(() => setCopiedSummary(false), 2200);
+    } catch (err) {
+      console.error('Failed to copy', err);
+    }
+  };
 
   const showToast = (type, message) => {
     setToast({ type, message });
@@ -718,7 +743,8 @@ export default function TransactionHistory() {
                         <div className="flex items-center gap-1.5 min-w-0">
                           <button
                             className="inline-flex items-center px-2 py-0.5 rounded-lg bg-sky-50/80 hover:bg-sky-100 text-sky-700 hover:text-sky-900 border border-sky-100 transition-colors font-bold text-xs"
-                            onClick={() => navigate(`/transactions/${tx.id}`)}
+                            onClick={() => setPreviewTx(tx)}
+                            title="Click to Preview Official Receipt"
                           >
                             {tx.receipt_no}
                           </button>
@@ -780,6 +806,14 @@ export default function TransactionHistory() {
                         <div className="inline-flex items-center gap-1 p-1 bg-white/80 backdrop-blur-md border border-slate-200/70 rounded-xl transition-all shadow-xs group-hover:border-slate-300">
                           {/* Read & Export Group */}
                           <div className="flex items-center gap-0.5">
+                            <button
+                              onClick={() => setPreviewTx(tx)}
+                              disabled={deletingTransactionId === tx.id}
+                              className="w-7 h-7 inline-flex items-center justify-center text-slate-600 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-all disabled:opacity-50"
+                              title="Preview Official Receipt"
+                            >
+                              <Receipt size={14} />
+                            </button>
                             <button
                               onClick={() => navigate(`/transactions/${tx.id}`)}
                               disabled={deletingTransactionId === tx.id}
@@ -955,6 +989,68 @@ export default function TransactionHistory() {
                 Delete Everything
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Live Receipt Document Preview Modal */}
+      {previewTx && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-3 sm:p-6 animate-fadeIn">
+          <div className="w-full max-w-5xl flex items-center justify-between bg-slate-900 text-white p-4 rounded-t-2xl border-b border-slate-800 shadow-2xl">
+            <div className="flex items-center gap-3">
+              <span className="font-black text-sm uppercase tracking-wider text-sky-400">Official Money Receipt Document</span>
+              <span className="text-[11px] font-bold text-slate-300 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+                {previewTx.receipt_no}
+              </span>
+              <span className="text-[11px] font-extrabold text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-2.5 py-0.5 rounded-full">
+                {formatCurrency(previewTx.amount, previewTx.currency)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleCopySummary(previewTx)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all ${
+                  copiedSummary
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+                }`}
+                title="Copy Hawala WhatsApp Text"
+              >
+                {copiedSummary ? <Check size={14} /> : <Copy size={14} />}
+                <span>{copiedSummary ? 'Copied!' : 'Copy Summary'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handlePrintReceipt(previewTx)}
+                className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md transition-all"
+              >
+                <Printer size={14} /> Print
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDownloadPDF(previewTx)}
+                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md transition-all"
+              >
+                {generatingPdfId === previewTx.id ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                <span>Download PDF</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewTx(null)}
+                className="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl transition-colors ml-1"
+                title="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+          <div className="w-full max-w-5xl bg-slate-200/90 p-4 sm:p-8 rounded-b-2xl max-h-[85vh] overflow-y-auto flex justify-center shadow-2xl custom-scrollbar">
+            <ReceiptDocument
+              transaction={previewTx}
+              bankAccount={banks.find((bank) => bank.id === Number(previewTx.bank_account_id))}
+              settings={settings}
+              language={i18n.resolvedLanguage}
+            />
           </div>
         </div>
       )}

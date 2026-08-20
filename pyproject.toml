@@ -1,5 +1,30 @@
 [project]
 name = "app"
 version = "0.1.0"
-dependencies = [ "fastapi>=0.115.6", "uvicorn[standard]>=0.34.0", "sqlalchemy>=2.0.36", "pydantic>=2.10.4", "python-multipart>=0.0.20", "psycopg2-binary>=2.9.9" ]
+dependencies = [
+  "fastapi>=0.115.6",
+  "uvicorn[standard]>=0.34.0",
+  "sqlalchemy>=2.0.36",
+  "pydantic>=2.10.4",
+  "python-multipart>=0.0.20",
+  "psycopg2-binary>=2.9.9"
+]
 requires-python = "~=3.12.0"
+
+[tool.ruff]
+exclude = [
+  ".venv",
+  ".vercel",
+  ".vercel_python_packages",
+  "node_modules",
+  "dist",
+  "frontend"
+]
+
+[tool.pyright]
+exclude = [
+  "**/node_modules",
+  "**/.venv",
+  "**/.vercel",
+  "**/.vercel_python_packages"
+]

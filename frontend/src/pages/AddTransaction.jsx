@@ -30,12 +30,25 @@ import {
   UserPlus,
   RefreshCw,
   Search,
+  Copy,
+  Check,
+  Globe,
+  Sparkles,
+  Layers,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { transactionAPI, bankAPI, customerAPI, settingsAPI } from '../api/client';
 import GlassCard from '../components/GlassCard';
 import { useTranslation } from 'react-i18next';
 import ReceiptDocument from '../components/ReceiptDocument';
-import { downloadReceiptPdf, printReceipt } from '../utils/receiptExport';
+import { downloadReceiptPdf, printReceipt, formatHawalaSummary } from '../utils/receiptExport';
+
+const LANDMARK_OPTIONS = [
+  { id: '/afghan-blue-mosque.jpg', name: 'Blue Mosque', location: 'Mazar' },
+  { id: '/afghan-darul-aman.jpg', name: 'Darul Aman', location: 'Kabul' },
+  { id: '/afghan-qala-bost.jpg', name: 'Qala-e-Bost', location: 'Helmand' },
+  { id: '/afghan-band-e-amir.jpg', name: 'Band-e-Amir', location: 'Bamyan' },
+];
 
 const currencies = ['USD', 'Toman', 'Dirham', 'Afghani'];
 const methods = ['Bank Transfer', 'Cash', 'Hawala'];
@@ -69,8 +82,13 @@ export default function AddTransaction() {
   const [uploadingFile, setUploadingFile] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [customRate, setCustomRate] = useState('');
-  const [previewZoom, setPreviewZoom] = useState(0.35);
+  const [previewZoom, setPreviewZoom] = useState(0.42);
   const [showFullscreenModal, setShowFullscreenModal] = useState(false);
+  const [previewLanguage, setPreviewLanguage] = useState(i18n.resolvedLanguage || 'en');
+  const [previewWatermark, setPreviewWatermark] = useState(
+    (typeof window !== 'undefined' && window.localStorage.getItem('sky_receipt_bg')) || '/afghan-blue-mosque.jpg'
+  );
+  const [copiedSummary, setCopiedSummary] = useState(false);
 
   // Quick Customer Creation Modal State
   const [showCustomerModal, setShowCustomerModal] = useState(false);
@@ -388,6 +406,53 @@ export default function AddTransaction() {
 
   // Find selected bank information for live preview
   const selectedBank = banks.find((b) => b.id === Number(form.bank_account_id));
+
+  // Settings with active live preview watermark
+  const effectiveSettings = useMemo(() => ({
+    ...settings,
+    receipt_background: previewWatermark || settings?.receipt_background || '/afghan-blue-mosque.jpg',
+  }), [settings, previewWatermark]);
+
+  const handleCopySummary = async () => {
+    try {
+      const text = formatHawalaSummary({
+        transaction: form,
+        bankAccount: selectedBank,
+        settings: effectiveSettings,
+      });
+      await navigator.clipboard.writeText(text);
+      setCopiedSummary(true);
+      setTimeout(() => setCopiedSummary(false), 2200);
+    } catch (err) {
+      console.error('Failed to copy summary', err);
+    }
+  };
+
+  const handleDirectPrintDraft = () => {
+    printReceipt({
+      transaction: form,
+      bankAccount: selectedBank,
+      settings: effectiveSettings,
+      language: previewLanguage,
+    });
+  };
+
+  const handleDirectDownloadDraftPDF = async () => {
+    try {
+      setLoading(true);
+      await downloadReceiptPdf({
+        transaction: form,
+        bankAccount: selectedBank,
+        settings: effectiveSettings,
+        language: previewLanguage,
+      });
+    } catch (err) {
+      console.error('Failed to download draft PDF', err);
+      setErrorMessage(err.message || 'Failed to download receipt PDF.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="mx-auto w-full max-w-[1560px] space-y-4">
@@ -876,74 +941,174 @@ export default function AddTransaction() {
         </GlassCard>
 
         <div className="min-w-0 space-y-3 lg:sticky lg:top-6 lg:self-start">
-          <div className="flex items-center justify-between gap-2 px-1">
-            <h3 className="text-xs font-extrabold uppercase tracking-[0.14em] text-slate-600 flex items-center gap-2">
-              <span>{t('transaction.live_receipt_preview')}</span>
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
-            </h3>
+          {/* Live Preview Header Card */}
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-sky-100 p-3 shadow-sm space-y-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+                  <Sparkles size={13} />
+                </span>
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                    <span>{t('transaction.live_receipt_preview')}</span>
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.9)]"></span>
+                  </h3>
+                  <span className="text-[10px] text-slate-500 font-semibold block">
+                    Real-time official document sync
+                  </span>
+                </div>
+              </div>
 
-            {/* Interactive Zoom & View Controls */}
-            <div className="flex items-center gap-1 bg-white/95 backdrop-blur-md p-1 rounded-xl border border-sky-100 shadow-sm text-xs">
-              <button
-                type="button"
-                onClick={() => setPreviewZoom((z) => Math.max(0.35, parseFloat((z - 0.05).toFixed(2))))}
-                className="p-1 hover:bg-sky-50 rounded-lg text-slate-600 hover:text-sky-700 transition-colors"
-                title="Zoom Out"
-              >
-                <ZoomOut size={14} />
-              </button>
-              <span className="text-[10px] font-black text-slate-700 min-w-[34px] text-center">
-                {Math.round(previewZoom * 100)}%
-              </span>
-              <button
-                type="button"
-                onClick={() => setPreviewZoom((z) => Math.min(1.1, parseFloat((z + 0.05).toFixed(2))))}
-                className="p-1 hover:bg-sky-50 rounded-lg text-slate-600 hover:text-sky-700 transition-colors"
-                title="Zoom In"
-              >
-                <ZoomIn size={14} />
-              </button>
-              <div className="w-[1px] h-3 bg-slate-200 mx-0.5" />
-              <button
-                type="button"
-                onClick={() => setPreviewZoom(0.35)}
-                className={`px-2 py-0.5 rounded-md text-[10px] font-black transition-all ${
-                  previewZoom <= 0.40 ? 'bg-sky-600 text-white shadow-xs' : 'hover:bg-sky-50 text-sky-600 font-bold'
-                }`}
-                title="Fit 1-Page View (See All At Once)"
-              >
-                1-Page
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewZoom(0.70)}
-                className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold transition-all ${
-                  previewZoom === 0.70 ? 'bg-sky-600 text-white shadow-xs' : 'hover:bg-sky-50 text-sky-600'
-                }`}
-                title="Large View"
-              >
-                Large
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowFullscreenModal(true)}
-                className="p-1 hover:bg-sky-100/80 bg-sky-50 rounded-lg text-sky-700 transition-colors ml-0.5"
-                title="Expand Full Screen"
-              >
-                <Maximize2 size={14} />
-              </button>
+              {/* Quick Actions (Copy, Print, PDF, Fullscreen) */}
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={handleCopySummary}
+                  className={`p-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1 ${
+                    copiedSummary 
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs' 
+                      : 'border-slate-200 bg-white hover:bg-sky-50 text-slate-700 hover:text-sky-700'
+                  }`}
+                  title="Copy Hawala WhatsApp / SMS Summary"
+                >
+                  {copiedSummary ? <Check size={13} className="text-white" /> : <Copy size={13} />}
+                  <span className="text-[10px] font-black hidden sm:inline">{copiedSummary ? 'Copied!' : 'Copy'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDirectPrintDraft}
+                  className="p-1.5 rounded-xl border border-slate-200 bg-white hover:bg-sky-50 text-slate-700 hover:text-sky-700 transition-colors"
+                  title="Print Preview Document"
+                >
+                  <Printer size={13} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDirectDownloadDraftPDF}
+                  className="p-1.5 rounded-xl border border-slate-200 bg-white hover:bg-sky-50 text-slate-700 hover:text-sky-700 transition-colors"
+                  title="Download Preview PDF"
+                >
+                  <Download size={13} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowFullscreenModal(true)}
+                  className="p-1.5 rounded-xl bg-sky-600 text-white hover:bg-sky-700 shadow-xs transition-colors ml-0.5"
+                  title="Expand Fullscreen"
+                >
+                  <Maximize2 size={13} />
+                </button>
+              </div>
+            </div>
+
+            {/* Sub-toolbar: Watermark Landmark, Language, and Zoom Controls */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+              
+              {/* Landmark Watermark Switcher */}
+              <div className="flex items-center gap-1 bg-slate-50/90 p-1 rounded-xl border border-slate-200/80">
+                <span className="text-[10px] font-bold text-slate-500 pl-1 flex items-center gap-1">
+                  <ImageIcon size={11} className="text-sky-500" />
+                </span>
+                <select
+                  value={previewWatermark}
+                  onChange={(e) => {
+                    setPreviewWatermark(e.target.value);
+                    if (typeof window !== 'undefined') {
+                      window.localStorage.setItem('sky_receipt_bg', e.target.value);
+                    }
+                  }}
+                  className="text-[10px] font-bold bg-transparent text-slate-700 outline-none cursor-pointer pr-1"
+                  title="Select Afghan Landmark Watermark"
+                >
+                  {LANDMARK_OPTIONS.map((bg) => (
+                    <option key={bg.id} value={bg.id}>
+                      {bg.name} ({bg.location})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Language Switcher */}
+              <div className="flex items-center gap-0.5 bg-slate-50/90 p-0.5 rounded-xl border border-slate-200/80">
+                {[
+                  { code: 'en', label: 'EN' },
+                  { code: 'fa', label: 'دری' },
+                  { code: 'ps', label: 'پښتو' },
+                ].map(({ code, label }) => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => setPreviewLanguage(code)}
+                    className={`px-1.5 py-0.5 rounded-lg text-[10px] font-black transition-all ${
+                      previewLanguage === code
+                        ? 'bg-sky-600 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-sky-800'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Zoom Controls */}
+              <div className="flex items-center gap-1 bg-slate-50/90 p-0.5 rounded-xl border border-slate-200/80">
+                <button
+                  type="button"
+                  onClick={() => setPreviewZoom((z) => Math.max(0.30, parseFloat((z - 0.05).toFixed(2))))}
+                  className="p-1 hover:bg-white rounded-lg text-slate-600 hover:text-sky-700 transition-colors"
+                  title="Zoom Out"
+                >
+                  <ZoomOut size={12} />
+                </button>
+                <span className="text-[10px] font-black text-slate-700 min-w-[30px] text-center">
+                  {Math.round(previewZoom * 100)}%
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPreviewZoom((z) => Math.min(1.2, parseFloat((z + 0.05).toFixed(2))))}
+                  className="p-1 hover:bg-white rounded-lg text-slate-600 hover:text-sky-700 transition-colors"
+                  title="Zoom In"
+                >
+                  <ZoomIn size={12} />
+                </button>
+                <div className="w-[1px] h-3 bg-slate-300 mx-0.5" />
+                <button
+                  type="button"
+                  onClick={() => setPreviewZoom(0.42)}
+                  className={`px-1.5 py-0.5 rounded-md text-[9.5px] font-black transition-all ${
+                    previewZoom === 0.42 ? 'bg-sky-600 text-white shadow-2xs' : 'text-slate-600 hover:text-sky-700'
+                  }`}
+                  title="Fit 1-Page"
+                >
+                  Fit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewZoom(0.70)}
+                  className={`px-1.5 py-0.5 rounded-md text-[9.5px] font-bold transition-all ${
+                    previewZoom === 0.70 ? 'bg-sky-600 text-white shadow-2xs' : 'text-slate-600 hover:text-sky-700'
+                  }`}
+                  title="Large 70%"
+                >
+                  70%
+                </button>
+              </div>
+
             </div>
           </div>
 
           {/* 1-Page Full Receipt View Stage Container */}
-          <div className="relative rounded-[24px] bg-gradient-to-br from-slate-100 via-sky-50/50 to-slate-200/60 border border-slate-200/80 p-2 flex justify-center items-start shadow-[inset_0_2px_12px_rgba(0,0,0,0.03)] overflow-y-auto max-h-[calc(100vh-120px)] min-h-[460px]">
+          <div className="relative rounded-[24px] bg-gradient-to-br from-slate-100 via-sky-50/40 to-slate-200/50 border border-slate-200/80 p-2.5 flex justify-center items-start shadow-[inset_0_2px_12px_rgba(0,0,0,0.04)] overflow-y-auto max-h-[calc(100vh-140px)] min-h-[480px]">
             <div className="receipt-preview-scroll flex justify-center items-start w-full p-1">
               <div
                 style={{
                   width: `${Math.round(733 * previewZoom)}px`,
                   height: `${Math.round(1020 * previewZoom)}px`,
                 }}
-                className="relative shrink-0 transition-all duration-200 ease-out shadow-xl rounded-xl border border-slate-300/60 bg-white"
+                className="relative shrink-0 transition-all duration-200 ease-out shadow-2xl rounded-xl border border-slate-300/70 bg-white"
               >
                 <div
                   className="transition-transform duration-200"
@@ -957,8 +1122,8 @@ export default function AddTransaction() {
                   <ReceiptDocument
                     transaction={form}
                     bankAccount={selectedBank}
-                    settings={settings}
-                    language={i18n.resolvedLanguage}
+                    settings={effectiveSettings}
+                    language={previewLanguage}
                   />
                 </div>
               </div>
@@ -970,44 +1135,109 @@ export default function AddTransaction() {
 
       {/* Full Screen Live Receipt Modal */}
       {showFullscreenModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-6 animate-fadeIn">
-          <div className="w-full max-w-4xl flex items-center justify-between bg-slate-900 text-white p-4 rounded-t-2xl border-b border-slate-800 shadow-xl">
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-3 sm:p-6 animate-fadeIn">
+          <div className="w-full max-w-5xl flex flex-wrap items-center justify-between gap-3 bg-slate-900 text-white p-4 rounded-t-2xl border-b border-slate-800 shadow-2xl">
             <div className="flex items-center gap-3">
               <span className="font-black text-sm uppercase tracking-wider text-sky-400">Official Money Receipt Preview</span>
               <span className="text-[11px] font-bold text-slate-300 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
                 {form.receipt_no || 'LIVE DRAFT'}
               </span>
+              <span className="text-[11px] font-extrabold text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-2.5 py-0.5 rounded-full">
+                {form.amount ? `${Number(form.amount).toLocaleString('en-US')} ${form.currency}` : '0.00 USD'}
+              </span>
             </div>
-            <div className="flex items-center gap-2">
+
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Landmark Watermark inside Fullscreen Modal */}
+              <div className="flex items-center gap-1 bg-slate-800 px-2 py-1 rounded-xl border border-slate-700 text-xs">
+                <ImageIcon size={12} className="text-sky-400" />
+                <select
+                  value={previewWatermark}
+                  onChange={(e) => {
+                    setPreviewWatermark(e.target.value);
+                    if (typeof window !== 'undefined') {
+                      window.localStorage.setItem('sky_receipt_bg', e.target.value);
+                    }
+                  }}
+                  className="text-[11px] font-bold bg-transparent text-slate-200 outline-none cursor-pointer"
+                >
+                  {LANDMARK_OPTIONS.map((bg) => (
+                    <option key={bg.id} value={bg.id} className="bg-slate-900 text-white">
+                      {bg.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Language toggle inside Fullscreen Modal */}
+              <div className="flex items-center gap-1 bg-slate-800 p-0.5 rounded-xl border border-slate-700">
+                {[
+                  { code: 'en', label: 'EN' },
+                  { code: 'fa', label: 'دری' },
+                  { code: 'ps', label: 'پښتو' },
+                ].map(({ code, label }) => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => setPreviewLanguage(code)}
+                    className={`px-2 py-0.5 rounded-lg text-[10px] font-black transition-all ${
+                      previewLanguage === code
+                        ? 'bg-sky-600 text-white shadow-2xs'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Copy Hawala Summary */}
               <button
                 type="button"
-                onClick={handleSaveAndPrint}
+                onClick={handleCopySummary}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all ${
+                  copiedSummary
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+                }`}
+                title="Copy Hawala WhatsApp Text"
+              >
+                {copiedSummary ? <Check size={14} /> : <Copy size={14} />}
+                <span>{copiedSummary ? 'Copied!' : 'Copy Summary'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDirectPrintDraft}
                 className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md transition-all"
               >
                 <Printer size={14} /> Print
               </button>
+              
               <button
                 type="button"
-                onClick={handleDownloadPDF}
+                onClick={handleDirectDownloadDraftPDF}
                 className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-md transition-all"
               >
                 <Download size={14} /> Download PDF
               </button>
+              
               <button
                 type="button"
                 onClick={() => setShowFullscreenModal(false)}
                 className="p-1.5 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl transition-colors ml-1"
+                title="Close Modal"
               >
                 <X size={18} />
               </button>
             </div>
           </div>
-          <div className="w-full max-w-4xl bg-slate-100/90 p-4 sm:p-8 rounded-b-2xl max-h-[85vh] overflow-y-auto flex justify-center shadow-2xl custom-scrollbar">
+          <div className="w-full max-w-5xl bg-slate-200/90 p-4 sm:p-8 rounded-b-2xl max-h-[85vh] overflow-y-auto flex justify-center shadow-2xl custom-scrollbar">
             <ReceiptDocument
               transaction={form}
               bankAccount={selectedBank}
-              settings={settings}
-              language={i18n.resolvedLanguage}
+              settings={effectiveSettings}
+              language={previewLanguage}
             />
           </div>
         </div>
