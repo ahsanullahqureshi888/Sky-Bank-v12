@@ -253,7 +253,7 @@ def login(payload: schemas.LoginRequest, db: Session = Depends(get_db)):
     identifier = payload.identifier.strip().lower()
     user = db.scalar(
         select(models.User).where(
-            (models.User.email == identifier) | (models.User.username == identifier)
+            (func.lower(models.User.email) == identifier) | (func.lower(models.User.username) == identifier)
         )
     )
     if not user or not user.is_active or not verify_password(payload.password, user.password_hash):
