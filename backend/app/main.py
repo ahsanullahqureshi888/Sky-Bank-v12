@@ -1,17 +1,14 @@
-import os
 from contextlib import asynccontextmanager
-from datetime import datetime
-from fastapi import FastAPI, Depends
+from datetime import datetime, timezone
+from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
-from sqlalchemy import select, func, text
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from .database import Base, SessionLocal, engine, get_db, is_sqlite
 from .routes.api import router
 from .services.migrations import run_migrations
 from .services.seed import seed_database
-from . import models
 
 
 def init_db():
@@ -35,7 +32,7 @@ except Exception as exc:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     try:
         init_db()
     except Exception as e:
@@ -55,7 +52,7 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def vercel_path_rewrite_middleware(request, call_next):
+async def vercel_path_rewrite_middleware(request: Request, call_next):
     matched_path = (
         request.headers.get("x-matched-path")
         or request.headers.get("x-vercel-matched-path")
@@ -82,7 +79,7 @@ def root():
         "name": "Sky Banking API",
         "version": "1.0.0",
         "status": "online",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 
@@ -99,5 +96,5 @@ def api_health(db: Session = Depends(get_db)):
         "status": "healthy",
         "database": db_status,
         "engine": "sqlite" if is_sqlite else "postgresql",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
