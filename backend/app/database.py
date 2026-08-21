@@ -98,6 +98,9 @@ class Base(DeclarativeBase):
     pass
 
 
+metadata = Base.metadata
+
+
 def get_db():
     db = SessionLocal()
     try:

@@ -5,14 +5,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from .database import Base, SessionLocal, engine, get_db, is_sqlite
+from .database import Base, SessionLocal, engine, get_db, is_sqlite, metadata
 from .routes.api import router
 from .services.migrations import run_migrations
 from .services.seed import seed_database
 
 
 def init_db():
-    Base.metadata.create_all(bind=engine)
+    metadata.create_all(bind=engine)
     try:
         run_migrations(engine)
     except Exception as e:
