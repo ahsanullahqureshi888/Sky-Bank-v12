@@ -53,6 +53,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def vercel_path_rewrite_middleware(request, call_next):
+    matched_path = (
+        request.headers.get("x-matched-path")
+        or request.headers.get("x-vercel-matched-path")
+        or request.headers.get("x-forwarded-uri")
+    )
+    if matched_path:
+        clean = matched_path.split("?")[0]
+        request.scope["path"] = clean
+    elif request.scope.get("path") in ("/api/index.py", "/api/index", "/api", "/api/"):
+        path_param = request.query_params.get("path")
+        if path_param:
+            request.scope["path"] = f"/api/{path_param.lstrip('/')}"
+    return await call_next(request)
+
+
 # Register router for both with and without /api prefix to support all Vercel rewrite patterns
 app.include_router(router, prefix="/api")
 app.include_router(router)
