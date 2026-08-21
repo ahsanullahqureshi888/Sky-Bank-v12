@@ -1,0 +1,435 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Balam Bar Baran Admin",
+      "username": "admin",
+      "email": "admin@brb.com",
+      "password_hash": "pbkdf2_sha256$0b0d56b777952d5ea33847708b335459$11485b9697768ffc967d6f35fbdbd9325d908ae84f6d43adfb6c4ea98e32324a",
+      "role": "Admin",
+      "is_active": true,
+      "created_at": "2026-07-13T05:39:55.113874"
+    },
+    {
+      "id": 2,
+      "name": "General Accountant",
+      "username": "accountant",
+      "email": "accountant@skybanking.local",
+      "password_hash": "pbkdf2_sha256$faa45d519d899578ca58e5834bc6909a$8888dbf3dbf9a46d3e18549da6667deedc194057ebfa2b6a5628548aeb7ac1d3",
+      "role": "Accountant",
+      "is_active": true,
+      "created_at": "2026-07-13T05:39:55.908330"
+    },
+    {
+      "id": 3,
+      "name": "Balam Bar Baran",
+      "username": "balam",
+      "email": "balam@sky.com",
+      "password_hash": "pbkdf2_sha256$f8ba639e7097ae4722c05badb88c6487$28a475360f24c29e570287d9f1fd7fd4f7df6c6cf0138c0a642dd8518e3b6f7a",
+      "role": "Accountant",
+      "is_active": true,
+      "created_at": "2026-07-14T20:35:45.745730"
+    },
+    {
+      "id": 4,
+      "name": "Ahsan",
+      "username": "ahsan",
+      "email": "ahsan@sky.com",
+      "password_hash": "pbkdf2_sha256$260000$hQ2Vb1W9zE1$d5cfda343f80c6562092147bb0de8e3a2c5a1768c74bb181e4ae67f62ec36473",
+      "role": "Admin",
+      "is_active": true,
+      "created_at": "2026-08-21T16:22:05.508531"
+    }
+  ],
+  "customers": [
+    {
+      "id": 2,
+      "name": "BALAM BAR BARAN",
+      "phone": "+93 700 333 444",
+      "notes": "Transport statement customer",
+      "created_at": "2026-07-13T05:39:57.292081"
+    },
+    {
+      "id": 5,
+      "name": "شیر احمد",
+      "phone": "+93 700 111 222",
+      "notes": "Primary hawala customer",
+      "created_at": "2026-07-14T20:52:22.028654"
+    },
+    {
+      "id": 6,
+      "name": "Ariana Balam Baran",
+      "phone": "+93 700 333 444",
+      "notes": "Transport statement customer",
+      "created_at": "2026-07-14T20:52:22.028661"
+    },
+    {
+      "id": 7,
+      "name": "HAJI SHABIR AHMAD ALOKOZAY ",
+      "created_at": "2026-07-14T20:53:26.795769"
+    },
+    {
+      "id": 8,
+      "name": "HAJI SHABIR AHMAD ALOKOZAY",
+      "created_at": "2026-07-23T12:06:51.468714"
+    },
+    {
+      "id": 9,
+      "name": "Balam Bar Baran",
+      "created_at": "2026-07-25T10:41:12.579540"
+    }
+  ],
+  "bank_accounts": [
+    {
+      "id": 1,
+      "bank_name": "OMAID AHSAN SARAPI",
+      "account_name": "HAWALA TO ITAN",
+      "account_number": "SKY-0012-8890-USD",
+      "currency": "USD",
+      "opening_balance": 25000,
+      "current_balance": 40000,
+      "created_at": "2026-07-13T05:39:57.874882"
+    },
+    {
+      "id": 2,
+      "bank_name": "Ghazanfar Bank",
+      "account_name": "Company Account",
+      "account_number": "4471-2200-AFN",
+      "currency": "Afghani",
+      "opening_balance": 880000,
+      "current_balance": 880000,
+      "created_at": "2026-07-13T05:39:58.430128"
+    },
+    {
+      "id": 3,
+      "bank_name": "Hawala Office",
+      "account_name": "Dubai Hawala Desk",
+      "account_number": "DXB-HWL-443",
+      "currency": "Dirham",
+      "opening_balance": 12000,
+      "current_balance": 12000,
+      "created_at": "2026-07-13T05:39:58.994731"
+    },
+    {
+      "id": 4,
+      "bank_name": "AIB Bank",
+      "account_name": "Booking Account",
+      "account_number": "1102-8890-USD",
+      "currency": "USD",
+      "opening_balance": 25000,
+      "current_balance": 25000,
+      "created_at": "2026-07-23T13:59:36.004149"
+    }
+  ],
+  "transactions": [
+    {
+      "id": 2,
+      "receipt_no": "SKY-TX-01",
+      "date": "2026-07-23",
+      "type": "Paid",
+      "customer_id": 8,
+      "company_name": "BALAM BAR BARAN",
+      "subject": "EXPORTS ",
+      "amount": 3784,
+      "currency": "USD",
+      "equivalent_amount": 700000000,
+      "equivalent_currency": "Toman",
+      "payment_method": "Hawala",
+      "receiver_name": "Mrs Khanam Tokali Bolambar",
+      "description": "۱/۵/۱۴۰۵\nنقد برایت جمع میشه\nتوسط امید احسان صرافی \nبه حساب عبدالمنان کرکیچ \n700,000,000/ تومان \n3784$ دالره \n@Mrs Khanam Tokali Bolambar\nحساب بلم بار باران\nد دالرو حساب",
+      "status": "Completed",
+      "created_by": 1,
+      "created_at": "2026-07-23T12:06:51.480365",
+      "updated_at": "2026-07-23T12:06:51.480370"
+    },
+    {
+      "id": 4,
+      "receipt_no": "SKY-TX-002",
+      "date": "2026-07-25",
+      "type": "Export",
+      "customer_id": 9,
+      "company_name": "Balam Bar Baran",
+      "subject": "exports -of containers",
+      "amount": 15000,
+      "currency": "USD",
+      "equivalent_amount": 2797500000,
+      "equivalent_currency": "Toman",
+      "payment_method": "Hawala",
+      "bank_account_id": 1,
+      "receiver_name": "Mrs Khanam Tokali Bolambar",
+      "description": "۳/۵/۱۴۰۵\nنقد برایت جمع میشه\nتوسط امید احسان صرافی \nبه حساب خانم تاجک \n2,797,500,000/ تومان\n15,000$ دالر ",
+      "status": "Completed",
+      "created_by": 1,
+      "created_at": "2026-07-25T10:42:19.906079",
+      "updated_at": "2026-07-25T10:42:19.906086"
+    }
+  ],
+  "customer_ledger": [
+    {
+      "id": 2,
+      "customer_id": 8,
+      "transaction_id": 2,
+      "date": "2026-07-23",
+      "description": "EXPORTS ",
+      "debit": 3784,
+      "credit": 0,
+      "balance": -3784
+    },
+    {
+      "id": 6,
+      "customer_id": 9,
+      "transaction_id": 4,
+      "date": "2026-07-25",
+      "description": "exports -of containers",
+      "debit": 0,
+      "credit": 15000,
+      "balance": 15000
+    }
+  ],
+  "bank_ledger": [
+    {
+      "id": 5,
+      "bank_account_id": 1,
+      "transaction_id": 4,
+      "date": "2026-07-25",
+      "description": "exports -of containers",
+      "debit": 0,
+      "credit": 15000,
+      "balance": 40000
+    }
+  ],
+  "attachments": [],
+  "audit_logs": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "action": "update",
+      "table_name": "users",
+      "record_id": 1,
+      "description": "Changed password for admin@brb.com",
+      "created_at": "2026-07-13T05:48:03.161844"
+    },
+    {
+      "id": 2,
+      "user_id": 1,
+      "action": "delete",
+      "table_name": "customers",
+      "record_id": 1,
+      "description": "Deleted customer شیر احمد",
+      "ip_address": "104.234.53.181",
+      "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152.0.0.0 Safari/537.36",
+      "created_at": "2026-07-13T14:10:34.376314"
+    },
+    {
+      "id": 3,
+      "user_id": 1,
+      "action": "update",
+      "table_name": "customers",
+      "record_id": 2,
+      "description": "Updated customer BALAM BAR BARAN",
+      "ip_address": "104.234.53.168",
+      "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152.0.0.0 Safari/537.36",
+      "created_at": "2026-07-13T15:27:00.387922"
+    },
+    {
+      "id": 4,
+      "user_id": 1,
+      "action": "create",
+      "table_name": "users",
+      "record_id": 3,
+      "description": "Created user balam@sky.com",
+      "created_at": "2026-07-14T20:35:45.783404"
+    },
+    {
+      "id": 5,
+      "user_id": 1,
+      "action": "delete",
+      "table_name": "customers",
+      "record_id": 4,
+      "description": "Deleted customer Ariana Balam Baran",
+      "ip_address": "212.30.36.106",
+      "device_info": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 Chrome/143.0.0.0 Mobile Safari/537.36",
+      "created_at": "2026-07-14T20:38:50.248257"
+    },
+    {
+      "id": 6,
+      "user_id": 1,
+      "action": "delete",
+      "table_name": "customers",
+      "record_id": 3,
+      "description": "Deleted customer شیر احمد",
+      "ip_address": "212.30.36.106",
+      "device_info": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 Chrome/143.0.0.0 Mobile Safari/537.36",
+      "created_at": "2026-07-14T20:38:55.930686"
+    },
+    {
+      "id": 7,
+      "user_id": 3,
+      "action": "create",
+      "table_name": "transactions",
+      "record_id": 1,
+      "description": "Added transaction TX-0001",
+      "ip_address": "212.30.36.139",
+      "device_info": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 Chrome/143.0.0.0 Mobile Safari/537.36",
+      "created_at": "2026-07-14T20:53:26.853232"
+    },
+    {
+      "id": 8,
+      "user_id": 1,
+      "action": "create",
+      "table_name": "transactions",
+      "record_id": 2,
+      "description": "Added transaction SKY-TX-01",
+      "ip_address": "45.146.54.168",
+      "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/152.0.0.0 Safari/537.36",
+      "created_at": "2026-07-23T12:06:51.512752"
+    },
+    {
+      "id": 9,
+      "user_id": 1,
+      "action": "update",
+      "table_name": "bank_accounts",
+      "record_id": 1,
+      "description": "Updated bank account SKY-0012-8890-USD",
+      "ip_address": "45.8.19.144",
+      "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/152.0.0.0 Safari/537.36",
+      "created_at": "2026-07-23T13:58:28.010895"
+    },
+    {
+      "id": 10,
+      "user_id": 1,
+      "action": "update",
+      "table_name": "bank_accounts",
+      "record_id": 1,
+      "description": "Updated bank account SKY-0012-8890-USD",
+      "ip_address": "45.8.19.144",
+      "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/152.0.0.0 Safari/537.36",
+      "created_at": "2026-07-23T13:58:38.669166"
+    },
+    {
+      "id": 11,
+      "user_id": 1,
+      "action": "delete",
+      "table_name": "transactions",
+      "record_id": 1,
+      "description": "Deleted transaction TX-0001",
+      "ip_address": "45.8.19.144",
+      "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/152.0.0.0 Safari/537.36",
+      "created_at": "2026-07-23T13:59:45.053548"
+    },
+    {
+      "id": 12,
+      "user_id": 1,
+      "action": "update",
+      "table_name": "settings",
+      "record_id": 1,
+      "description": "Updated company settings",
+      "ip_address": "45.8.19.146",
+      "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/152.0.0.0 Safari/537.36",
+      "created_at": "2026-07-23T14:30:05.345755"
+    },
+    {
+      "id": 13,
+      "user_id": 1,
+      "action": "export",
+      "table_name": "backup",
+      "description": "Full database JSON backup exported",
+      "ip_address": "45.8.19.146",
+      "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/152.0.0.0 Safari/537.36",
+      "created_at": "2026-07-23T14:30:08.453794"
+    },
+    {
+      "id": 14,
+      "user_id": 1,
+      "action": "update",
+      "table_name": "settings",
+      "record_id": 1,
+      "description": "Updated company settings",
+      "ip_address": "10.31.107.4",
+      "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/152.0.0.0 Safari/537.36",
+      "created_at": "2026-07-25T10:11:31.479225"
+    },
+    {
+      "id": 15,
+      "user_id": 1,
+      "action": "upload",
+      "table_name": "settings",
+      "record_id": 1,
+      "description": "Uploaded logo 343.png",
+      "ip_address": "10.29.161.129",
+      "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/152.0.0.0 Safari/537.36",
+      "created_at": "2026-07-25T10:11:53.942335"
+    },
+    {
+      "id": 16,
+      "user_id": 1,
+      "action": "update",
+      "table_name": "settings",
+      "record_id": 1,
+      "description": "Updated company settings",
+      "ip_address": "10.25.169.129",
+      "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/152.0.0.0 Safari/537.36",
+      "created_at": "2026-07-25T10:13:34.955966"
+    },
+    {
+      "id": 17,
+      "user_id": 1,
+      "action": "update",
+      "table_name": "settings",
+      "record_id": 1,
+      "description": "Updated company settings",
+      "ip_address": "10.31.107.4",
+      "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/152.0.0.0 Safari/537.36",
+      "created_at": "2026-07-25T10:13:37.395902"
+    },
+    {
+      "id": 18,
+      "user_id": 1,
+      "action": "create",
+      "table_name": "transactions",
+      "record_id": 3,
+      "description": "Added transaction SKY-TX-02",
+      "ip_address": "10.29.161.129",
+      "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/152.0.0.0 Safari/537.36",
+      "created_at": "2026-07-25T10:41:13.150752"
+    },
+    {
+      "id": 19,
+      "user_id": 1,
+      "action": "create",
+      "table_name": "transactions",
+      "record_id": 4,
+      "description": "Added transaction SKY-TX-002",
+      "ip_address": "10.29.161.129",
+      "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/152.0.0.0 Safari/537.36",
+      "created_at": "2026-07-25T10:42:20.370734"
+    },
+    {
+      "id": 20,
+      "user_id": 1,
+      "action": "delete",
+      "table_name": "transactions",
+      "record_id": 3,
+      "description": "Deleted transaction SKY-TX-02",
+      "ip_address": "10.29.161.129",
+      "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/152.0.0.0 Safari/537.36",
+      "created_at": "2026-07-25T10:43:47.681195"
+    }
+  ],
+  "settings": [
+    {
+      "id": 1,
+      "company_name": "Sky Ariana Group of Companies",
+      "logo_path": "/app/backend/app/uploads/logo-343.png",
+      "address": "Kandahar, Afghanistan",
+      "phone": "+93 700 9393 65, +93 711 4355 29",
+      "email": "transport@skyariana.com",
+      "receipt_footer": "Official receipt generated by Sky Ariana Group of Companies.2026",
+      "default_currency": "USD",
+      "receipt_prefix": "TX",
+      "auto_backup": true,
+      "last_backup_at": "2026-07-23 14:30:08",
+      "next_receipt_number": 5
+    }
+  ]
+}

@@ -46,3 +46,4 @@ frosted_glass_temp/
 .vercel_python_packages/
 
 .vercel
+.env*

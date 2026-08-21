@@ -9,7 +9,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, Request
 from fastapi.responses import HTMLResponse, Response, StreamingResponse, FileResponse, RedirectResponse
-from sqlalchemy import delete, func, select, update, Date, DateTime
+from sqlalchemy import delete, func, select, update, Date, DateTime, text
 from sqlalchemy.orm import Session
 import zipfile
 import os
@@ -73,9 +73,20 @@ def import_table_data(db: Session, model, data_list: list[dict]) -> None:
             val = item.get(col.name)
             if val is not None:
                 if isinstance(col.type, Date) and isinstance(val, str):
-                    parsed_item[col.name] = date.fromisoformat(val[:10])
+                    try:
+                        parsed_item[col.name] = date.fromisoformat(val[:10])
+                    except Exception:
+                        parsed_item[col.name] = date.today()
                 elif isinstance(col.type, DateTime) and isinstance(val, str):
-                    parsed_item[col.name] = datetime.fromisoformat(val)
+                    cleaned_val = val.replace("Z", "+00:00")
+                    try:
+                        parsed_item[col.name] = datetime.fromisoformat(cleaned_val)
+                    except Exception:
+                        try:
+                            fmt = "%Y-%m-%d %H:%M:%S" if " " in val else "%Y-%m-%dT%H:%M:%S"
+                            parsed_item[col.name] = datetime.strptime(val[:19], fmt)
+                        except Exception:
+                            parsed_item[col.name] = datetime.utcnow()
                 else:
                     parsed_item[col.name] = val
         row = model(**parsed_item)
@@ -1148,8 +1159,11 @@ async def backup_import(
         raise HTTPException(status_code=400, detail="Missing required tables in backup JSON file.")
         
     try:
-        # Disable foreign keys
-        db.execute("PRAGMA foreign_keys = OFF;")
+        # Disable foreign keys safely if SQLite
+        bind = db.get_bind()
+        is_sqlite = bind.dialect.name == "sqlite" if bind else True
+        if is_sqlite:
+            db.execute(text("PRAGMA foreign_keys = OFF;"))
         
         # Import each table
         if "users" in data:
@@ -1171,8 +1185,18 @@ async def backup_import(
         if "settings" in data:
             import_table_data(db, models.Settings, data["settings"])
             
-        # Re-enable foreign keys
-        db.execute("PRAGMA foreign_keys = ON;")
+        # Re-enable foreign keys safely if SQLite
+        if is_sqlite:
+            db.execute(text("PRAGMA foreign_keys = ON;"))
+        db.commit()
+
+        # Recalculate customer ledgers and bank ledgers if ledger entries weren't supplied
+        if "customer_ledger" not in data:
+            for cust in db.scalars(select(models.Customer)).all():
+                recalculate_customer_ledger(db, cust.id)
+        if "bank_ledger" not in data:
+            for bank in db.scalars(select(models.BankAccount)).all():
+                recalculate_bank_ledger(db, bank.id)
         db.commit()
         
         # Log audit action
