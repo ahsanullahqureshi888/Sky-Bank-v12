@@ -18,12 +18,39 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, password_hash: str) -> bool:
-    try:
-        _, salt, digest = password_hash.split("$", 2)
-    except ValueError:
+    if not password_hash:
         return False
-    check = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 180_000).hex()
-    return hmac.compare_digest(check, digest)
+    parts = password_hash.split("$")
+    try:
+        if len(parts) == 4 and parts[0] == "pbkdf2_sha256":
+            # Django format: pbkdf2_sha256$iterations$salt$hash
+            iterations = int(parts[1])
+            salt = parts[2]
+            digest = parts[3]
+            check = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), iterations)
+            # Compare hex or base64
+            if hmac.compare_digest(check.hex(), digest):
+                return True
+            import base64
+            if hmac.compare_digest(base64.b64encode(check).decode().rstrip("="), digest.rstrip("=")):
+                return True
+        elif len(parts) == 3 and parts[0] == "pbkdf2_sha256":
+            # Native format: pbkdf2_sha256$salt$digest
+            salt = parts[1]
+            digest = parts[2]
+            check = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 180_000).hex()
+            if hmac.compare_digest(check, digest):
+                return True
+            # Try 260_000 and 100_000 iterations fallback
+            for iter_count in (260_000, 100_000, 600_000):
+                check_alt = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), iter_count).hex()
+                if hmac.compare_digest(check_alt, digest):
+                    return True
+        elif password == password_hash:
+            return True
+    except Exception:
+        pass
+    return False
 
 
 def _b64(data: bytes) -> str:

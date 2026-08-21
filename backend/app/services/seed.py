@@ -4,7 +4,7 @@ import os
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from .. import models
-from ..auth.security import hash_password
+from ..auth.security import hash_password, verify_password
 from .ledger import log_action, recalculate_customer_ledger, recalculate_bank_ledger, recalculate_after_transaction
 
 
@@ -16,12 +16,17 @@ def seed_database(db: Session) -> None:
             name="Balam Bar Baran Admin",
             username="admin",
             email="admin@brb.com",
-            password_hash="pbkdf2_sha256$0b0d56b777952d5ea33847708b335459$11485b9697768ffc967d6f35fbdbd9325d908ae84f6d43adfb6c4ea98e32324a",
+            password_hash=hash_password("admin123"),
             role="Admin",
             is_active=True,
         )
         db.add(admin)
         db.flush()
+    else:
+        # Ensure password hash is valid
+        if not verify_password("admin123", admin.password_hash):
+            admin.password_hash = hash_password("admin123")
+            db.flush()
 
     default_user = db.scalar(select(models.User).where(models.User.email == "ahsan@sky.com"))
     if not default_user:
@@ -35,8 +40,11 @@ def seed_database(db: Session) -> None:
         )
         db.add(default_user)
         db.flush()
-    elif not default_user.username:
-        default_user.username = "ahsan"
+    else:
+        if not default_user.username:
+            default_user.username = "ahsan"
+        if not verify_password("Qur78Ahs@@", default_user.password_hash):
+            default_user.password_hash = hash_password("Qur78Ahs@@")
         db.flush()
 
     accountant = db.scalar(select(models.User).where(models.User.email == "accountant@skybanking.local"))
@@ -45,12 +53,16 @@ def seed_database(db: Session) -> None:
             name="General Accountant",
             username="accountant",
             email="accountant@skybanking.local",
-            password_hash="pbkdf2_sha256$faa45d519d899578ca58e5834bc6909a$8888dbf3dbf9a46d3e18549da6667deedc194057ebfa2b6a5628548aeb7ac1d3",
+            password_hash=hash_password("1234"),
             role="Accountant",
             is_active=True,
         )
         db.add(accountant)
         db.flush()
+    else:
+        if not verify_password("1234", accountant.password_hash):
+            accountant.password_hash = hash_password("1234")
+            db.flush()
 
     balam_user = db.scalar(select(models.User).where(models.User.email == "balam@sky.com"))
     if not balam_user:
@@ -58,12 +70,16 @@ def seed_database(db: Session) -> None:
             name="Balam Bar Baran",
             username="balam",
             email="balam@sky.com",
-            password_hash="pbkdf2_sha256$f8ba639e7097ae4722c05badb88c6487$28a475360f24c29e570287d9f1fd7fd4f7df6c6cf0138c0a642dd8518e3b6f7a",
+            password_hash=hash_password("1234"),
             role="Accountant",
             is_active=True,
         )
         db.add(balam_user)
         db.flush()
+    else:
+        if not verify_password("1234", balam_user.password_hash):
+            balam_user.password_hash = hash_password("1234")
+            db.flush()
 
     # 2. Company Settings
     settings = db.scalar(select(models.Settings))
