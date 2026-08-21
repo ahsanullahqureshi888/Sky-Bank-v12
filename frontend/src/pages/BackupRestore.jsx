@@ -336,7 +336,12 @@ export default function BackupRestore() {
             <AlertCircle size={18} className="text-rose-600 mt-0.5 shrink-0" />
           )}
           <div className="flex-1 font-bold">{message.text}</div>
-          <button onClick={() => setMessage({ text: '', type: '' })} className="text-slate-400 hover:text-slate-600">
+          <button 
+            type="button"
+            onClick={() => setMessage({ text: '', type: '' })} 
+            aria-label="Dismiss message" 
+            className="text-slate-400 hover:text-slate-600"
+          >
             <X size={14} />
           </button>
         </div>
@@ -402,6 +407,7 @@ export default function BackupRestore() {
                   <button 
                     type="button"
                     onClick={handleToggleAutoBackup}
+                    aria-label="Toggle Auto Backup System"
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                       status?.auto_backup ? 'bg-sky-500 shadow-md shadow-sky-500/20' : 'bg-sky-200'
                     }`}
@@ -529,6 +535,7 @@ export default function BackupRestore() {
               <button
                 type="button"
                 onClick={fetchLogs}
+                aria-label="Refresh security logs"
                 className="text-xs font-bold text-sky-600 hover:text-sky-800 transition-colors p-1.5 rounded-lg border border-sky-100 bg-white/80 flex items-center justify-center"
                 title="Refresh logs"
               >
