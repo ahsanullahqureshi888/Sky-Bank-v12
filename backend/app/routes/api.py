@@ -65,8 +65,6 @@ def serialize_table(db: Session, model) -> list[dict]:
 
 
 def import_table_data(db: Session, model, data_list: list[dict]) -> None:
-    # Delete existing rows
-    db.execute(model.__table__.delete())
     for item in data_list:
         parsed_item = {}
         for col in model.__table__.columns:
@@ -1164,26 +1162,47 @@ async def backup_import(
         is_sqlite = bind.dialect.name == "sqlite" if bind else True
         if is_sqlite:
             db.execute(text("PRAGMA foreign_keys = OFF;"))
+
+        # Delete existing data in reverse dependency order to avoid Postgres FK violation
+        db.execute(models.Attachment.__table__.delete())
+        db.execute(models.CustomerLedger.__table__.delete())
+        db.execute(models.BankLedger.__table__.delete())
+        db.execute(models.AuditLog.__table__.delete())
+        db.execute(models.Transaction.__table__.delete())
+        db.execute(models.BankAccount.__table__.delete())
+        db.execute(models.Customer.__table__.delete())
+        db.execute(models.User.__table__.delete())
+        db.execute(models.Settings.__table__.delete())
+        db.flush()
         
-        # Import each table
-        if "users" in data:
-            import_table_data(db, models.User, data["users"])
-        if "customers" in data:
-            import_table_data(db, models.Customer, data["customers"])
-        if "bank_accounts" in data:
-            import_table_data(db, models.BankAccount, data["bank_accounts"])
-        if "transactions" in data:
-            import_table_data(db, models.Transaction, data["transactions"])
-        if "customer_ledger" in data:
-            import_table_data(db, models.CustomerLedger, data["customer_ledger"])
-        if "bank_ledger" in data:
-            import_table_data(db, models.BankLedger, data["bank_ledger"])
-        if "attachments" in data:
-            import_table_data(db, models.Attachment, data["attachments"])
-        if "audit_logs" in data:
-            import_table_data(db, models.AuditLog, data["audit_logs"])
+        # Import each table in parent-first dependency order
         if "settings" in data:
             import_table_data(db, models.Settings, data["settings"])
+            db.flush()
+        if "users" in data:
+            import_table_data(db, models.User, data["users"])
+            db.flush()
+        if "customers" in data:
+            import_table_data(db, models.Customer, data["customers"])
+            db.flush()
+        if "bank_accounts" in data:
+            import_table_data(db, models.BankAccount, data["bank_accounts"])
+            db.flush()
+        if "transactions" in data:
+            import_table_data(db, models.Transaction, data["transactions"])
+            db.flush()
+        if "customer_ledger" in data:
+            import_table_data(db, models.CustomerLedger, data["customer_ledger"])
+            db.flush()
+        if "bank_ledger" in data:
+            import_table_data(db, models.BankLedger, data["bank_ledger"])
+            db.flush()
+        if "attachments" in data:
+            import_table_data(db, models.Attachment, data["attachments"])
+            db.flush()
+        if "audit_logs" in data:
+            import_table_data(db, models.AuditLog, data["audit_logs"])
+            db.flush()
             
         # Re-enable foreign keys safely if SQLite
         if is_sqlite:
