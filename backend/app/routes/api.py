@@ -1207,6 +1207,13 @@ async def backup_import(
         # Re-enable foreign keys safely if SQLite
         if is_sqlite:
             db.execute(text("PRAGMA foreign_keys = ON;"))
+        else:
+            # Synchronize PostgreSQL sequence counters to max(id)
+            for table_name in ("users", "customers", "bank_accounts", "transactions", "customer_ledger", "bank_ledger", "attachments", "audit_logs", "settings"):
+                try:
+                    db.execute(text(f"SELECT setval(pg_get_serial_sequence('{table_name}', 'id'), COALESCE(max(id), 1), max(id) IS NOT NULL) FROM {table_name};"))
+                except Exception as seq_err:
+                    print(f"Sequence sync notice for {table_name}: {seq_err}")
         db.commit()
 
         # Recalculate customer ledgers and bank ledgers if ledger entries weren't supplied
@@ -1219,8 +1226,12 @@ async def backup_import(
         db.commit()
         
         # Log audit action
-        log_api_action(request, db, user.id, "import", "backup", None, "Full database backup restored successfully")
-        db.commit()
+        try:
+            log_api_action(request, db, user.id, "import", "backup", None, "Full database backup restored successfully")
+            db.commit()
+        except Exception as log_err:
+            print(f"Audit log notice after restore: {log_err}")
+            db.rollback()
         
         return {"ok": True, "message": "Database backup restored successfully."}
         
