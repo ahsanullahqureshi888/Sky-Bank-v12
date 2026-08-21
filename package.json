@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npm run dev --prefix frontend",
     "postinstall": "npm install --prefix frontend",
-    "build": "node scripts/build.mjs",
+    "build": "npm run build --prefix frontend",
     "lint": "oxlint frontend",
     "preview": "npm run preview --prefix frontend"
   },
