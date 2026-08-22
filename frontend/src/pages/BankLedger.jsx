@@ -6,9 +6,9 @@ import { formatCurrency } from '../utils/formatters';
 import GlassCard from '../components/GlassCard';
 
 
-const COMPANY_NAME = 'Sky Ariana Limited';
+const COMPANY_NAME = 'SKY ARIANA GROUP OF COMPANIES';
 const COMPANY_SUBTITLE = 'Money Transaction & Hawala Receipt Management System';
-const COMPANY_LOGO = '/sky-bbb-logo.png';
+const COMPANY_LOGO = '/logo.png';
 
 const escapeHtml = (value) =>
   String(value ?? '')

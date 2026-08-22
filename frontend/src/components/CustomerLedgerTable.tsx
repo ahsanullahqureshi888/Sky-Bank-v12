@@ -347,7 +347,7 @@ export const CustomerLedgerTable: React.FC<CustomerLedgerTableProps> = ({
         <div className="hidden border-b-2 border-slate-800 px-6 py-4 print:block">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-black text-slate-800">Sky Ariana Limited</h1>
+              <h1 className="text-lg font-black text-slate-800">SKY ARIANA GROUP OF COMPANIES</h1>
               <p className="text-[10px] font-bold uppercase tracking-wide text-sky-600">
                 Customer &amp; Sarafi Ledger Statement
               </p>

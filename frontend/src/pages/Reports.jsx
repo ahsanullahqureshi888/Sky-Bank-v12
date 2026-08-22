@@ -6,7 +6,7 @@ import { formatCurrency, formatDate } from '../utils/formatters';
 import GlassCard from '../components/GlassCard';
 import StatCard from '../components/StatCard';
 
-const BRAND_LOGO = '/sky-bbb-logo.png';
+const BRAND_LOGO = '/logo.png';
 
 const escapeHtml = (unsafe) => {
   if (!unsafe) return '';

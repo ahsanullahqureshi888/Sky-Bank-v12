@@ -5,7 +5,7 @@ import { authAPI } from '../api/client';
 
 const BRAND_NAME = 'SKY ARIANA GROUP OF COMPANIES';
 const BRAND_SUBTITLE = 'Money Transaction & Hawala Receipt Management System';
-const BRAND_LOGO = '/sky-bbb-logo.png';
+const BRAND_LOGO = '/logo.png';
 
 // Layered sweeping golden lines: mixed thickness, speed, delay and angle
 const GOLDEN_LINES = [

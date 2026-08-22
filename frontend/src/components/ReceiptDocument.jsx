@@ -34,8 +34,8 @@ const DIRECTION_ICONS = {
   out: ArrowUpRight,
 };
 
-const FALLBACK_LOGO = '/sky-bbb-logo.png';
-const DEFAULT_COMPANY = 'Sky Ariana Limited';
+const FALLBACK_LOGO = '/logo.png';
+const DEFAULT_COMPANY = 'SKY ARIANA GROUP OF COMPANIES';
 const DEFAULT_SUBTITLE = 'Money Transaction & Hawala Receipt Management System';
 
 const hasValue = (value) => value !== null && value !== undefined && String(value).trim() !== '';
