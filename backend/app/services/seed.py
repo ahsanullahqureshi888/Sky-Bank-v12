@@ -141,33 +141,54 @@ def seed_database(db: Session) -> None:
                 db.flush()
 
                 # Seed Transactions (ensure all historical transactions exist)
+                all_custs = db.scalars(select(models.Customer)).all()
+                cust_map = {c.name.strip().lower(): c.id for c in all_custs if c.name}
+                default_cust_id = all_custs[0].id if all_custs else None
+
+                all_banks = db.scalars(select(models.BankAccount)).all()
+                bank_ids = {b.id for b in all_banks}
+
                 for t_data in initial_data.get("transactions", []):
                     rec_no = t_data.get("receipt_no")
-                    if not db.scalar(select(models.Transaction).where(models.Transaction.receipt_no == rec_no)):
-                        t_date = t_data.get("date")
-                        if isinstance(t_date, str):
-                            t_date = datetime.strptime(t_date[:10], "%Y-%m-%d").date()
-                        tx = models.Transaction(
-                            receipt_no=rec_no,
-                            date=t_date,
-                            type=t_data.get("type", "Credit"),
-                            customer_id=t_data.get("customer_id"),
-                            company_name=t_data.get("company_name"),
-                            subject=t_data.get("subject", ""),
-                            amount=float(t_data.get("amount", 0)),
-                            currency=t_data.get("currency", "USD"),
-                            equivalent_amount=float(t_data.get("equivalent_amount", 0)),
-                            equivalent_currency=t_data.get("equivalent_currency", "USD"),
-                            payment_method=t_data.get("payment_method", "Cash"),
-                            bank_account_id=t_data.get("bank_account_id"),
-                            receiver_name=t_data.get("receiver_name"),
-                            description=t_data.get("description"),
-                            status=t_data.get("status", "Completed"),
-                            created_by=admin.id,
-                            created_at=datetime.utcnow(),
-                            updated_at=datetime.utcnow()
-                        )
-                        db.add(tx)
+                    if not db.scalar(select(models.Transaction.id).where(models.Transaction.receipt_no == rec_no)):
+                        try:
+                            t_date = t_data.get("date")
+                            if isinstance(t_date, str):
+                                t_date = datetime.strptime(t_date[:10], "%Y-%m-%d").date()
+
+                            comp = (t_data.get("company_name") or "").strip()
+                            cust_id = cust_map.get(comp.lower()) or t_data.get("customer_id")
+                            if cust_id not in [c.id for c in all_custs]:
+                                cust_id = default_cust_id
+
+                            b_id = t_data.get("bank_account_id")
+                            if b_id not in bank_ids:
+                                b_id = None
+
+                            tx = models.Transaction(
+                                receipt_no=rec_no,
+                                date=t_date,
+                                type=t_data.get("type", "Credit"),
+                                customer_id=cust_id,
+                                company_name=comp or (all_custs[0].name if all_custs else "General"),
+                                subject=t_data.get("subject", ""),
+                                amount=float(t_data.get("amount", 0)),
+                                currency=t_data.get("currency", "USD"),
+                                equivalent_amount=float(t_data.get("equivalent_amount", 0)),
+                                equivalent_currency=t_data.get("equivalent_currency", "USD"),
+                                payment_method=t_data.get("payment_method", "Cash"),
+                                bank_account_id=b_id,
+                                receiver_name=t_data.get("receiver_name"),
+                                description=t_data.get("description"),
+                                status=t_data.get("status", "Completed"),
+                                created_by=admin.id,
+                                created_at=datetime.utcnow(),
+                                updated_at=datetime.utcnow()
+                            )
+                            db.add(tx)
+                            db.flush()
+                        except Exception as tx_err:
+                            print(f"Notice inserting tx {rec_no}: {tx_err}")
                 db.flush()
 
                 # Recalculate Ledgers
