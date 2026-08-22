@@ -40,13 +40,30 @@ const getCurrencyCardGradient = (curr) => {
 
 export default function Dashboard() {
   const { t } = useTranslation();
-  const LABELS = t('dashboard', { returnObjects: true }) || {};
-  const [summary, setSummary] = useState(null);
-  const [recent, setRecent] = useState([]);
+  const [summary, setSummary] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sky_dashboard_summary') || 'null');
+    } catch {
+      return null;
+    }
+  });
+  const [recent, setRecent] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sky_dashboard_recent') || '[]');
+    } catch {
+      return [];
+    }
+  });
   const [chartData, setChartData] = useState([]);
   const [banks, setBanks] = useState([]);
   const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    try {
+      return !localStorage.getItem('sky_dashboard_summary');
+    } catch {
+      return true;
+    }
+  });
   const [loadError, setLoadError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -59,7 +76,7 @@ export default function Dashboard() {
 
   const loadData = async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
-    else setLoading(true);
+    else if (!summary) setLoading(true);
     setLoadError('');
 
     const results = await Promise.allSettled([
@@ -74,16 +91,23 @@ export default function Dashboard() {
     const coreResults = [sumRes, recRes, chartRes, bankRes];
     const coreFailures = coreResults.filter((result) => result.status === 'rejected');
 
-    if (sumRes.status === 'fulfilled') setSummary(sumRes.value.data);
-    if (recRes.status === 'fulfilled') setRecent(Array.isArray(recRes.value.data) ? recRes.value.data : []);
+    if (sumRes.status === 'fulfilled') {
+      setSummary(sumRes.value.data);
+      try { localStorage.setItem('sky_dashboard_summary', JSON.stringify(sumRes.value.data)); } catch (_) {}
+    }
+    if (recRes.status === 'fulfilled') {
+      const recList = Array.isArray(recRes.value.data) ? recRes.value.data : [];
+      setRecent(recList);
+      try { localStorage.setItem('sky_dashboard_recent', JSON.stringify(recList)); } catch (_) {}
+    }
     if (chartRes.status === 'fulfilled') setChartData(Array.isArray(chartRes.value.data) ? chartRes.value.data : []);
     if (bankRes.status === 'fulfilled') setBanks(Array.isArray(bankRes.value.data) ? bankRes.value.data : []);
     if (logsRes.status === 'fulfilled') setLogs(Array.isArray(logsRes.value.data) ? logsRes.value.data.slice(0, 6) : []);
     else setLogs([]);
 
-    if (coreFailures.length === coreResults.length) {
+    if (coreFailures.length === coreResults.length && !summary) {
       setLoadError('Dashboard data could not be loaded. Check the connection and try again.');
-    } else if (coreFailures.length > 0) {
+    } else if (coreFailures.length > 0 && !summary) {
       setLoadError('Some core dashboard data is temporarily unavailable.');
     }
 
@@ -96,13 +120,11 @@ export default function Dashboard() {
   }, []);
 
   if (loading) {
+    const LABELS = t('dashboard', { returnObjects: true }) || {};
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-8">
-        <div className="relative flex items-center justify-center">
-          <div className="absolute h-14 w-14 animate-ping rounded-full bg-sky-400/20" />
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-xl shadow-sky-500/10 border border-sky-100">
-            <Loader2 size={24} className="animate-spin text-sky-600" />
-          </div>
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-lg shadow-sky-500/10 border border-sky-100">
+          <Loader2 size={24} className="animate-spin text-sky-600" />
         </div>
         <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-600">
           {LABELS?.loading || 'Loading dashboard summary...'}

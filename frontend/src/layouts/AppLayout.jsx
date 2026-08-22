@@ -18,7 +18,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { authAPI } from '../api/client';
+import { authAPI, settingsAPI } from '../api/client';
 
 const BRAND_NAME = 'SKY ARIANA GROUP OF COMPANIES';
 const BRAND_SUBTITLE = 'Money Transaction & Hawala Receipt Management System';
@@ -29,6 +29,13 @@ export default function AppLayout({ children }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const saved = localStorage.getItem('sky_sidebar_collapsed');
     return saved !== null ? JSON.parse(saved) : true;
+  });
+  const [settings, setSettings] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sky_banking_settings') || 'null');
+    } catch {
+      return null;
+    }
   });
   const sidebarRef = useRef(null);
   const openButtonRef = useRef(null);
@@ -56,8 +63,19 @@ export default function AppLayout({ children }) {
   useEffect(() => {
     // Fetch settings to display current company name
     settingsAPI.get()
-      .then((res) => setSettings(res.data))
+      .then((res) => {
+        if (res.data) {
+          setSettings(res.data);
+          localStorage.setItem('sky_banking_settings', JSON.stringify(res.data));
+        }
+      })
       .catch((err) => console.error('Failed to load settings', err));
+
+    const handleSettingsUpdate = (e) => {
+      if (e.detail) setSettings(e.detail);
+    };
+    window.addEventListener('sky_settings_updated', handleSettingsUpdate);
+    return () => window.removeEventListener('sky_settings_updated', handleSettingsUpdate);
   }, []);
 
   const handleLogout = () => {
@@ -165,7 +183,7 @@ export default function AppLayout({ children }) {
     };
   }, [closeSidebar, sidebarOpen]);
 
-  const companyName = BRAND_NAME;
+  const companyName = settings?.company_name || BRAND_NAME;
   const isFormOrDetailView = 
     location.pathname.startsWith('/add-transaction') ||
     location.pathname.startsWith('/edit-transaction') ||
@@ -368,7 +386,7 @@ export default function AppLayout({ children }) {
           ? 'pb-[calc(112px+env(safe-area-inset-bottom))] md:pb-8 print:pb-0' 
           : 'pb-[calc(92px+env(safe-area-inset-bottom))] md:pb-8 print:pb-0'
       }`}>
-        <div key={location.pathname} className="page-enter">
+        <div className="w-full min-w-0">
           {children}
         </div>
       </main>
