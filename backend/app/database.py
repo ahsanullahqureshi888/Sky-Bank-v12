@@ -90,7 +90,15 @@ if not is_sqlite:
             "pool_timeout": 30,
         })
 
-engine = create_engine(DATABASE_URL, **engine_options)
+try:
+    engine = create_engine(DATABASE_URL, **engine_options)
+except Exception as e:
+    print(f"Database engine init fallback: {e}")
+    tmp_db_path = "/tmp/sky_banking.db" if os.name != "nt" else str(BASE_DIR / "sky_banking.db")
+    DATABASE_URL = f"sqlite:///{tmp_db_path}"
+    is_sqlite = True
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False}, pool_pre_ping=True)
+
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
