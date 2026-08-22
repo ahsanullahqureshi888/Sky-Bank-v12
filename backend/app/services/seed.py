@@ -140,37 +140,35 @@ def seed_database(db: Session) -> None:
                         db.add(cust)
                 db.flush()
 
-                # Seed Transactions
-                tx_count = db.scalar(select(models.Transaction.id).limit(10))
-                if not tx_count:
-                    for t_data in initial_data.get("transactions", []):
-                        rec_no = t_data.get("receipt_no")
-                        if not db.scalar(select(models.Transaction).where(models.Transaction.receipt_no == rec_no)):
-                            t_date = t_data.get("date")
-                            if isinstance(t_date, str):
-                                t_date = datetime.strptime(t_date[:10], "%Y-%m-%d").date()
-                            tx = models.Transaction(
-                                receipt_no=rec_no,
-                                date=t_date,
-                                type=t_data.get("type", "Credit"),
-                                customer_id=t_data.get("customer_id"),
-                                company_name=t_data.get("company_name"),
-                                subject=t_data.get("subject", ""),
-                                amount=float(t_data.get("amount", 0)),
-                                currency=t_data.get("currency", "USD"),
-                                equivalent_amount=float(t_data.get("equivalent_amount", 0)),
-                                equivalent_currency=t_data.get("equivalent_currency", "USD"),
-                                payment_method=t_data.get("payment_method", "Cash"),
-                                bank_account_id=t_data.get("bank_account_id"),
-                                receiver_name=t_data.get("receiver_name"),
-                                description=t_data.get("description"),
-                                status=t_data.get("status", "Completed"),
-                                created_by=admin.id,
-                                created_at=datetime.utcnow(),
-                                updated_at=datetime.utcnow()
-                            )
-                            db.add(tx)
-                    db.flush()
+                # Seed Transactions (ensure all historical transactions exist)
+                for t_data in initial_data.get("transactions", []):
+                    rec_no = t_data.get("receipt_no")
+                    if not db.scalar(select(models.Transaction).where(models.Transaction.receipt_no == rec_no)):
+                        t_date = t_data.get("date")
+                        if isinstance(t_date, str):
+                            t_date = datetime.strptime(t_date[:10], "%Y-%m-%d").date()
+                        tx = models.Transaction(
+                            receipt_no=rec_no,
+                            date=t_date,
+                            type=t_data.get("type", "Credit"),
+                            customer_id=t_data.get("customer_id"),
+                            company_name=t_data.get("company_name"),
+                            subject=t_data.get("subject", ""),
+                            amount=float(t_data.get("amount", 0)),
+                            currency=t_data.get("currency", "USD"),
+                            equivalent_amount=float(t_data.get("equivalent_amount", 0)),
+                            equivalent_currency=t_data.get("equivalent_currency", "USD"),
+                            payment_method=t_data.get("payment_method", "Cash"),
+                            bank_account_id=t_data.get("bank_account_id"),
+                            receiver_name=t_data.get("receiver_name"),
+                            description=t_data.get("description"),
+                            status=t_data.get("status", "Completed"),
+                            created_by=admin.id,
+                            created_at=datetime.utcnow(),
+                            updated_at=datetime.utcnow()
+                        )
+                        db.add(tx)
+                db.flush()
 
                 # Recalculate Ledgers
                 for cust in db.scalars(select(models.Customer)).all():
