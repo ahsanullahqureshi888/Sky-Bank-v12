@@ -573,19 +573,19 @@ def create_transaction(
     db.add(transaction)
     db.flush()
     
-    # Auto-increment setting count if it matches the prefix (legacy format only)
+    # Auto-increment setting count from receipt number
     settings = db.scalar(select(models.Settings).limit(1))
     if settings:
-        prefix = settings.receipt_prefix or "TX"
-        # Legacy format: PREFIX-0001 (two parts). Skip currency format: PREFIX-CURR-0001 (three parts)
-        parts = transaction.receipt_no.split("-")
-        if len(parts) == 2 and transaction.receipt_no.startswith(f"{prefix}-"):
+        digits = re.findall(r"\d+", transaction.receipt_no)
+        if digits:
             try:
-                num_part = int(parts[-1])
-                if num_part >= settings.next_receipt_number:
+                num_part = int(digits[-1])
+                if num_part >= (settings.next_receipt_number or 1):
                     settings.next_receipt_number = num_part + 1
             except ValueError:
                 pass
+        else:
+            settings.next_receipt_number = (settings.next_receipt_number or 1) + 1
                 
     recalculate_after_transaction(db, transaction)
     log_api_action(request, db, user.id, "create", "transactions", transaction.id, f"Added transaction {transaction.receipt_no}")
@@ -639,19 +639,19 @@ def update_transaction(
     for key, value in update.items():
         setattr(transaction, key, value)
         
-    # Auto-increment setting count if it matches the prefix (legacy format only)
+    # Auto-increment setting count from receipt number
     settings = db.scalar(select(models.Settings).limit(1))
     if settings:
-        prefix = settings.receipt_prefix or "TX"
-        # Legacy format: PREFIX-0001 (two parts). Skip currency format: PREFIX-CURR-0001 (three parts)
-        parts = transaction.receipt_no.split("-")
-        if len(parts) == 2 and transaction.receipt_no.startswith(f"{prefix}-"):
+        digits = re.findall(r"\d+", transaction.receipt_no)
+        if digits:
             try:
-                num_part = int(parts[-1])
-                if num_part >= settings.next_receipt_number:
+                num_part = int(digits[-1])
+                if num_part >= (settings.next_receipt_number or 1):
                     settings.next_receipt_number = num_part + 1
             except ValueError:
                 pass
+        else:
+            settings.next_receipt_number = (settings.next_receipt_number or 1) + 1
                 
     recalculate_after_transaction(db, transaction, previous_customer_id, previous_bank_id)
     log_api_action(request, db, user.id, "update", "transactions", transaction.id, f"Updated transaction {transaction.receipt_no}")
@@ -955,44 +955,47 @@ def get_next_receipt_no(
     _: models.User = Depends(get_current_user),
 ):
     settings = db.scalar(select(models.Settings).limit(1))
-    prefix = (settings.receipt_prefix or "TX") if settings else "TX"
+    prefix = (settings.receipt_prefix if settings and settings.receipt_prefix is not None else "TX").strip()
 
-    # If a currency is provided, use a per-currency sequence: PREFIX-CURR-0001
-    if currency:
-        curr_code = CURRENCY_CODES.get(currency, currency[:3].upper())
-        pattern_prefix = f"{prefix}-{curr_code}-"
-        existing = db.execute(
-            select(models.Transaction.receipt_no)
-            .where(models.Transaction.receipt_no.like(f"{pattern_prefix}%"))
-        ).scalars().all()
-        max_num = 0
-        for rn in existing:
+    # Find highest numeric value from all existing transaction receipts
+    existing_receipts = db.scalars(select(models.Transaction.receipt_no)).all()
+    max_num = 0
+    for rn in existing_receipts:
+        if not rn:
+            continue
+        digits = re.findall(r"\d+", rn)
+        if digits:
             try:
-                num_part = int(rn.split("-")[-1])
-                if num_part > max_num:
-                    max_num = num_part
-            except (ValueError, IndexError):
-                continue
-        num = max_num + 1
-        while True:
-            receipt_no = f"{pattern_prefix}{num:04d}"
-            exists = db.scalar(
-                select(models.Transaction).where(models.Transaction.receipt_no == receipt_no)
-            )
-            if not exists:
-                break
-            num += 1
-        return {"receipt_no": receipt_no, "prefix": prefix, "currency": currency, "next_number": num}
+                val = int(digits[-1])
+                if val > max_num:
+                    max_num = val
+            except ValueError:
+                pass
 
-    # Fallback: legacy global sequence
-    num = settings.next_receipt_number or 1 if settings else 1
+    base_num = settings.next_receipt_number if settings and settings.next_receipt_number else 1
+    num = max(base_num, max_num + 1)
+
     while True:
-        receipt_no = f"{prefix}-{num:04d}"
+        if prefix:
+            receipt_no = f"{prefix}-{num:04d}" if num < 10000 else f"{prefix}-{num}"
+        else:
+            receipt_no = str(num)
+
         exists = db.scalar(select(models.Transaction).where(models.Transaction.receipt_no == receipt_no))
         if not exists:
+            # Also check if bare number is already taken when prefix is set
+            if prefix and db.scalar(select(models.Transaction).where(models.Transaction.receipt_no == str(num))):
+                num += 1
+                continue
             break
         num += 1
-    return {"receipt_no": receipt_no, "prefix": prefix, "next_number": num}
+
+    return {
+        "receipt_no": receipt_no,
+        "prefix": prefix,
+        "next_number": num,
+        "simple_number": num,
+    }
 
 
 

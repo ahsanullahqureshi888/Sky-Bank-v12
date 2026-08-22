@@ -27,7 +27,6 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
-  const [currencySequences, setCurrencySequences] = useState([]);
   const [sequencesLoading, setSequencesLoading] = useState(false);
 
   useEffect(() => {
@@ -62,25 +61,24 @@ export default function Settings() {
       });
   }, []);
 
-  const CURRENCIES = ['USD', 'Toman', 'Dirham', 'Afghani'];
+  const [nextReceiptNo, setNextReceiptNo] = useState('—');
 
-  const loadCurrencySequences = async () => {
+  const loadNextReceipt = async () => {
     setSequencesLoading(true);
     try {
-      const results = await Promise.all(
-        CURRENCIES.map((c) =>
-          settingsAPI.getNextReceiptNo(c).then((res) => ({ currency: c, receipt_no: res.data?.receipt_no || '—' }))
-            .catch(() => ({ currency: c, receipt_no: '—' }))
-        )
-      );
-      setCurrencySequences(results);
+      const res = await settingsAPI.getNextReceiptNo();
+      if (res.data?.receipt_no) {
+        setNextReceiptNo(res.data.receipt_no);
+      }
+    } catch (err) {
+      console.error('Failed to load next receipt no', err);
     } finally {
       setSequencesLoading(false);
     }
   };
 
   useEffect(() => {
-    loadCurrencySequences();
+    loadNextReceipt();
   }, []);
 
   const handleChange = (e) => {
@@ -196,7 +194,7 @@ export default function Settings() {
 
               <div>
                 <label className="block text-[10px] font-black text-sky-500 uppercase tracking-[0.1em] mb-1.5">
-                  Receipt Auto Prefix
+                  Receipt Prefix
                 </label>
                 <input
                   type="text"
@@ -204,14 +202,14 @@ export default function Settings() {
                   className="w-full px-4 py-2.5 rounded-xl border border-sky-100 bg-white/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 text-xs font-semibold text-sky-900 transition-all"
                   value={form.receipt_prefix}
                   onChange={handleChange}
-                  required
+                  placeholder="TX (or leave empty)"
                 />
-                <p className="text-[10px] text-sky-400 font-bold mt-1">Used as the base for every currency sequence, e.g. {form.receipt_prefix}-USD-0001</p>
+                <p className="text-[10px] text-sky-400 font-bold mt-1">Prefix for auto receipt numbers (e.g. "TX" for TX-0001, or leave empty for 1, 2, 3...)</p>
               </div>
 
               <div>
                 <label className="block text-[10px] font-black text-sky-500 uppercase tracking-[0.1em] mb-1.5">
-                  Legacy Fallback Number
+                  Next Receipt Number
                 </label>
                 <input
                   type="number"
@@ -222,7 +220,7 @@ export default function Settings() {
                   required
                   min="1"
                 />
-                <p className="text-[10px] text-sky-400 font-bold mt-1">Only used if no currency is selected. Each currency now tracks its own sequence automatically.</p>
+                <p className="text-[10px] text-sky-400 font-bold mt-1">Starting counter: increments automatically one by one with every new receipt.</p>
               </div>
 
               <div>
@@ -390,31 +388,22 @@ export default function Settings() {
             <h2 className="text-xs font-black text-sky-900 uppercase tracking-wider border-b border-sky-100 pb-3 flex items-center justify-between gap-2">
               <span className="flex items-center gap-2">
                 <Hash size={16} className="text-sky-500" />
-                <span>Receipt Sequences</span>
+                <span>Next Auto Receipt</span>
               </span>
               <button
                 type="button"
-                onClick={loadCurrencySequences}
+                onClick={loadNextReceipt}
                 disabled={sequencesLoading}
                 className="text-sky-400 hover:text-sky-600 transition-colors disabled:opacity-40"
-                aria-label="Refresh sequences"
+                aria-label="Refresh sequence"
               >
                 <RefreshCw size={13} className={sequencesLoading ? 'animate-spin' : ''} />
               </button>
             </h2>
-            <p className="text-[10px] text-sky-400 font-bold -mt-2">Next receipt number per currency, updated live as transactions are recorded.</p>
-            <div className="space-y-2">
-              {currencySequences.map(({ currency, receipt_no }) => (
-                <div key={currency} className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-sky-50/60 border border-sky-100">
-                  <span className="text-xs font-black text-sky-800">{currency}</span>
-                  <span className="text-xs font-bold font-mono text-sky-600">{receipt_no}</span>
-                </div>
-              ))}
-              {currencySequences.length === 0 && sequencesLoading && (
-                <div className="flex justify-center py-4">
-                  <Loader2 className="animate-spin text-sky-400" size={18} />
-                </div>
-              )}
+            <p className="text-[10px] text-sky-400 font-bold -mt-2">Next auto-generated receipt number across transactions.</p>
+            <div className="p-4 rounded-xl bg-sky-50/60 border border-sky-100 text-center">
+              <span className="text-lg font-black font-mono text-sky-700">{nextReceiptNo}</span>
+              <p className="text-[10px] text-sky-400 font-bold mt-1">Advances sequentially one by one with every new receipt</p>
             </div>
           </GlassCard>
         </div>

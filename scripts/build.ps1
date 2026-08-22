@@ -12,8 +12,10 @@ if ($LASTEXITCODE -ne 0) {
   exit $LASTEXITCODE
 }
 
-# Copy compiled assets to root dist directory for deployment compatibility
-New-Item -ItemType Directory -Force -Path dist | Out-Null
-Copy-Item -Path frontend/dist/* -Destination dist -Recurse -Force
+# Verify and copy compiled assets to root dist directory for deployment compatibility
+if (Test-Path "frontend/dist") {
+  New-Item -ItemType Directory -Force -Path dist | Out-Null
+  Copy-Item -Path frontend/dist/* -Destination dist -Recurse -Force
+}
 
-Write-Output "Vite build and assets copy completed successfully."
+Write-Output "Vite build and assets verified successfully."

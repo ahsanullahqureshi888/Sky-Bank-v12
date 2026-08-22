@@ -31,12 +31,6 @@ const createForm = {
   role: 'Viewer',
 };
 
-const profileForm = {
-  name: '',
-  email: '',
-  role: 'Viewer',
-};
-
 const passwordForm = {
   password: '',
   confirmPassword: '',

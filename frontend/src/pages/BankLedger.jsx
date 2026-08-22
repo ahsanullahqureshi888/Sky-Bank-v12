@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Building, Plus, Printer, FileSpreadsheet, Loader2, Save, Trash2, Edit2, X, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { Building, Printer, FileSpreadsheet, Loader2, Save, Trash2, Edit2, X, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { bankAPI } from '../api/client';
 import { useTranslation } from 'react-i18next';
-import { formatCurrency, formatDate } from '../utils/formatters';
+import { formatCurrency } from '../utils/formatters';
 import GlassCard from '../components/GlassCard';
-import StatCard from '../components/StatCard';
 
 
 const COMPANY_NAME = 'Sky Ariana Limited';

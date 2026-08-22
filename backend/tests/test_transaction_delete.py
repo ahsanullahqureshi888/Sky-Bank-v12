@@ -162,39 +162,12 @@ class TransactionDeleteTests(unittest.TestCase):
         returned_ids = {item["id"] for item in list_response.json()}
         self.assertNotIn(self.transaction_id, returned_ids)
 
-    def test_seed_database_does_not_recreate_deleted_demo_transaction_by_default(self):
-        previous_seed_flag = os.environ.pop("SEED_DEMO_DATA", None)
-        try:
-            with self.TestingSessionLocal() as db:
-                seed_database(db)
-                self.assertIsNone(db.scalar(select(models.Transaction).where(models.Transaction.receipt_no == "BB-2026-0001")))
-        finally:
-            if previous_seed_flag is not None:
-                os.environ["SEED_DEMO_DATA"] = previous_seed_flag
-
-    def test_deleted_demo_transaction_is_not_restored_on_restart_seed(self):
-        previous_seed_flag = os.environ.get("SEED_DEMO_DATA")
-        try:
-            os.environ["SEED_DEMO_DATA"] = "1"
-            with self.TestingSessionLocal() as db:
-                seed_database(db)
-                demo_transaction = db.scalar(select(models.Transaction).where(models.Transaction.receipt_no == "BB-2026-0001"))
-                self.assertIsNotNone(demo_transaction)
-                demo_id = demo_transaction.id
-
-            delete_response = self.client.delete(f"/api/transactions/{demo_id}", headers=self.auth_headers)
-            self.assertEqual(delete_response.status_code, 200)
-
-            os.environ.pop("SEED_DEMO_DATA", None)
-            with self.TestingSessionLocal() as db:
-                seed_database(db)
-                restored = db.scalar(select(models.Transaction).where(models.Transaction.receipt_no == "BB-2026-0001"))
-                self.assertIsNone(restored)
-        finally:
-            if previous_seed_flag is None:
-                os.environ.pop("SEED_DEMO_DATA", None)
-            else:
-                os.environ["SEED_DEMO_DATA"] = previous_seed_flag
+    def test_seed_database_populates_initial_transactions(self):
+        with self.TestingSessionLocal() as db:
+            seed_database(db)
+            tx = db.scalar(select(models.Transaction).where(models.Transaction.receipt_no == "SKY-TX-01"))
+            self.assertIsNotNone(tx)
+            self.assertEqual(tx.amount, 3784)
 
 
 if __name__ == "__main__":

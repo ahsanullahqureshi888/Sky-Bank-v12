@@ -3,11 +3,18 @@ import unittest
 from sqlalchemy import create_engine, inspect, select
 from sqlalchemy.orm import sessionmaker
 
-from app.database import Base
-from app.models import User
-from app.services.migrations import run_migrations
-from app.services.seed import seed_database
-from app.auth.security import verify_password
+try:
+    from backend.app.database import Base
+    from backend.app.models import User
+    from backend.app.services.migrations import run_migrations
+    from backend.app.services.seed import seed_database
+    from backend.app.auth.security import verify_password
+except ImportError:
+    from app.database import Base
+    from app.models import User
+    from app.services.migrations import run_migrations
+    from app.services.seed import seed_database
+    from app.auth.security import verify_password
 
 
 class MigrationAndSeedTests(unittest.TestCase):

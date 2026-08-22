@@ -1,5 +1,4 @@
 import React from 'react';
-import GlassCard from './GlassCard';
 
 export default function StatCard({ title, value, icon: Icon, colorClass = 'text-sky-600', bgClass = 'bg-white' }) {
   return (

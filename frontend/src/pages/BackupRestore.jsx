@@ -2,9 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
-  Calendar,
   CheckCircle,
-  ClipboardCopy,
   Database,
   Download,
   FileArchive,
@@ -18,9 +16,7 @@ import {
   Upload,
   Check,
   HardDrive,
-  FileText,
   Clock,
-  HelpCircle,
   X
 } from 'lucide-react';
 import { backupAPI, settingsAPI } from '../api/client';

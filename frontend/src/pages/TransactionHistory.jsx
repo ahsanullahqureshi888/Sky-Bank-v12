@@ -751,7 +751,7 @@ export default function TransactionHistory() {
                           {tx.attachment_path && (
                             <span 
                               className="p-1 rounded-md bg-amber-50 text-amber-600 cursor-pointer hover:bg-amber-100 transition-colors"
-                              title={tx.attachment_path.split(/[\/]/).pop()}
+                              title={tx.attachment_path.split(/[/\\]/).pop()}
                               onClick={() => navigate(`/transactions/${tx.id}`)}
                             >
                               <Paperclip size={12} />

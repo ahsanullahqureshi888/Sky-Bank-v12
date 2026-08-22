@@ -1,7 +1,5 @@
 export function formatCurrency(value, currency = 'USD') {
   const number = Number(value || 0);
-  let locale = 'en-US';
-  let currencyCode = currency;
 
   if (currency === 'Toman') {
     return `${number.toLocaleString(undefined, { maximumFractionDigits: 0 })} Toman`;

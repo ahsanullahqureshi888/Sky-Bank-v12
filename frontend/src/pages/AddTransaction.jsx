@@ -32,9 +32,7 @@ import {
   Search,
   Copy,
   Check,
-  Globe,
   Sparkles,
-  Layers,
   Image as ImageIcon,
 } from 'lucide-react';
 import { transactionAPI, bankAPI, customerAPI, settingsAPI } from '../api/client';
@@ -52,7 +50,6 @@ const LANDMARK_OPTIONS = [
 
 const currencies = ['USD', 'Toman', 'Dirham', 'Afghani'];
 const methods = ['Bank Transfer', 'Cash', 'Hawala'];
-const statuses = ['Completed', 'Pending', 'Cancelled'];
 const defaultForm = {
   receipt_no: '',
   date: new Date().toISOString().slice(0, 10),
@@ -254,7 +251,7 @@ export default function AddTransaction() {
             description: tx.description || '',
           });
         } else {
-          refreshReceiptNo(form.currency || 'USD');
+          refreshReceiptNo();
         }
       } catch (err) {
         console.error('Failed to load transaction prerequisites', err);
@@ -263,10 +260,10 @@ export default function AddTransaction() {
     loadPrerequisites();
   }, [id, location.state]);
 
-  const refreshReceiptNo = async (curr = form.currency || 'USD') => {
+  const refreshReceiptNo = async () => {
     setRefreshingReceiptNo(true);
     try {
-      const nextRes = await settingsAPI.getNextReceiptNo(curr);
+      const nextRes = await settingsAPI.getNextReceiptNo();
       if (nextRes.data?.receipt_no) {
         setForm((prev) => ({ ...prev, receipt_no: nextRes.data.receipt_no }));
         setRefreshingReceiptNo(false);
@@ -275,8 +272,9 @@ export default function AddTransaction() {
     } catch (err) {
       console.error('Failed to fetch receipt number', err);
     }
-    const prefix = settings?.receipt_prefix || 'TX';
-    const fallbackNo = `${prefix}-${curr}-${String(Math.floor(Date.now() / 1000) % 10000).padStart(4, '0')}`;
+    const prefix = (settings?.receipt_prefix !== undefined ? settings.receipt_prefix : 'TX').trim();
+    const nextNum = settings?.next_receipt_number || 1;
+    const fallbackNo = prefix ? `${prefix}-${String(nextNum).padStart(4, '0')}` : String(nextNum);
     setForm((prev) => ({ ...prev, receipt_no: fallbackNo }));
     setRefreshingReceiptNo(false);
   };
@@ -313,12 +311,6 @@ export default function AddTransaction() {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
-
-  // Re-fetch receipt number when currency changes (only for new transactions, not editing)
-  useEffect(() => {
-    if (id || !form.currency) return;
-    refreshReceiptNo(form.currency);
-  }, [form.currency, id]);
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {

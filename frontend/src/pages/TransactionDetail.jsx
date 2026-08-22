@@ -24,7 +24,6 @@ import {
   Maximize2,
   Copy,
   Check,
-  Sparkles,
   X,
 } from 'lucide-react';
 import { transactionAPI, bankAPI, settingsAPI } from '../api/client';
@@ -62,13 +61,11 @@ export default function TransactionDetail() {
     const fetchPrerequisites = async () => {
       try {
         setLoading(true);
-        const [txRes, bankRes, setRes] = Promise.allSettled([
+        const [txSettled, bankSettled, setSettled] = await Promise.allSettled([
           transactionAPI.get(id),
           bankAPI.list(),
           settingsAPI.get(),
         ]);
-
-        const [txSettled, bankSettled, setSettled] = await txRes;
         
         if (txSettled.status === 'fulfilled') {
           setTransaction(txSettled.value.data);

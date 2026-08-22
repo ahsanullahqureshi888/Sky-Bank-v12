@@ -35,7 +35,7 @@ if not DATABASE_URL:
         DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     # Use /tmp directory which is always writable in container environments (Render, Vercel, Docker)
-    tmp_db_path = "/tmp/sky_banking.db" if os.name != "nt" else "./sky_banking.db"
+    tmp_db_path = "/tmp/sky_banking.db" if os.name != "nt" else str(BASE_DIR / "sky_banking.db")
     DATABASE_URL = f"sqlite:///{tmp_db_path}"
 elif DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)

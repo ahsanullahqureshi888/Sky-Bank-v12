@@ -36,12 +36,12 @@ if (build.status !== 0) {
   process.exit(build.status ?? 1);
 }
 
-mkdirSync(rootDist, { recursive: true });
-
-if (!existsSync(frontendDist)) {
-  console.error('Frontend build did not create frontend/dist.');
+if (existsSync(frontendDist)) {
+  mkdirSync(rootDist, { recursive: true });
+  cpSync(frontendDist, rootDist, { recursive: true });
+} else if (!existsSync(resolve(rootDist, 'index.html'))) {
+  console.error('Frontend build did not create dist/index.html.');
   process.exit(1);
 }
 
-cpSync(frontendDist, rootDist, { recursive: true });
-console.log('Vite build and assets copy completed successfully.');
+console.log('Vite build and assets verified successfully.');

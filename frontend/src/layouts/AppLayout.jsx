@@ -7,7 +7,6 @@ import {
   History,
   Users,
   Building,
-  UploadCloud,
   FileSpreadsheet,
   Settings as SettingsIcon,
   UserCheck,
@@ -19,7 +18,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { authAPI, settingsAPI } from '../api/client';
+import { authAPI } from '../api/client';
 
 const BRAND_NAME = 'SKY ARIANA GROUP OF COMPANIES';
 const BRAND_SUBTITLE = 'Money Transaction & Hawala Receipt Management System';
@@ -31,7 +30,6 @@ export default function AppLayout({ children }) {
     const saved = localStorage.getItem('sky_sidebar_collapsed');
     return saved !== null ? JSON.parse(saved) : true;
   });
-  const [settings, setSettings] = useState(null);
   const sidebarRef = useRef(null);
   const openButtonRef = useRef(null);
   const closeTimerRef = useRef(null);
@@ -185,7 +183,6 @@ export default function AppLayout({ children }) {
   }
   bottomTabs.push({ name: t('nav.customer_ledger'), path: '/customer-ledger', icon: Users });
 
-  const labelSignOut = t('action.sign_out');
   const labelMore = t('nav.more');
 
   return (

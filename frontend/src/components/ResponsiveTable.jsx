@@ -36,8 +36,6 @@ export const ResponsiveTable = ({
     }
   };
 
-  const visibleCols = getVisibleColumns();
-
   return (
     <div className={`overflow-x-auto app-scrollbar rounded-lg border border-sky-100 bg-white/50 ${className}`}>
       <table className="w-full text-left border-collapse">
