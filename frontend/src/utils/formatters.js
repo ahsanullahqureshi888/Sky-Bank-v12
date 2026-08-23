@@ -25,3 +25,20 @@ export function formatDate(dateString) {
     day: 'numeric',
   });
 }
+
+export function safeGetStoredItem(key, fallback = null) {
+  if (typeof window === 'undefined' || !window.localStorage) return fallback;
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw || raw === 'undefined' || raw === 'null' || raw.trim() === '') return fallback;
+    return JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+}
+
+export function safeGetStoredUser() {
+  const user = safeGetStoredItem('sky_banking_user', {});
+  return (user && typeof user === 'object' && !Array.isArray(user)) ? user : {};
+}
+

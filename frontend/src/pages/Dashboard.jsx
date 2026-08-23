@@ -21,7 +21,7 @@ import {
 import { backupAPI, bankAPI, dashboardAPI } from '../api/client';
 import GlassCard from '../components/GlassCard';
 import StatCard from '../components/StatCard';
-import { formatCurrency, formatDate } from '../utils/formatters';
+import { formatCurrency, formatDate, safeGetStoredItem, safeGetStoredUser } from '../utils/formatters';
 import { useTranslation } from 'react-i18next';
 
 const currencies = ['USD', 'Toman', 'Dirham', 'Afghani'];
@@ -40,39 +40,16 @@ const getCurrencyCardGradient = (curr) => {
 
 export default function Dashboard() {
   const { t } = useTranslation();
-  const [summary, setSummary] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('sky_dashboard_summary') || 'null');
-    } catch {
-      return null;
-    }
-  });
-  const [recent, setRecent] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('sky_dashboard_recent') || '[]');
-    } catch {
-      return [];
-    }
-  });
+  const [summary, setSummary] = useState(() => safeGetStoredItem('sky_dashboard_summary', null));
+  const [recent, setRecent] = useState(() => safeGetStoredItem('sky_dashboard_recent', []));
   const [chartData, setChartData] = useState([]);
   const [banks, setBanks] = useState([]);
   const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(() => {
-    try {
-      return !localStorage.getItem('sky_dashboard_summary');
-    } catch {
-      return true;
-    }
-  });
+  const [loading, setLoading] = useState(() => !safeGetStoredItem('sky_dashboard_summary', null));
   const [loadError, setLoadError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
-  let user = {};
-  try {
-    user = JSON.parse(localStorage.getItem('sky_banking_user') || '{}');
-  } catch {
-    user = {};
-  }
+  const user = safeGetStoredUser();
 
   const loadData = async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);

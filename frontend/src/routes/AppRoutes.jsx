@@ -14,27 +14,19 @@ import UserManagement from '../pages/UserManagement';
 import BackupRestore from '../pages/BackupRestore';
 import SarafiLedger from '../pages/SarafiLedger';
 import RouteErrorBoundary from '../components/RouteErrorBoundary';
+import { safeGetStoredUser } from '../utils/formatters';
 
 function isValidToken(token) {
   return Boolean(token && token !== 'null' && token !== 'undefined' && String(token).trim() !== '');
 }
 
 function PrivateRoute({ children }) {
-  const token = localStorage.getItem('sky_banking_token');
+  const token = typeof window !== 'undefined' && window.localStorage ? localStorage.getItem('sky_banking_token') : null;
   return isValidToken(token) ? children : <Navigate to="/login" replace />;
 }
 
-function getStoredUser() {
-  try {
-    return JSON.parse(localStorage.getItem('sky_banking_user') || '{}');
-  } catch {
-    localStorage.removeItem('sky_banking_user');
-    return {};
-  }
-}
-
 function RoleRoute({ children, allowedRoles }) {
-  const user = getStoredUser();
+  const user = safeGetStoredUser();
   const userRole = user.role || 'Viewer';
   return allowedRoles.includes(userRole) ? children : <Navigate to="/" replace />;
 }

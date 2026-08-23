@@ -19,6 +19,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { authAPI, settingsAPI } from '../api/client';
+import { safeGetStoredItem, safeGetStoredUser } from '../utils/formatters';
 
 const BRAND_NAME = 'SKY ARIANA GROUP OF COMPANIES';
 const BRAND_SUBTITLE = 'Money Transaction & Hawala Receipt Management System';
@@ -26,17 +27,12 @@ const BRAND_LOGO = '/logo.png';
 
 export default function AppLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    const saved = localStorage.getItem('sky_sidebar_collapsed');
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-  const [settings, setSettings] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('sky_banking_settings') || 'null');
-    } catch {
-      return null;
-    }
-  });
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => 
+    safeGetStoredItem('sky_sidebar_collapsed', true)
+  );
+  const [settings, setSettings] = useState(() => 
+    safeGetStoredItem('sky_banking_settings', null)
+  );
   const sidebarRef = useRef(null);
   const openButtonRef = useRef(null);
   const closeTimerRef = useRef(null);
@@ -58,7 +54,7 @@ export default function AppLayout({ children }) {
     ps: 'English',
   }[i18n.resolvedLanguage || i18n.language] || 'English';
 
-  const user = JSON.parse(localStorage.getItem('sky_banking_user') || '{}');
+  const user = safeGetStoredUser();
 
   useEffect(() => {
     // Fetch settings to display current company name

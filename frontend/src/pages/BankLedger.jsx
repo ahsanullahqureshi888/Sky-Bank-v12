@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Building, Printer, FileSpreadsheet, Loader2, Save, Trash2, Edit2, X, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { bankAPI } from '../api/client';
 import { useTranslation } from 'react-i18next';
-import { formatCurrency } from '../utils/formatters';
+import { formatCurrency, safeGetStoredUser } from '../utils/formatters';
 import GlassCard from '../components/GlassCard';
 
 
@@ -42,7 +42,7 @@ const defaultAccountForm = {
 
 export default function BankLedger() {
   const { t } = useTranslation();
-  const user = JSON.parse(localStorage.getItem('sky_banking_user') || '{}');
+  const user = safeGetStoredUser();
   const isAdmin = user.role === 'Admin';
   const isViewer = user.role === 'Viewer';
 

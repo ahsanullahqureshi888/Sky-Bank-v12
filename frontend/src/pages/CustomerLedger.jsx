@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { customerAPI } from '../api/client';
 import { useTranslation } from 'react-i18next';
-import { formatCurrency, formatDate } from '../utils/formatters';
+import { formatCurrency, formatDate, safeGetStoredUser } from '../utils/formatters';
 import GlassCard from '../components/GlassCard';
 
 const COMPANY_NAME = 'SKY ARIANA GROUP OF COMPANIES';
@@ -124,7 +124,7 @@ function LedgerMetricCard({ title, value, tone, icon: Icon }) {
 
 export default function CustomerLedger() {
   const { t } = useTranslation();
-  const user = JSON.parse(localStorage.getItem('sky_banking_user') || '{}');
+  const user = safeGetStoredUser();
   const isAdmin = user.role === 'Admin';
   const isViewer = user.role === 'Viewer';
 

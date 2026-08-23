@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { bankAPI, settingsAPI, transactionAPI } from '../api/client';
 import { useTranslation } from 'react-i18next';
-import { formatCurrency, formatDate } from '../utils/formatters';
+import { formatCurrency, formatDate, safeGetStoredUser } from '../utils/formatters';
 import GlassCard from '../components/GlassCard';
 import ReceiptDocument from '../components/ReceiptDocument';
 import { downloadReceiptPdf, printReceipt, formatHawalaSummary } from '../utils/receiptExport';
@@ -76,7 +76,7 @@ const getApiErrorMessage = (error, fallback) =>
 
 export default function TransactionHistory() {
   const { t, i18n } = useTranslation();
-  const user = JSON.parse(localStorage.getItem('sky_banking_user') || '{}');
+  const user = safeGetStoredUser();
   const isAdmin = user.role === 'Admin';
   const isViewer = user.role === 'Viewer';
 
