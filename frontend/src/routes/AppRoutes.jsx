@@ -15,9 +15,13 @@ import BackupRestore from '../pages/BackupRestore';
 import SarafiLedger from '../pages/SarafiLedger';
 import RouteErrorBoundary from '../components/RouteErrorBoundary';
 
+function isValidToken(token) {
+  return Boolean(token && token !== 'null' && token !== 'undefined' && String(token).trim() !== '');
+}
+
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('sky_banking_token');
-  return token ? children : <Navigate to="/login" replace />;
+  return isValidToken(token) ? children : <Navigate to="/login" replace />;
 }
 
 function getStoredUser() {
@@ -40,42 +44,42 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route
-        path="/*"
+        path="/"
         element={
           <PrivateRoute>
-            <AppLayout>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/dashboard" element={<Navigate to="/" replace />} />
-                <Route path="/add-transaction" element={<RoleRoute allowedRoles={['Admin', 'Accountant']}><AddTransaction /></RoleRoute>} />
-                <Route path="/edit-transaction/:id" element={<RoleRoute allowedRoles={['Admin', 'Accountant']}><AddTransaction /></RoleRoute>} />
-                <Route path="/transactions" element={<TransactionHistory />} />
-                <Route path="/transactions/:id" element={<TransactionDetail />} />
-                <Route path="/customer-ledger" element={<CustomerLedger />} />
-                <Route path="/sarafi-ledger" element={<SarafiLedger />} />
-                <Route path="/bank-ledger" element={<BankLedger />} />
-                <Route path="/reports" element={<Reports />} />
-                <Route path="/settings" element={<RoleRoute allowedRoles={['Admin']}><Settings /></RoleRoute>} />
-                <Route
-                  path="/users"
-                  element={
-                    <RoleRoute allowedRoles={['Admin']}>
-                      <RouteErrorBoundary
-                        title="User Directory could not load"
-                        message="Something went wrong while initializing the users directory. Your data is safe. Please try again."
-                      >
-                        <UserManagement />
-                      </RouteErrorBoundary>
-                    </RoleRoute>
-                  }
-                />
-                <Route path="/backup" element={<RoleRoute allowedRoles={['Admin']}><BackupRestore /></RoleRoute>} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </AppLayout>
+            <AppLayout />
           </PrivateRoute>
         }
-      />
+      >
+        <Route index element={<Dashboard />} />
+        <Route path="dashboard" element={<Navigate to="/" replace />} />
+        <Route path="add-transaction" element={<RoleRoute allowedRoles={['Admin', 'Accountant']}><AddTransaction /></RoleRoute>} />
+        <Route path="edit-transaction/:id" element={<RoleRoute allowedRoles={['Admin', 'Accountant']}><AddTransaction /></RoleRoute>} />
+        <Route path="transactions" element={<TransactionHistory />} />
+        <Route path="transactions/:id" element={<TransactionDetail />} />
+        <Route path="customer-ledger" element={<CustomerLedger />} />
+        <Route path="sarafi-ledger" element={<SarafiLedger />} />
+        <Route path="bank-ledger" element={<BankLedger />} />
+        <Route path="reports" element={<Reports />} />
+        <Route path="settings" element={<RoleRoute allowedRoles={['Admin']}><Settings /></RoleRoute>} />
+        <Route
+          path="users"
+          element={
+            <RoleRoute allowedRoles={['Admin']}>
+              <RouteErrorBoundary
+                title="User Directory could not load"
+                message="Something went wrong while initializing the users directory. Your data is safe. Please try again."
+              >
+                <UserManagement />
+              </RouteErrorBoundary>
+            </RoleRoute>
+          }
+        />
+        <Route path="backup" element={<RoleRoute allowedRoles={['Admin']}><BackupRestore /></RoleRoute>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
+

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link, Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
@@ -387,7 +387,7 @@ export default function AppLayout({ children }) {
           : 'pb-[calc(92px+env(safe-area-inset-bottom))] md:pb-8 print:pb-0'
       }`}>
         <div className="w-full min-w-0">
-          {children}
+          {children || <Outlet />}
         </div>
       </main>
     </div>
