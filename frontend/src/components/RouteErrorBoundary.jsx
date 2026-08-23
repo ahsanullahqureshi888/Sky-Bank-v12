@@ -44,6 +44,11 @@ export default class RouteErrorBoundary extends React.Component {
             <p className="mt-2 text-xs font-semibold leading-relaxed text-slate-600">
               {this.props.message || 'A temporary display issue occurred. Your data is completely safe.'}
             </p>
+            {this.state.error && (
+              <div className="mt-3 p-2.5 rounded-xl bg-slate-900 text-rose-300 text-left text-[10px] font-mono overflow-auto max-h-28 border border-rose-900/30">
+                {this.state.error.message || String(this.state.error)}
+              </div>
+            )}
           </div>
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
             <button

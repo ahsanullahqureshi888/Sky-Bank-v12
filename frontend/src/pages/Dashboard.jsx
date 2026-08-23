@@ -40,6 +40,7 @@ const getCurrencyCardGradient = (curr) => {
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  const LABELS = t('dashboard', { returnObjects: true }) || {};
   const [summary, setSummary] = useState(() => safeGetStoredItem('sky_dashboard_summary', null));
   const [recent, setRecent] = useState(() => safeGetStoredItem('sky_dashboard_recent', []));
   const [chartData, setChartData] = useState([]);
@@ -97,7 +98,6 @@ export default function Dashboard() {
   }, []);
 
   if (loading) {
-    const LABELS = t('dashboard', { returnObjects: true }) || {};
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 p-8">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-lg shadow-sky-500/10 border border-sky-100">
