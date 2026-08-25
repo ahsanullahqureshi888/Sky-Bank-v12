@@ -808,27 +808,57 @@ def download_transaction_pdf(transaction_id: int, db: Session = Depends(get_db),
 
 
 def _attach_receipt_numbers(db: Session, rows: list):
-    """Attach the real transaction receipt_no (e.g. SKY-TX-0007) onto ledger rows,
-    which only store the internal transaction_id foreign key by default."""
+    """Attach the real transaction receipt_no, currency, and payment_method onto ledger rows."""
     transaction_ids = {row.transaction_id for row in rows if row.transaction_id}
-    receipts: dict[int, str] = {}
+    tx_meta: dict[int, dict] = {}
     if transaction_ids:
-        receipts = dict(
-            db.execute(
-                select(models.Transaction.id, models.Transaction.receipt_no).where(
-                    models.Transaction.id.in_(transaction_ids)
-                )
-            ).all()
-        )
+        results = db.execute(
+            select(
+                models.Transaction.id,
+                models.Transaction.receipt_no,
+                models.Transaction.currency,
+                models.Transaction.payment_method
+            ).where(models.Transaction.id.in_(transaction_ids))
+        ).all()
+        for tx_id, receipt_no, curr, method in results:
+            tx_meta[tx_id] = {
+                "receipt_no": receipt_no,
+                "currency": curr or "USD",
+                "payment_method": method or "Cash"
+            }
     for row in rows:
-        row.receipt_no = receipts.get(row.transaction_id)
+        meta = tx_meta.get(row.transaction_id, {})
+        row.receipt_no = meta.get("receipt_no")
+        row.currency = meta.get("currency", "USD")
+        row.payment_method = meta.get("payment_method", "Cash")
     return rows
 
 
 @router.get("/ledger/customer/{customer_id}", response_model=list[schemas.LedgerRead])
-def customer_ledger(customer_id: int, db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
-    rows = db.scalars(select(models.CustomerLedger).where(models.CustomerLedger.customer_id == customer_id).order_by(models.CustomerLedger.date, models.CustomerLedger.id)).all()
-    return _attach_receipt_numbers(db, rows)
+def customer_ledger(customer_id: int, currency: Optional[str] = None, db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
+    # Check if rows exist, if not recalculate
+    existing = db.scalars(select(models.CustomerLedger).where(models.CustomerLedger.customer_id == customer_id)).first()
+    if not existing:
+        recalculate_customer_ledger(db, customer_id)
+        db.commit()
+        
+    rows = db.scalars(
+        select(models.CustomerLedger)
+        .where(models.CustomerLedger.customer_id == customer_id)
+        .order_by(models.CustomerLedger.date, models.CustomerLedger.id)
+    ).all()
+    rows = _attach_receipt_numbers(db, rows)
+    
+    if currency and currency.upper() != "ALL":
+        # Filter and recalculate running balance for requested currency
+        filtered = [r for r in rows if (r.currency or "USD").upper() == currency.upper()]
+        running = 0.0
+        for r in filtered:
+            running = round(running + float(r.credit or 0) - float(r.debit or 0), 2)
+            r.balance = running
+        return filtered
+        
+    return rows
 
 
 @router.get("/ledger/bank/{bank_account_id}", response_model=list[schemas.LedgerRead])

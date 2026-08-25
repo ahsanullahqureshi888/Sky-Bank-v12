@@ -99,7 +99,7 @@ export const customerAPI = {
   create: (data) => client.post('/customers', data),
   update: (id, data) => client.put(`/customers/${id}`, data),
   delete: (id) => client.delete(`/customers/${id}`),
-  getLedger: (id) => client.get(`/ledger/customer/${id}`),
+  getLedger: (id, currency) => client.get(`/ledger/customer/${id}`, { params: currency ? { currency } : {} }),
 };
 
 export const bankAPI = {

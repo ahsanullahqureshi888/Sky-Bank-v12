@@ -130,6 +130,7 @@ export default function CustomerLedger() {
 
   const [customers, setCustomers] = useState([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
+  const [selectedCurrency, setSelectedCurrency] = useState('ALL');
   const [ledgerRows, setLedgerRows] = useState([]);
   const [loadingCustomers, setLoadingCustomers] = useState(true);
   const [loadingLedger, setLoadingLedger] = useState(false);
@@ -146,7 +147,8 @@ export default function CustomerLedger() {
       const res = await customerAPI.list();
       setCustomers(res.data);
       if (res.data.length > 0 && (selectFirst || !selectedCustomerId)) {
-        setSelectedCustomerId(res.data[0].id);
+        const preferred = res.data.find((c) => c.name?.includes('Khanam') || c.name?.includes('Bolambar')) || res.data[0];
+        setSelectedCustomerId(preferred.id);
       }
     } catch (err) {
       console.error('Failed to load customers', err);
@@ -159,18 +161,25 @@ export default function CustomerLedger() {
     fetchCustomers(true);
   }, []);
 
-  useEffect(() => {
-    if (!selectedCustomerId) {
+  const loadLedger = (customerId, currency) => {
+    if (!customerId) {
       setLedgerRows([]);
       return;
     }
 
     setLoadingLedger(true);
-    customerAPI.getLedger(selectedCustomerId)
-      .then((res) => setLedgerRows(res.data))
+    const currParam = currency && currency !== 'ALL' ? currency : undefined;
+    customerAPI.getLedger(customerId, currParam)
+      .then((res) => {
+        setLedgerRows(res.data || []);
+      })
       .catch((err) => console.error('Failed to load customer ledger', err))
       .finally(() => setLoadingLedger(false));
-  }, [selectedCustomerId]);
+  };
+
+  useEffect(() => {
+    loadLedger(selectedCustomerId, selectedCurrency);
+  }, [selectedCustomerId, selectedCurrency]);
 
   const selectedCustomer = customers.find((c) => c.id === Number(selectedCustomerId));
 
@@ -187,9 +196,11 @@ export default function CustomerLedger() {
   const totals = useMemo(() => {
     const debit = ledgerRows.reduce((sum, row) => sum + Number(row.debit || 0), 0);
     const credit = ledgerRows.reduce((sum, row) => sum + Number(row.credit || 0), 0);
-    const balance = ledgerRows.length ? Number(ledgerRows.at(-1)?.balance || 0) : 0;
+    const balance = ledgerRows.length ? Number(ledgerRows.at(-1)?.balance || 0) : (credit - debit);
     return { debit, credit, balance };
   }, [ledgerRows]);
+
+  const activeCurrencyLabel = selectedCurrency === 'ALL' ? (ledgerRows[0]?.currency || 'USD') : selectedCurrency;
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -268,148 +279,143 @@ export default function CustomerLedger() {
 
   const buildLedgerPrintHtml = () => {
     const now = new Date();
-    const printStyle = `
-      <style>
-        @page { size: A4; margin: 10mm; }
-        * { box-sizing: border-box; }
-        html, body { margin: 0; background: #fff; }
-        body { font-family: Inter, Arial, sans-serif; color: #10233f; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .sheet { position: relative; overflow: hidden; border: 1px solid #cfe0f3; background: #fff; padding: 6mm; }
-        .top-rule { position: absolute; inset: 0 0 auto; height: 2mm; background: linear-gradient(90deg, #0f2a4a, #2563eb 72%, #c79a45); }
-        .brand { display: flex; justify-content: space-between; align-items: center; gap: 8mm; padding: 2mm 0 3mm; border-bottom: 1px solid #c79a45; }
-        .brand-left { display: flex; min-width: 0; align-items: center; }
-        .logo { display: inline-flex; width: 22mm; height: 15mm; flex: 0 0 auto; align-items: center; justify-content: center; margin-right: 4mm; overflow: hidden; border: 1px solid #d9e8f7; border-radius: 3mm; background: #fff; }
-        .logo img { width: 100%; height: 100%; object-fit: contain; padding: 1mm; }
-        h1 { margin: 0; color: #0f2a4a; font-size: 17pt; font-weight: 900; line-height: 1.05; }
-        .subtitle { margin-top: 1.2mm; color: #2563eb; font-size: 8pt; font-weight: 800; text-transform: uppercase; }
-        .report-meta { min-width: 58mm; overflow: hidden; border: 1px solid #cfe0f3; border-radius: 3mm; background: #f8fbff; }
-        .report-meta div { display: flex; justify-content: space-between; gap: 5mm; padding: 1.6mm 2.8mm; border-bottom: 1px solid #e4edf7; font-size: 7.6pt; }
-        .report-meta div:last-child { border-bottom: 0; }
-        .report-meta span { color: #64748b; font-weight: 700; }
-        .report-meta strong { color: #0f2a4a; font-weight: 900; }
-        .report-title { display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; padding: 3mm 0 2mm; }
-        .report-title h2 { margin: 0; color: #0f2a4a; font-size: 13pt; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; }
-        .report-title p { margin: 0.7mm 0 0; color: #64748b; font-size: 7.5pt; }
-        .customer-panel { margin-bottom: 3mm; padding: 2.5mm 3.5mm; border: 1px solid #dbeafe; border-radius: 2.5mm; background: #f7fbff; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; }
-        .customer-panel div { min-width: 0; }
-        .customer-panel .label { display: block; margin-bottom: 1mm; color: #64748b; font-size: 6.6pt; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
-        .customer-panel .value { color: #10233f; font-size: 9.5pt; font-weight: 800; overflow-wrap: anywhere; }
-        .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5mm; margin-bottom: 3mm; }
-        .summary-card { min-height: 15mm; padding: 2mm 3.5mm; border: 1px solid #dbeafe; border-radius: 2.5mm; background: #f7fbff; }
-        .summary-card.debit-card { border-color: #ffd0d8; background: #fff7f8; }
-        .summary-card.credit-card { border-color: #b7e9d2; background: #f0fdf7; }
-        .summary-card.balance-card { border-color: #bfdbfe; background: #eff6ff; }
-        .summary-card .label { display: block; margin-bottom: 1.3mm; color: #64748b; font-size: 6.8pt; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
-        .summary-card .value { color: #10233f; font-size: 11pt; font-weight: 900; line-height: 1.25; white-space: nowrap; }
-        .debit-card .value { color: #be123c; }
-        .credit-card .value { color: #047857; }
-        .balance-card .value { color: #0f2a4a; }
-        .table-shell { overflow: hidden; border: 1px solid #cfe0f3; border-radius: 2.5mm; }
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        thead { display: table-header-group; }
-        th { padding: 2mm 2mm; background: #0f2a4a; color: #fff; font-size: 7pt; font-weight: 900; letter-spacing: 0.07em; text-align: left; text-transform: uppercase; }
-        td { padding: 1.9mm 2mm; border-bottom: 1px solid #e2eaf4; color: #334155; font-size: 8pt; line-height: 1.25; vertical-align: top; overflow-wrap: anywhere; }
-        tbody tr:nth-child(even) { background: #f8fbff; }
-        tbody tr:last-child td { border-bottom: 0; }
-        tbody tr { break-inside: avoid; page-break-inside: avoid; }
-        .amount { text-align: right; white-space: nowrap; font-weight: 900; overflow-wrap: normal; overflow: hidden; text-overflow: clip; }
-        .debit { color: #be123c; }
-        .credit { color: #047857; }
-        .empty-state { padding: 12mm !important; color: #64748b; text-align: center; }
-        tfoot td { background: #eef5fd; font-size: 8.6pt; font-weight: 900; border-top: 2px solid #cfe0f3; border-bottom: 0; }
-        .authorization { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8mm; margin-top: 6mm; }
-        .signature { padding-top: 6mm; border-top: 1px solid #71849b; color: #475569; font-size: 7.5pt; font-weight: 800; }
-        .signature small { display: block; margin-top: 1mm; color: #94a3b8; font-size: 6pt; font-weight: 600; }
-        .document-footer { display: flex; justify-content: space-between; gap: 5mm; margin-top: 3mm; padding-top: 1.8mm; border-top: 1px solid #dbeafe; color: #64748b; font-size: 6.4pt; }
-      </style>
-    `;
+    const dateStr = now.toLocaleDateString();
+    const timeStr = now.toLocaleTimeString();
 
-    const rows = ledgerRows.map((row) => `
-      <tr>
-        <td>${escapeHtml(formatDate(row.date))}</td>
-        <td>${escapeHtml(row.receipt_no || 'OP')}</td>
-        <td>${escapeHtml(row.description || '-')}</td>
-        <td class="amount debit">${row.debit ? escapeHtml(formatCurrency(row.debit, 'USD')) : '-'}</td>
-        <td class="amount credit">${row.credit ? escapeHtml(formatCurrency(row.credit, 'USD')) : '-'}</td>
-        <td class="amount">${escapeHtml(formatCurrency(row.balance, 'USD'))}</td>
-      </tr>
-    `).join('');
-
-    return `<!doctype html>
+    return `<!DOCTYPE html>
       <html>
         <head>
-          <title>${escapeHtml(selectedCustomer?.name || 'Customer')} Statement</title>
-          ${printStyle}
+          <meta charset="utf-8" />
+          <title>${escapeHtml(selectedCustomer.name)} - Customer Statement</title>
+          <style>
+            @page { size: A4; margin: 10mm; }
+            * { box-sizing: border-box; }
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #0f172a; margin: 0; padding: 0; background: #fff; }
+            .sheet { border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; padding: 20px; }
+            .top-bar { height: 4px; background: linear-gradient(90deg, #1e3a8a, #3b82f6 70%, #d97706); margin: -20px -20px 20px -20px; }
+            .header-flex { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; }
+            .brand-left { display: flex; align-items: center; gap: 15px; }
+            .brand-logo { width: 65px; height: 50px; object-fit: contain; }
+            .brand-title { font-size: 20px; font-weight: 900; color: #0f172a; margin: 0; }
+            .brand-sub { font-size: 8.5px; font-weight: 800; color: #2563eb; text-transform: uppercase; margin-top: 3px; letter-spacing: 0.05em; }
+            .meta-box { border: 1px solid #e2e8f0; border-radius: 6px; background: #f8fafc; font-size: 10px; width: 220px; }
+            .meta-row { display: flex; justify-content: space-between; padding: 4px 8px; border-bottom: 1px solid #e2e8f0; }
+            .meta-row:last-child { border-bottom: none; }
+            .meta-label { color: #64748b; font-weight: 700; }
+            .meta-val { font-weight: 900; color: #0f172a; }
+            .doc-title { font-size: 16px; font-weight: 900; color: #0f172a; margin: 15px 0 3px 0; text-transform: uppercase; letter-spacing: 0.05em; }
+            .doc-sub { font-size: 9px; color: #64748b; margin-bottom: 15px; }
+            .customer-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 15px; display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 11px; }
+            .cust-col { flex: 1; }
+            .cust-label { font-size: 8px; font-weight: 900; text-transform: uppercase; color: #64748b; margin-bottom: 3px; letter-spacing: 0.05em; }
+            .cust-val { font-weight: 800; color: #0f172a; }
+            .kpi-row { display: flex; gap: 10px; margin-bottom: 15px; }
+            .kpi-box { flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid #e2e8f0; }
+            .kpi-debit { background: #fff1f2; border-color: #fecdd3; }
+            .kpi-credit { background: #f0fdf4; border-color: #bbf7d0; }
+            .kpi-bal { background: #f0fdfa; border-color: #ccfbf1; }
+            .kpi-title { font-size: 8.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+            .kpi-val { font-size: 15px; font-weight: 900; }
+            table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 20px; }
+            thead th { background: #0f243e; color: #fff; text-align: left; padding: 8px 10px; font-size: 8.5px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; }
+            thead th.num { text-align: right; }
+            tbody tr { border-bottom: 1px solid #e2e8f0; }
+            tbody tr:nth-child(even) { background: #f8fafc; }
+            tbody td { padding: 8px 10px; color: #334155; font-weight: 600; }
+            tbody td.num { text-align: right; font-weight: 800; }
+            tfoot tr { background: #f1f5f9; font-weight: 900; border-top: 2px solid #cbd5e1; }
+            tfoot td { padding: 10px; font-size: 10.5px; }
+            .auth-row { display: flex; justify-content: space-between; margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; }
+            .sign-block { width: 200px; text-align: center; border-top: 1px dashed #94a3b8; padding-top: 5px; font-size: 9px; font-weight: 700; color: #475569; }
+          </style>
         </head>
         <body>
           <div class="sheet">
-            <div class="top-rule"></div>
-            <div class="brand">
+            <div class="top-bar"></div>
+            <div class="header-flex">
               <div class="brand-left">
-                <div class="logo"><img src="${COMPANY_LOGO}" alt="${COMPANY_NAME}" /></div>
+                <img src="/logo.png" class="brand-logo" alt="Logo" />
                 <div>
-                  <h1>${COMPANY_NAME}</h1>
-                  <div class="subtitle">${COMPANY_SUBTITLE}</div>
+                  <h1 class="brand-title">Sky Ariana Limited</h1>
+                  <div class="brand-sub">MONEY TRANSACTION & HAWALA RECEIPT MANAGEMENT SYSTEM</div>
                 </div>
               </div>
-              <div class="report-meta">
-                <div><span>Document</span><strong>Customer Account Statement</strong></div>
-                <div><span>Generated</span><strong>${escapeHtml(now.toLocaleDateString())}</strong></div>
-                <div><span>Time</span><strong>${escapeHtml(now.toLocaleTimeString())}</strong></div>
+              <div class="meta-box">
+                <div class="meta-row"><span class="meta-label">Document</span><span class="meta-val">Customer Account Statement</span></div>
+                <div class="meta-row"><span class="meta-label">Generated</span><span class="meta-val">${dateStr}</span></div>
+                <div class="meta-row"><span class="meta-label">Time</span><span class="meta-val">${timeStr}</span></div>
               </div>
             </div>
-            <div class="report-title">
-              <div>
-                <h2>Customer Ledger Statement</h2>
-                <p>Official customer account ledger and balance statement</p>
+
+            <div class="doc-title">CUSTOMER LEDGER STATEMENT</div>
+            <div class="doc-sub">Official customer account ledger and balance statement</div>
+
+            <div class="customer-card">
+              <div class="cust-col">
+                <div class="cust-label">CUSTOMER</div>
+                <div class="cust-val">${escapeHtml(selectedCustomer.name)}</div>
+              </div>
+              <div class="cust-col">
+                <div class="cust-label">PHONE</div>
+                <div class="cust-val">${escapeHtml(selectedCustomer.phone || '-')}</div>
+              </div>
+              <div class="cust-col" style="flex: 1.5;">
+                <div class="cust-label">ADDRESS</div>
+                <div class="cust-val">${escapeHtml(selectedCustomer.address || '-')}</div>
               </div>
             </div>
-            <div class="customer-panel">
-              <div><span class="label">Customer</span><span class="value">${escapeHtml(selectedCustomer?.name || '-')}</span></div>
-              <div><span class="label">Phone</span><span class="value">${escapeHtml(selectedCustomer?.phone || '-')}</span></div>
-              <div><span class="label">Address</span><span class="value">${escapeHtml(selectedCustomer?.address || '-')}</span></div>
+
+            <div class="kpi-row">
+              <div class="kpi-box kpi-debit">
+                <div class="kpi-title" style="color: #e11d48;">TOTAL DEBIT</div>
+                <div class="kpi-val" style="color: #e11d48;">${formatCurrency(totals.debit, activeCurrencyLabel)}</div>
+              </div>
+              <div class="kpi-box kpi-credit">
+                <div class="kpi-title" style="color: #16a34a;">TOTAL CREDIT</div>
+                <div class="kpi-val" style="color: #16a34a;">${formatCurrency(totals.credit, activeCurrencyLabel)}</div>
+              </div>
+              <div class="kpi-box kpi-bal">
+                <div class="kpi-title" style="color: #0f766e;">CLOSING BALANCE</div>
+                <div class="kpi-val" style="color: #0f766e;">${formatCurrency(totals.balance, activeCurrencyLabel)}</div>
+              </div>
             </div>
-            <div class="summary">
-              <div class="summary-card debit-card"><span class="label">Total Debit</span><span class="value">${escapeHtml(formatCurrency(totals.debit, 'USD'))}</span></div>
-              <div class="summary-card credit-card"><span class="label">Total Credit</span><span class="value">${escapeHtml(formatCurrency(totals.credit, 'USD'))}</span></div>
-              <div class="summary-card balance-card"><span class="label">Closing Balance</span><span class="value">${escapeHtml(formatCurrency(totals.balance, 'USD'))}</span></div>
-            </div>
-            <div class="table-shell">
-              <table>
-                <colgroup>
-                  <col style="width:9%"><col style="width:13%"><col style="width:24%"><col style="width:16%"><col style="width:17%"><col style="width:21%">
-                </colgroup>
-                <thead>
+
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 14%;">DATE</th>
+                  <th style="width: 18%;">RECEIPT NO.</th>
+                  <th style="width: 32%;">DESCRIPTION</th>
+                  <th class="num" style="width: 12%;">DEBIT</th>
+                  <th class="num" style="width: 12%;">CREDIT</th>
+                  <th class="num" style="width: 12%;">BALANCE</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${ledgerRows.map((r) => `
                   <tr>
-                    <th>Date</th>
-                    <th>Receipt No.</th>
-                    <th>Description</th>
-                    <th style="text-align:right">Debit</th>
-                    <th style="text-align:right">Credit</th>
-                    <th style="text-align:right">Balance</th>
+                    <td>${formatDate(r.date)}</td>
+                    <td style="font-weight: 800; color: #0f172a;">${escapeHtml(r.receipt_no || 'OP')}</td>
+                    <td>${escapeHtml(r.description || '-')}</td>
+                    <td class="num" style="color: ${r.debit ? '#e11d48' : '#94a3b8'};">${r.debit ? formatCurrency(r.debit, r.currency || activeCurrencyLabel) : '-'}</td>
+                    <td class="num" style="color: ${r.credit ? '#16a34a' : '#94a3b8'};">${r.credit ? formatCurrency(r.credit, r.currency || activeCurrencyLabel) : '-'}</td>
+                    <td class="num" style="font-weight: 900; color: #0f172a;">${formatCurrency(r.balance, r.currency || activeCurrencyLabel)}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  ${rows || '<tr><td colspan="6" class="empty-state">No ledger entries recorded for this customer.</td></tr>'}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colspan="3">Statement Total</td>
-                    <td class="amount debit">${escapeHtml(formatCurrency(totals.debit, 'USD'))}</td>
-                    <td class="amount credit">${escapeHtml(formatCurrency(totals.credit, 'USD'))}</td>
-                    <td class="amount">${escapeHtml(formatCurrency(totals.balance, 'USD'))}</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-            <div class="authorization">
-              <div class="signature">Prepared By<small>Name, date, and signature</small></div>
-              <div class="signature">Authorized Signature / Stamp<small>Official approval</small></div>
-            </div>
-            <div class="document-footer">
-              <span>Official customer statement generated by ${COMPANY_NAME}.</span>
-              <span>${COMPANY_SUBTITLE}</span>
-              <span>Page 1</span>
+                `).join('')}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3">Statement Total</td>
+                  <td class="num" style="color: #e11d48;">${formatCurrency(totals.debit, activeCurrencyLabel)}</td>
+                  <td class="num" style="color: #16a34a;">${formatCurrency(totals.credit, activeCurrencyLabel)}</td>
+                  <td class="num" style="color: #0f172a;">${formatCurrency(totals.balance, activeCurrencyLabel)}</td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <div class="auth-row">
+              <div class="sign-block">Prepared By</div>
+              <div class="sign-block">Authorized Signature / Stamp</div>
             </div>
           </div>
           <script>window.onload = () => { window.focus(); window.print(); };</script>
@@ -434,12 +440,13 @@ export default function CustomerLedger() {
     const header = [
       'Company',
       'Customer',
-      t('customerLedger.date'),
-      t('customerLedger.receipt_no'),
-      t('customerLedger.description'),
-      t('customerLedger.debit'),
-      t('customerLedger.credit'),
-      t('customerLedger.balance'),
+      'Date',
+      'Receipt No',
+      'Description',
+      'Currency',
+      'Debit',
+      'Credit',
+      'Balance',
     ];
     const rows = ledgerRows.map((row) => [
       COMPANY_NAME,
@@ -447,11 +454,12 @@ export default function CustomerLedger() {
       row.date,
       row.receipt_no || 'OP',
       row.description || '',
+      row.currency || activeCurrencyLabel,
       row.debit || 0,
       row.credit || 0,
       row.balance || 0,
     ]);
-    rows.push([COMPANY_NAME, selectedCustomer.name, '', 'TOTAL', '', totals.debit, totals.credit, totals.balance]);
+    rows.push([COMPANY_NAME, selectedCustomer.name, '', 'TOTAL', '', activeCurrencyLabel, totals.debit, totals.credit, totals.balance]);
 
     const csvContent = [header, ...rows].map((row) => row.map(csvEscape).join(',')).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -466,274 +474,337 @@ export default function CustomerLedger() {
 
   return (
     <div className="space-y-6">
+      {/* Top Header Controls */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between print:hidden">
         <div className="min-w-0">
-          <h1 className="text-2xl font-black text-sky-950 leading-tight tracking-normal">{t('customerLedger.customer_ledger')}</h1>
-          <p className="text-sm text-sky-600 font-semibold mt-1">
-            Professional customer statements, balances, receipts, and payment history.
+          <h1 className="text-2xl font-black text-slate-900 leading-tight tracking-tight">{t('customerLedger.customer_ledger')}</h1>
+          <p className="text-xs text-sky-600 font-bold mt-1">
+            Official customer statements, Hawala ledger, and live balance verification.
           </p>
         </div>
-        <div className="flex flex-col xs:flex-row sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={handlePrint}
             disabled={!selectedCustomer}
-            className="h-11 inline-flex items-center justify-center gap-2 px-5 bg-white hover:bg-sky-50 border border-sky-100 font-bold text-[13px] text-sky-700 rounded-[14px] shadow-sm hover:shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-10 inline-flex items-center justify-center gap-2 px-4 bg-white hover:bg-sky-50 border border-sky-200/80 font-black text-xs text-sky-700 rounded-xl shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
           >
-            <Printer size={16} className="text-sky-500" />
+            <Printer size={15} className="text-sky-600" />
             <span>{t('customerLedger.print_ledger')}</span>
           </button>
           <button
             onClick={handleExportCSV}
             disabled={!selectedCustomer}
-            className="h-11 inline-flex items-center justify-center gap-2 px-5 bg-gradient-to-b from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 border-t border-white/30 text-white font-bold rounded-[14px] shadow-md shadow-emerald-500/20 transition-all text-[13px] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+            className="h-10 inline-flex items-center justify-center gap-2 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black rounded-xl shadow-md shadow-emerald-500/20 transition-all text-xs disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
           >
-            <FileSpreadsheet size={16} />
+            <FileSpreadsheet size={15} />
             <span>{t('customerLedger.export_csv')}</span>
           </button>
         </div>
       </div>
 
+      {/* Main Content Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-5 items-start print:block">
+        
+        {/* Left Sidebar: Customer Directory */}
         <div className="flex flex-col gap-5 xl:sticky xl:top-5 xl:max-h-[calc(100vh-40px)] overflow-y-auto nav-scrollbar xl:pb-0 pb-10 pr-1 print:hidden">
           <GlassCard className="p-5 shrink-0">
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <div>
-              <p className="text-[11px] font-black text-sky-500 uppercase tracking-[0.18em]">Accounts</p>
-              <h2 className="text-lg font-black text-sky-950">{t('customerLedger.customer_directory')}</h2>
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div>
+                <p className="text-[10px] font-black text-sky-500 uppercase tracking-[0.18em]">Directory</p>
+                <h2 className="text-base font-black text-slate-900">{t('customerLedger.customer_directory')}</h2>
+              </div>
+              <div className="h-9 w-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100">
+                <Users size={18} />
+              </div>
             </div>
-            <div className="h-11 w-11 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center">
-              <Users size={20} />
-            </div>
-          </div>
 
-          <div className="relative mb-4">
-            <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-sky-400" />
-            <input
-              type="search"
-              value={customerSearch}
-              onChange={(e) => setCustomerSearch(e.target.value)}
-              className="h-12 w-full rounded-2xl border border-sky-100 bg-sky-50/50 pl-11 pr-4 text-base font-bold text-sky-950 outline-none transition focus:border-sky-300 focus:bg-white focus:ring-4 focus:ring-sky-500/10"
-              placeholder="Search customers..."
-            />
-          </div>
-
-          {loadingCustomers ? (
-            <div className="py-8 flex justify-center">
-              <Loader2 className="animate-spin text-sky-500" size={24} />
+            <div className="relative mb-3.5">
+              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sky-400" />
+              <input
+                type="search"
+                value={customerSearch}
+                onChange={(e) => setCustomerSearch(e.target.value)}
+                className="h-10 w-full rounded-xl border border-sky-100 bg-sky-50/60 pl-10 pr-3 text-xs font-bold text-slate-900 outline-none transition focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-500/10"
+                placeholder="Search customers..."
+              />
             </div>
-          ) : (
-            <div className="flex flex-col gap-2.5 max-h-[54vh] min-h-0 overflow-y-auto pr-2 nav-scrollbar">
-              {filteredCustomers.map((customer) => {
-                const isSelected = Number(selectedCustomerId) === customer.id;
-                return (
-                  <button
-                    key={customer.id}
-                    onClick={() => {
-                      setSelectedCustomerId(customer.id);
-                      resetForm();
-                    }}
-                    className={`w-full text-left px-4 py-3 rounded-[18px] transition-all min-w-0 flex items-center gap-3 border ${
-                      isSelected
-                        ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-lg shadow-sky-500/25 border-transparent translate-x-1'
-                        : 'bg-white/70 border-white hover:bg-white text-sky-900 shadow-sm hover:shadow-md hover:border-sky-100 hover:translate-x-0.5'
-                    }`}
-                  >
-                    <span
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[11px] font-black ${
-                        isSelected ? 'bg-white/20 text-white' : customerAccent(customer.name)
+
+            {loadingCustomers ? (
+              <div className="py-8 flex justify-center">
+                <Loader2 className="animate-spin text-sky-500" size={24} />
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2 max-h-[50vh] min-h-0 overflow-y-auto pr-1 nav-scrollbar">
+                {filteredCustomers.map((customer) => {
+                  const isSelected = Number(selectedCustomerId) === customer.id;
+                  return (
+                    <button
+                      key={customer.id}
+                      onClick={() => {
+                        setSelectedCustomerId(customer.id);
+                        resetForm();
+                      }}
+                      className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all min-w-0 flex items-center gap-3 border ${
+                        isSelected
+                          ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/20 border-transparent'
+                          : 'bg-white/80 border-sky-100 hover:bg-sky-50/70 text-slate-800 shadow-2xs hover:border-sky-200'
                       }`}
-                      aria-hidden="true"
                     >
-                      {customerInitials(customer.name)}
-                    </span>
-                    <span className="min-w-0 flex flex-col justify-center">
-                      <span className="block truncate text-[14px] font-black">{customer.name}</span>
-                      {(customer.phone || customer.address) && (
-                        <span className={`block truncate text-[11px] mt-0.5 font-bold ${isSelected ? 'text-sky-100' : 'text-sky-500'}`}>
-                          {customer.phone || customer.address}
-                        </span>
-                      )}
-                    </span>
-                  </button>
-                );
-              })}
-              {filteredCustomers.length === 0 && (
-                <div className="text-center py-10 bg-white/40 rounded-2xl border border-dashed border-sky-200">
-                  <p className="text-sm text-sky-500 font-bold">
-                    No customers found.
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
+                      <span
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[10px] font-black ${
+                          isSelected ? 'bg-white/20 text-white' : customerAccent(customer.name)
+                        }`}
+                        aria-hidden="true"
+                      >
+                        {customerInitials(customer.name)}
+                      </span>
+                      <span className="min-w-0 flex flex-col justify-center flex-1">
+                        <span className="block truncate text-xs font-black">{customer.name}</span>
+                        {(customer.phone || customer.address) && (
+                          <span className={`block truncate text-[10px] mt-0.5 font-bold ${isSelected ? 'text-sky-100' : 'text-slate-400'}`}>
+                            {customer.phone || customer.address}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  );
+                })}
+                {filteredCustomers.length === 0 && (
+                  <div className="text-center py-8 bg-white/40 rounded-xl border border-dashed border-sky-200">
+                    <p className="text-xs text-sky-600 font-bold">No customers found.</p>
+                  </div>
+                )}
+              </div>
+            )}
           </GlassCard>
+
+          {/* Add / Edit Customer Form */}
           {!isViewer && (
             <GlassCard className="p-5 shrink-0">
-            <div className="flex items-center justify-between border-b border-sky-100 pb-4 mb-5">
-              <div>
-                <p className="text-[11px] font-black text-sky-500 uppercase tracking-[0.16em]">
-                  {editMode ? 'Update Profile' : 'New Account'}
-                </p>
-                <h2 className="text-lg font-black text-sky-950 flex items-center gap-2">
-                  {editMode ? 'Edit Customer' : 'Add Customer'}
-                </h2>
+              <div className="flex items-center justify-between border-b border-sky-100 pb-3 mb-4">
+                <div>
+                  <p className="text-[10px] font-black text-sky-500 uppercase tracking-[0.16em]">
+                    {editMode ? 'Update Profile' : 'New Account'}
+                  </p>
+                  <h2 className="text-sm font-black text-slate-900">
+                    {editMode ? 'Edit Customer' : 'Add Customer'}
+                  </h2>
+                </div>
+                {editMode ? (
+                  <button
+                    onClick={resetForm}
+                    className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-sky-50 transition-colors inline-flex items-center justify-center"
+                    title="Cancel edit"
+                  >
+                    <X size={15} />
+                  </button>
+                ) : (
+                  <div className="h-8 w-8 rounded-lg bg-sky-50 text-sky-600 inline-flex items-center justify-center">
+                    <Plus size={16} />
+                  </div>
+                )}
               </div>
-              {editMode ? (
+
+              <form onSubmit={handleSaveCustomer} className="space-y-3">
+                <div>
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wide mb-1">
+                    Customer Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    required
+                    placeholder="e.g. Mrs Khanam Tokali Bolambar"
+                    className="h-10 w-full rounded-xl border border-sky-100 bg-white px-3 text-xs font-bold text-slate-900 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10"
+                    value={form.name}
+                    onChange={handleFormChange}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wide mb-1">
+                    Phone Number
+                  </label>
+                  <input
+                    type="text"
+                    name="phone"
+                    placeholder="+98 0917 232 5086"
+                    className="h-10 w-full rounded-xl border border-sky-100 bg-white px-3 text-xs font-bold text-slate-900 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10"
+                    value={form.phone}
+                    onChange={handleFormChange}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wide mb-1">
+                    Address
+                  </label>
+                  <input
+                    type="text"
+                    name="address"
+                    placeholder="Cubic Building, Bandar Abbas, Iran"
+                    className="h-10 w-full rounded-xl border border-sky-100 bg-white px-3 text-xs font-bold text-slate-900 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10"
+                    value={form.address}
+                    onChange={handleFormChange}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wide mb-1">
+                    Notes
+                  </label>
+                  <input
+                    type="text"
+                    name="notes"
+                    placeholder="Account notes"
+                    className="h-10 w-full rounded-xl border border-sky-100 bg-white px-3 text-xs font-bold text-slate-900 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-500/10"
+                    value={form.notes}
+                    onChange={handleFormChange}
+                  />
+                </div>
+
+                {formError && (
+                  <div className="p-2.5 bg-red-50 border border-red-100 rounded-xl text-xs font-bold text-red-600">
+                    {formError}
+                  </div>
+                )}
+
                 <button
-                  onClick={resetForm}
-                  className="h-10 w-10 rounded-xl text-sky-400 hover:text-sky-700 hover:bg-sky-50 transition-colors inline-flex items-center justify-center"
-                  title="Cancel edit"
+                  type="submit"
+                  disabled={savingCustomer}
+                  className="h-10 w-full bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white font-black rounded-xl shadow-md shadow-sky-500/20 transition-all text-xs inline-flex items-center justify-center gap-1.5 disabled:opacity-60"
                 >
-                  <X size={17} />
+                  {savingCustomer ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} />}
+                  <span>{editMode ? 'Update Customer' : 'Save Customer'}</span>
                 </button>
-              ) : (
-                <div className="h-10 w-10 rounded-xl bg-sky-50 text-sky-600 inline-flex items-center justify-center">
-                  <Plus size={18} />
-                </div>
-              )}
-            </div>
-
-            <form onSubmit={handleSaveCustomer} className="space-y-4">
-              <div>
-                <label className="block text-[11px] font-black text-sky-700 uppercase tracking-wide mb-2">
-                  Customer / Company Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  className="h-12 w-full px-4 rounded-2xl border border-sky-100 bg-white/70 outline-none focus:border-sky-300 focus:ring-4 focus:ring-sky-500/10 text-base font-bold text-sky-950"
-                  placeholder="Ariana Transport, Kabul Corp"
-                  value={form.name}
-                  onChange={handleFormChange}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-black text-sky-700 uppercase tracking-wide mb-2">
-                  Contact Phone
-                </label>
-                <input
-                  type="text"
-                  name="phone"
-                  className="h-12 w-full px-4 rounded-2xl border border-sky-100 bg-white/70 outline-none focus:border-sky-300 focus:ring-4 focus:ring-sky-500/10 text-base font-bold text-sky-950"
-                  placeholder="+93 799..."
-                  value={form.phone}
-                  onChange={handleFormChange}
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-black text-sky-700 uppercase tracking-wide mb-2">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  name="address"
-                  className="h-12 w-full px-4 rounded-2xl border border-sky-100 bg-white/70 outline-none focus:border-sky-300 focus:ring-4 focus:ring-sky-500/10 text-base font-bold text-sky-950"
-                  placeholder="Kabul, Afghanistan"
-                  value={form.address}
-                  onChange={handleFormChange}
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-black text-sky-700 uppercase tracking-wide mb-2">
-                  Notes
-                </label>
-                <textarea
-                  name="notes"
-                  rows="4"
-                  className="w-full px-4 py-3 rounded-2xl border border-sky-100 bg-white/70 outline-none focus:border-sky-300 focus:ring-4 focus:ring-sky-500/10 text-base font-bold text-sky-950 resize-none"
-                  placeholder="Internal ledger notes..."
-                  value={form.notes}
-                  onChange={handleFormChange}
-                />
-              </div>
-
-              {formError && (
-                <div className="p-3.5 bg-red-50 border border-red-100 rounded-2xl text-xs font-bold text-red-600">
-                  {formError}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={savingCustomer}
-                className="h-12 w-full bg-gradient-to-tr from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-black rounded-2xl shadow-lg shadow-sky-500/20 transition-all text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60"
-              >
-                {savingCustomer ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-                <span>{editMode ? 'Update Customer' : 'Register Customer'}</span>
-              </button>
-            </form>
-          </GlassCard>
+              </form>
+            </GlassCard>
           )}
         </div>
 
+        {/* Right Panel: Official Customer Statement */}
         <div className="space-y-5 min-w-0 flex-1">
           {selectedCustomer ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <LedgerMetricCard
-                  title={t('customerLedger.total_debit')}
-                  value={formatCurrency(totals.debit, 'USD')}
-                  icon={TrendingDown}
-                  tone="rose"
-                />
-                <LedgerMetricCard
-                  title={t('customerLedger.total_credit')}
-                  value={formatCurrency(totals.credit, 'USD')}
-                  icon={TrendingUp}
-                  tone="emerald"
-                />
-                <LedgerMetricCard
-                  title={t('customerLedger.closing_balance')}
-                  value={formatCurrency(totals.balance, 'USD')}
-                  icon={Wallet}
-                  tone="sky"
-                />
-              </div>
+              {/* Quick Customer Switcher & Currency Tabs */}
+              <GlassCard className="p-4 print:hidden">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <label className="text-xs font-black uppercase tracking-wider text-slate-500 shrink-0">
+                      Active Customer:
+                    </label>
+                    <select
+                      value={selectedCustomerId}
+                      onChange={(e) => {
+                        setSelectedCustomerId(e.target.value);
+                        resetForm();
+                      }}
+                      className="h-10 flex-1 max-w-sm rounded-xl border border-sky-200 bg-white px-3 text-xs font-black text-slate-900 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20"
+                    >
+                      {customers.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} {c.phone ? `(${c.phone})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              <GlassCard className="p-5 sm:p-6 min-w-0 print:border-none print:bg-white print:shadow-none">
-                {/* Print-only clean statement header (fallback if printed without the dedicated Print Ledger button) */}
-                <div className="hidden print:block mb-4">
-                  <div className="flex items-center justify-between border-b-2 border-sky-900 pb-3 mb-3">
-                    <div>
-                      <h1 className="text-lg font-black text-sky-950">{COMPANY_NAME}</h1>
-                      <p className="text-[10px] font-bold text-sky-600 uppercase tracking-wide">Customer Account Statement</p>
+                  {/* Currency Filter Tabs */}
+                  <div className="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl shrink-0">
+                    <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-400 px-2">Currency:</span>
+                    {['ALL', 'USD', 'Toman', 'AFN', 'AED'].map((curr) => {
+                      const isActive = selectedCurrency === curr;
+                      return (
+                        <button
+                          key={curr}
+                          onClick={() => setSelectedCurrency(curr)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                            isActive
+                              ? 'bg-white text-sky-700 shadow-sm'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          {curr}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </GlassCard>
+
+              {/* KPI Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="rounded-2xl border border-rose-200/60 bg-gradient-to-br from-rose-50/90 via-white to-rose-100/30 p-4 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-rose-500 text-white flex items-center justify-center shadow-sm">
+                      <TrendingDown size={18} />
                     </div>
-                    <div className="text-right text-[10px] font-semibold text-slate-600">
-                      <p>Customer: <span className="font-black text-sky-950">{selectedCustomer.name}</span></p>
-                      <p>Generated: {new Date().toLocaleDateString()}</p>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-rose-600">Total Debit</p>
+                      <p className="text-lg font-black text-rose-700">{formatCurrency(totals.debit, activeCurrencyLabel)}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="border-b border-sky-100 pb-5 mb-5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 print:hidden">
+                <div className="rounded-2xl border border-emerald-200/60 bg-gradient-to-br from-emerald-50/90 via-white to-emerald-100/30 p-4 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-sm">
+                      <TrendingUp size={18} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-emerald-600">Total Credit</p>
+                      <p className="text-lg font-black text-emerald-700">{formatCurrency(totals.credit, activeCurrencyLabel)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-teal-200/60 bg-gradient-to-br from-teal-50/90 via-white to-teal-100/30 p-4 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-teal-600 text-white flex items-center justify-center shadow-sm">
+                      <Wallet size={18} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.14em] text-teal-700">Closing Balance</p>
+                      <p className="text-lg font-black text-teal-900">{formatCurrency(totals.balance, activeCurrencyLabel)}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Customer Account Statement Card */}
+              <GlassCard className="p-5 sm:p-6 min-w-0 shadow-xl shadow-sky-950/[0.04]">
+                {/* Statement Header */}
+                <div className="border-b border-sky-100 pb-4 mb-5 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                   <div className="min-w-0">
-                    <h2 className="text-xl font-black text-sky-950 leading-snug truncate">
-                      {selectedCustomer.name}
-                    </h2>
-                    <p className="text-sm font-bold text-sky-500">Account Statement</p>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl font-black text-slate-900 leading-tight">
+                        {selectedCustomer.name}
+                      </h2>
+                      <span className="rounded-md bg-sky-50 px-2 py-0.5 text-[10px] font-black uppercase text-sky-700 border border-sky-200">
+                        {activeCurrencyLabel}
+                      </span>
+                    </div>
+                    <p className="text-xs font-semibold text-slate-500 mt-1">
+                      {selectedCustomer.phone ? `${selectedCustomer.phone} • ` : ''}{selectedCustomer.address || 'Bandar Abbas, Iran'}
+                    </p>
                   </div>
 
                   {!isViewer && (
-                    <div className="flex flex-wrap gap-2.5 mt-3 lg:mt-0">
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={handleEditClick}
-                        className="h-10 px-4 bg-gradient-to-br from-sky-50 to-white hover:from-sky-100 hover:to-sky-50 text-sky-700 font-bold text-xs uppercase tracking-wide rounded-xl border border-sky-100 shadow-sm hover:shadow inline-flex items-center gap-2 transition-all"
+                        className="h-8 px-3 rounded-lg border border-sky-200 bg-white text-xs font-black text-sky-700 shadow-2xs hover:bg-sky-50 inline-flex items-center gap-1.5 transition-all"
                       >
-                        <Edit2 size={14} />
-                        <span>{t('customerLedger.edit_account')}</span>
+                        <Edit2 size={13} />
+                        <span>Edit</span>
                       </button>
                       {isAdmin && (
                         <button
                           onClick={handleDeleteCustomer}
-                          className="h-10 px-4 bg-gradient-to-br from-rose-50 to-white hover:from-rose-100 hover:to-rose-50 text-rose-600 font-bold text-xs uppercase tracking-wide rounded-xl border border-rose-100 shadow-sm hover:shadow inline-flex items-center gap-2 transition-all"
+                          className="h-8 px-3 rounded-lg border border-rose-200 bg-rose-50/60 text-xs font-black text-rose-600 shadow-2xs hover:bg-rose-100 inline-flex items-center gap-1.5 transition-all"
                         >
-                          <Trash2 size={14} />
-                          <span>{t('customerLedger.delete_account')}</span>
+                          <Trash2 size={13} />
+                          <span>Delete</span>
                         </button>
                       )}
                     </div>
@@ -742,133 +813,62 @@ export default function CustomerLedger() {
 
                 {loadingLedger ? (
                   <div className="py-16 flex flex-col items-center justify-center">
-                    <Loader2 className="animate-spin text-sky-500 mb-3" size={30} />
-                    <p className="text-sm font-bold text-sky-600">Retrieving account statement...</p>
+                    <Loader2 className="animate-spin text-sky-600 mb-2" size={28} />
+                    <p className="text-xs font-bold text-sky-600">Loading ledger statement records...</p>
                   </div>
                 ) : (
                   <div>
-                    {/* Mobile Cards Statement View */}
-                    <div className="block md:hidden print:hidden space-y-3.5 ios-card-fade-up">
-                      {ledgerRows.map((row) => (
-                        <div 
-                          key={row.id} 
-                          className={`p-4 bg-white border border-sky-100 rounded-[20px] space-y-2.5 shadow-sm shadow-sky-950/[0.02] border-l-4 ${
-                            row.debit ? 'border-l-rose-500' : row.credit ? 'border-l-emerald-500' : 'border-l-sky-400'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[11px] font-bold text-sky-600">{formatDate(row.date)}</span>
-                              <span className="text-[10px] font-black text-sky-950 bg-sky-50 px-2 py-0.5 rounded-lg">
-                                {row.receipt_no || 'OP'}
-                              </span>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-[8px] text-slate-400 font-black uppercase tracking-wider block">{t('customerLedger.running_bal')}</span>
-                              <span className="text-xs font-black text-slate-900">{formatCurrency(row.balance, 'USD')}</span>
-                            </div>
-                          </div>
-                          
-                          {row.description && (
-                            <div className="text-xs font-semibold text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-sky-100/10 break-words">
-                              {row.description}
-                            </div>
-                          )}
-                          
-                          <div className="flex justify-between items-center text-xs font-black pt-2 border-t border-sky-50/50">
-                            <div>
-                              {row.debit ? (
-                                <span className="text-rose-600 uppercase tracking-wide text-[10px]">Debit: +{formatCurrency(row.debit, 'USD')}</span>
-                              ) : <span className="text-slate-300">-</span>}
-                            </div>
-                            <div>
-                              {row.credit ? (
-                                <span className="text-emerald-600 uppercase tracking-wide text-[10px]">Credit: -{formatCurrency(row.credit, 'USD')}</span>
-                              ) : <span className="text-slate-300">-</span>}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                      {ledgerRows.length === 0 && (
-                        <div className="py-10 text-center">
-                          <p className="text-sky-500 font-bold text-sm">No ledger entries yet</p>
-                        </div>
-                      )}
-                      {ledgerRows.length > 0 && (
-                        <div className="p-4 bg-sky-50/80 border border-sky-100/70 rounded-2xl space-y-1.5 text-xs font-black text-sky-950 shadow-sm mt-4">
-                          <div className="flex justify-between">
-                            <span>{t('customerLedger.statement_debit_total')}</span>
-                            <span className="text-rose-600">+{formatCurrency(totals.debit, 'USD')}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>{t('customerLedger.statement_credit_total')}</span>
-                            <span className="text-emerald-600">-{formatCurrency(totals.credit, 'USD')}</span>
-                          </div>
-                          <div className="flex justify-between border-t border-sky-200/50 pt-1.5 text-sm">
-                            <span>{t('customerLedger.closing_balance_label')}</span>
-                            <span>{formatCurrency(totals.balance, 'USD')}</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Desktop Table View */}
-                    <div className="hidden md:block print:block overflow-x-auto print:overflow-visible app-scrollbar rounded-2xl border border-sky-100 bg-white/50 print:border-none">
-                      <table className="w-full text-left border-collapse print:text-[9px]">
+                    {/* Desktop & Printable Statement Table */}
+                    <div className="overflow-x-auto app-scrollbar rounded-xl border border-sky-100 bg-white">
+                      <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="bg-slate-50/80 border-b border-sky-100 text-[11px] font-black text-sky-600 uppercase tracking-[0.15em]">
-                            <th className="py-3.5 pl-5 pr-4">{t('customerLedger.date')}</th>
-                            <th className="py-3.5 px-4">{t('customerLedger.receipt_no')}</th>
-                            <th className="py-3.5 px-4">{t('customerLedger.description')}</th>
-                            <th className="py-3.5 px-4 text-right">{t('customerLedger.debit')}</th>
-                            <th className="py-3.5 px-4 text-right">{t('customerLedger.credit')}</th>
-                            <th className="py-3.5 pr-5 pl-4 text-right">{t('customerLedger.balance')}</th>
+                          <tr className="bg-[#0f243e] text-white text-[10px] font-black uppercase tracking-[0.14em]">
+                            <th className="py-3 px-4">DATE</th>
+                            <th className="py-3 px-4">RECEIPT NO.</th>
+                            <th className="py-3 px-4">DESCRIPTION</th>
+                            <th className="py-3 px-4 text-right">DEBIT</th>
+                            <th className="py-3 px-4 text-right">CREDIT</th>
+                            <th className="py-3 px-4 text-right">BALANCE</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-sky-100/60 text-sm font-bold text-sky-900">
-                          {ledgerRows.map((row, rowIndex) => (
+                        <tbody className="divide-y divide-sky-100/70 text-xs font-bold text-slate-700">
+                          {ledgerRows.map((row, idx) => (
                             <tr
-                              key={row.id}
-                              className={`transition-colors hover:bg-sky-50/60 ${rowIndex % 2 === 1 ? 'bg-sky-50/30' : ''}`}
+                              key={row.id || idx}
+                              className={`transition-colors hover:bg-sky-50/50 ${idx % 2 === 1 ? 'bg-slate-50/40' : ''}`}
                             >
-                              <td className="py-4 pl-5 pr-4 text-sky-500 whitespace-nowrap">{formatDate(row.date)}</td>
-                              <td className="py-4 px-4 font-black text-sky-950 whitespace-nowrap">
-                                <span className="bg-sky-50 px-2 py-1 rounded-lg text-xs">{row.receipt_no || 'OP'}</span>
+                              <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap font-bold">{formatDate(row.date)}</td>
+                              <td className="py-3.5 px-4 font-black text-slate-900 whitespace-nowrap">
+                                <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-black">
+                                  {row.receipt_no || 'OP'}
+                                </span>
                               </td>
-                              <td className="py-4 px-4 min-w-[220px]">{row.description || '-'}</td>
-                              <td className="py-4 px-4 text-right font-black text-rose-600 whitespace-nowrap">
-                                {row.debit ? formatCurrency(row.debit, 'USD') : '-'}
+                              <td className="py-3.5 px-4 min-w-[200px] text-slate-800 font-semibold">{row.description || '-'}</td>
+                              <td className="py-3.5 px-4 text-right font-black text-rose-600 whitespace-nowrap">
+                                {row.debit ? formatCurrency(row.debit, row.currency || activeCurrencyLabel) : '-'}
                               </td>
-                              <td className="py-4 px-4 text-right font-black text-emerald-600 whitespace-nowrap">
-                                {row.credit ? formatCurrency(row.credit, 'USD') : '-'}
+                              <td className="py-3.5 px-4 text-right font-black text-emerald-600 whitespace-nowrap">
+                                {row.credit ? formatCurrency(row.credit, row.currency || activeCurrencyLabel) : '-'}
                               </td>
-                              <td className="py-4 pr-5 pl-4 text-right font-black text-sky-950 whitespace-nowrap">
-                                {formatCurrency(row.balance, 'USD')}
+                              <td className="py-3.5 px-4 text-right font-black text-slate-900 whitespace-nowrap">
+                                {formatCurrency(row.balance, row.currency || activeCurrencyLabel)}
                               </td>
                             </tr>
                           ))}
                           {ledgerRows.length === 0 && (
                             <tr>
-                              <td colSpan="6" className="py-14 text-center">
-                                <div className="mx-auto max-w-sm">
-                                  <div className="mx-auto h-12 w-12 rounded-2xl bg-sky-50 text-sky-500 flex items-center justify-center mb-3">
-                                    <FileSpreadsheet size={22} />
-                                  </div>
-                                  <p className="text-sky-800 font-black">No ledger entries yet</p>
-                                  <p className="text-sky-400 text-xs mt-1">
-                                    Saved transactions for this customer will appear here automatically.
-                                  </p>
-                                </div>
+                              <td colSpan="6" className="py-12 text-center text-xs font-bold text-slate-400">
+                                No transactions found for this customer under {selectedCurrency}.
                               </td>
                             </tr>
                           )}
                         </tbody>
                         <tfoot>
-                          <tr className="border-t border-sky-200 bg-gradient-to-r from-sky-50/80 to-blue-50/80 text-sm font-black text-sky-950 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)]">
-                            <td className="py-4.5 pl-5 pr-4 uppercase tracking-widest text-[11px]" colSpan="3">{t('customerLedger.statement_total')}</td>
-                            <td className="py-4.5 px-4 text-right text-rose-600 whitespace-nowrap">{formatCurrency(totals.debit, 'USD')}</td>
-                            <td className="py-4.5 px-4 text-right text-emerald-600 whitespace-nowrap">{formatCurrency(totals.credit, 'USD')}</td>
-                            <td className="py-4.5 pr-5 pl-4 text-right whitespace-nowrap">{formatCurrency(totals.balance, 'USD')}</td>
+                          <tr className="border-t-2 border-slate-300 bg-slate-100/90 text-xs font-black text-slate-900">
+                            <td className="py-3.5 px-4 uppercase tracking-wider" colSpan="3">Statement Total</td>
+                            <td className="py-3.5 px-4 text-right text-rose-600 whitespace-nowrap">{formatCurrency(totals.debit, activeCurrencyLabel)}</td>
+                            <td className="py-3.5 px-4 text-right text-emerald-600 whitespace-nowrap">{formatCurrency(totals.credit, activeCurrencyLabel)}</td>
+                            <td className="py-3.5 px-4 text-right text-slate-900 whitespace-nowrap">{formatCurrency(totals.balance, activeCurrencyLabel)}</td>
                           </tr>
                         </tfoot>
                       </table>
@@ -878,8 +878,9 @@ export default function CustomerLedger() {
               </GlassCard>
             </>
           ) : (
-            <GlassCard className="py-20 text-center">
-              <p className="text-sky-500 font-black">Select or register a customer to view account ledgers.</p>
+            <GlassCard className="p-12 text-center">
+              <Users size={32} className="mx-auto text-sky-300 mb-2" />
+              <p className="text-sm font-black text-slate-700">Please select a customer from the directory.</p>
             </GlassCard>
           )}
         </div>
