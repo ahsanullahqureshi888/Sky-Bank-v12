@@ -240,11 +240,11 @@ export default function AppLayout({ children }) {
         aria-label="Main navigation"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
-        className={`print:hidden mobile-drawer fixed inset-y-0 left-0 z-[60] h-[100dvh] w-[85vw] max-w-[340px] shrink-0 border-r border-sky-100 bg-white/95 shadow-2xl shadow-slate-950/20 backdrop-blur-2xl transition-all duration-300 ease-out will-change-transform md:relative md:z-auto md:h-full ${sidebarCollapsed ? 'md:w-[84px]' : 'md:w-[290px]'} md:max-w-none md:translate-x-0 md:bg-white/84 md:shadow-none ${
+        className={`print:hidden mobile-drawer fixed inset-y-0 left-0 z-[60] h-[100dvh] w-[85vw] max-w-[340px] shrink-0 border-r border-sky-100 bg-white/95 shadow-2xl shadow-slate-950/20 backdrop-blur-2xl transition-all duration-300 ease-out will-change-transform md:relative md:z-auto md:h-full ${sidebarCollapsed ? 'md:w-[84px]' : 'md:w-[280px]'} md:max-w-none md:translate-x-0 md:bg-white/90 md:shadow-none ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Discoverable desktop collapse/expand toggle */}
+        {/* Desktop collapse/expand toggle */}
         <button
           onClick={() => {
             const newState = !sidebarCollapsed;
@@ -253,16 +253,17 @@ export default function AppLayout({ children }) {
           }}
           title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="hidden md:flex absolute -right-3 top-9 z-10 h-6 w-6 items-center justify-center rounded-full border border-sky-100 bg-white text-sky-500 shadow-md shadow-sky-950/10 transition-all duration-200 hover:bg-sky-50 hover:text-sky-600 hover:scale-110"
+          className="hidden md:flex absolute -right-3.5 top-8 z-20 h-7 w-7 items-center justify-center rounded-full border border-sky-200/80 bg-white text-sky-600 shadow-md shadow-sky-950/10 transition-all duration-200 hover:bg-sky-50 hover:text-sky-700 hover:scale-110 active:scale-95"
         >
-          {sidebarCollapsed ? <ChevronRight size={13} strokeWidth={2.5} /> : <ChevronLeft size={13} strokeWidth={2.5} />}
+          {sidebarCollapsed ? <ChevronRight size={14} strokeWidth={2.5} /> : <ChevronLeft size={14} strokeWidth={2.5} />}
         </button>
+
         <div className={`flex h-full min-h-0 flex-col overflow-hidden px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(16px,env(safe-area-inset-top))] ${sidebarCollapsed ? 'md:px-2 md:py-4' : 'md:p-4'}`}>
           {/* Header branding logo */}
           <div className="shrink-0 pb-3">
             <div className="flex items-start justify-between gap-2">
               <div 
-                className="flex flex-col items-center text-center gap-3 w-full pb-2 cursor-pointer transition-transform active:scale-95"
+                className="flex flex-col items-center text-center gap-2.5 w-full pb-1 cursor-pointer transition-transform active:scale-95"
                 onClick={() => {
                   if (window.matchMedia('(min-width: 768px)').matches) {
                     const newState = !sidebarCollapsed;
@@ -272,15 +273,15 @@ export default function AppLayout({ children }) {
                 }}
                 title={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
               >
-                <div className={`flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-xl shadow-sky-500/10 transition-all duration-300 ${sidebarCollapsed ? 'h-12 w-12' : 'h-16 w-20'}`}>
-                  <img src={BRAND_LOGO} alt={BRAND_NAME} className="h-full w-full object-contain p-1" />
+                <div className={`flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-amber-300/40 bg-gradient-to-b from-white via-sky-50/50 to-white shadow-lg shadow-sky-500/10 transition-all duration-300 ${sidebarCollapsed ? 'h-12 w-12 p-1' : 'h-16 w-20 p-1.5'}`}>
+                  <img src={BRAND_LOGO} alt={BRAND_NAME} className="h-full w-full object-contain filter drop-shadow-sm" />
                 </div>
                 {!sidebarCollapsed && (
-                  <div className="min-w-0 px-2 transition-opacity duration-300">
-                    <h2 className="text-[14px] font-black leading-tight text-slate-900 mx-auto max-w-[200px]">
+                  <div className="min-w-0 px-1 transition-opacity duration-300">
+                    <h2 className="text-[13px] font-black leading-tight tracking-tight text-slate-900 mx-auto max-w-[210px]">
                       {companyName}
                     </h2>
-                    <span className="mt-1.5 block text-[8px] font-extrabold uppercase tracking-[0.15em] text-sky-600 leading-tight">
+                    <span className="mt-1 block text-[7.5px] font-extrabold uppercase tracking-[0.18em] text-sky-600 leading-tight">
                       {BRAND_SUBTITLE}
                     </span>
                   </div>
@@ -288,20 +289,20 @@ export default function AppLayout({ children }) {
               </div>
               <button
                 onClick={closeSidebar}
-                className="md:hidden h-11 w-11 flex items-center justify-center text-sky-400 hover:bg-sky-50 rounded-xl absolute top-4 right-4"
+                className="md:hidden h-10 w-10 flex items-center justify-center text-slate-400 hover:bg-sky-50 hover:text-slate-700 rounded-xl absolute top-4 right-4"
                 aria-label="Close navigation"
               >
-                <X size={22} />
+                <X size={20} />
               </button>
             </div>
           </div>
 
           {/* Navigation Links */}
-          <nav className="nav-scrollbar flex-1 min-h-0 space-y-4 overflow-y-auto overflow-x-hidden border-t border-sky-100/70 py-3 pr-1">
+          <nav className="nav-scrollbar flex-1 min-h-0 space-y-3.5 overflow-y-auto overflow-x-hidden border-t border-sky-100/80 py-3 pr-0.5">
             {groupedNavItems.map(({ group, items }) => (
               <div key={group} className="space-y-1">
                 {!sidebarCollapsed && (
-                  <p className="px-4 pb-1 text-[9.5px] font-black uppercase tracking-[0.18em] text-sky-400/70">
+                  <p className="px-3 pb-1 text-[9px] font-black uppercase tracking-[0.2em] text-sky-400/80">
                     {group}
                   </p>
                 )}
@@ -318,19 +319,16 @@ export default function AppLayout({ children }) {
                       to={item.path}
                       title={sidebarCollapsed ? item.name : undefined}
                       onClick={(event) => handleDrawerNavigation(event, item.path)}
-                      className={`group relative flex h-11 items-center gap-3 rounded-xl ${sidebarCollapsed ? 'px-0 justify-center' : 'px-4'} text-[13.5px] font-black transition-all duration-300 ios-button-tap ${
+                      className={`group relative flex h-10 items-center gap-3 rounded-xl ${sidebarCollapsed ? 'px-0 justify-center' : 'px-3.5'} text-[13px] font-extrabold transition-all duration-200 ios-button-tap ${
                         isActive
-                          ? 'bg-white text-sky-600 shadow-md shadow-sky-950/5 border border-sky-100 ring-4 ring-sky-50/50'
-                          : 'text-slate-600 hover:bg-sky-50/50 hover:text-sky-950 active:bg-sky-100/50'
+                          ? 'bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/20'
+                          : 'text-slate-600 hover:bg-sky-50 hover:text-sky-950 active:bg-sky-100/70'
                       }`}
                     >
-                      {isActive && (
-                        <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full bg-sky-500" />
-                      )}
                       <IconComponent
-                        size={18}
-                        className={`shrink-0 transition-transform duration-300 group-hover:scale-110 ${
-                          isActive ? 'text-sky-500' : 'text-slate-400 group-hover:text-sky-500'
+                        size={17}
+                        className={`shrink-0 transition-transform duration-200 group-hover:scale-110 ${
+                          isActive ? 'text-white' : 'text-slate-400 group-hover:text-sky-600'
                         }`}
                       />
                       {!sidebarCollapsed && <span className="min-w-0 truncate">{item.name}</span>}
@@ -343,32 +341,32 @@ export default function AppLayout({ children }) {
 
           {/* Footer profile & logout */}
           <div className={`shrink-0 border-t border-sky-100/80 pt-3 ${sidebarCollapsed ? 'flex flex-col items-center' : ''}`}>
-            <div className={`rounded-2xl border border-sky-100 bg-white/72 shadow-sm shadow-sky-950/[0.03] ${sidebarCollapsed ? 'p-2 w-full flex flex-col items-center gap-2' : 'p-3'}`}>
-              <div className={`flex items-center gap-3 ${sidebarCollapsed ? 'justify-center' : ''}`}>
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600" title={user.name || t('common.admin_user')}>
-                  <User size={17} />
+            <div className={`rounded-2xl border border-sky-100/80 bg-white/80 backdrop-blur shadow-xs ${sidebarCollapsed ? 'p-2 w-full flex flex-col items-center gap-2' : 'p-3'}`}>
+              <div className={`flex items-center gap-2.5 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-100 to-sky-200 text-sky-700 font-black text-xs border border-sky-200/60" title={user.name || t('common.admin_user')}>
+                  {user.name ? user.name.slice(0, 2).toUpperCase() : 'AD'}
                 </div>
                 {!sidebarCollapsed && (
-                  <div className="min-w-0">
-                    <h4 className="truncate text-sm font-black text-slate-900">{user.name || t('common.admin_user')}</h4>
-                    <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-sky-600">{user.role || t('common.viewer')}</p>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="truncate text-xs font-black text-slate-900">{user.name || t('common.admin_user')}</h4>
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-sky-600 truncate">{user.role || t('common.viewer')}</p>
                   </div>
                 )}
               </div>
-              <div className={`flex gap-2 ${sidebarCollapsed ? 'flex-col w-full mt-1' : 'mt-3'}`}>
+              <div className={`flex gap-1.5 ${sidebarCollapsed ? 'flex-col w-full mt-1' : 'mt-2.5'}`}>
                 <button
                   onClick={handleLanguageToggle}
                   title={nextLanguageLabel}
-                  className={`flex h-10 items-center justify-center rounded-lg border border-sky-100 bg-white/70 text-[11px] font-bold text-slate-600 transition-all duration-200 hover:bg-sky-50 hover:text-sky-600 ios-button-tap ${sidebarCollapsed ? 'w-full px-1' : 'flex-1 px-2'}`}
+                  className={`flex h-8 items-center justify-center rounded-lg border border-sky-100 bg-white/90 text-[10.5px] font-extrabold text-slate-600 transition-all hover:bg-sky-50 hover:text-sky-600 active:scale-95 ${sidebarCollapsed ? 'w-full px-1' : 'flex-1 px-2'}`}
                 >
                   {sidebarCollapsed ? (i18n.resolvedLanguage === 'en' ? 'EN' : 'FA') : nextLanguageLabel}
                 </button>
                 <button
                   onClick={handleLogout}
                   title={t('common.logout')}
-                  className={`flex h-10 items-center justify-center rounded-lg border border-rose-100 bg-rose-50/50 text-[11px] font-bold text-rose-600 transition-all duration-200 hover:bg-rose-100 ios-button-tap ${sidebarCollapsed ? 'w-full px-1' : 'flex-1 gap-1.5 px-2'}`}
+                  className={`flex h-8 items-center justify-center rounded-lg border border-rose-100 bg-rose-50/60 text-[10.5px] font-extrabold text-rose-600 transition-all hover:bg-rose-100 active:scale-95 ${sidebarCollapsed ? 'w-full px-1' : 'flex-1 gap-1 px-2'}`}
                 >
-                  <LogOut size={13} strokeWidth={2.5} />
+                  <LogOut size={12} strokeWidth={2.5} />
                   {!sidebarCollapsed && <span>{t('common.logout')}</span>}
                 </button>
               </div>
@@ -376,16 +374,53 @@ export default function AppLayout({ children }) {
           </div>
         </div>
       </aside>
+
       {/* Main content body */}
-      <main id="main-content" className={`app-scrollbar flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 sm:p-6 xl:p-8 print:overflow-visible print:p-0 ${
-        isFormOrDetailView 
-          ? 'pb-[calc(112px+env(safe-area-inset-bottom))] md:pb-8 print:pb-0' 
-          : 'pb-[calc(92px+env(safe-area-inset-bottom))] md:pb-8 print:pb-0'
-      }`}>
-        <div className="w-full min-w-0">
-          {children || <Outlet />}
-        </div>
-      </main>
+      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+        {/* Desktop Top Header Bar */}
+        <header className="hidden md:flex shrink-0 h-16 items-center justify-between px-6 xl:px-8 bg-white/70 backdrop-blur-xl border-b border-sky-100/70 z-30 print:hidden">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50/90 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-700 shadow-2xs">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]" />
+              Live Financial System
+            </span>
+            <span className="text-slate-300">|</span>
+            <span className="text-xs font-bold text-slate-500 truncate">
+              {companyName}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleLanguageToggle}
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-sky-100 bg-white/80 px-3 text-xs font-black text-sky-800 shadow-2xs transition hover:bg-sky-50 active:scale-95"
+            >
+              <span className="text-sky-500 text-[10px] font-black uppercase tracking-wider">Lang:</span>
+              <span>{nextLanguageLabel}</span>
+            </button>
+
+            {(userRole === 'Admin' || userRole === 'Accountant') && (
+              <Link
+                to="/add-transaction"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 px-4 text-xs font-black uppercase tracking-wider text-white shadow-md shadow-sky-500/20 transition-all hover:from-sky-700 hover:to-blue-700 active:scale-95"
+              >
+                <PlusCircle size={14} />
+                <span>+ New Receipt</span>
+              </Link>
+            )}
+          </div>
+        </header>
+
+        <main id="main-content" className={`app-scrollbar flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 sm:p-6 xl:p-8 print:overflow-visible print:p-0 ${
+          isFormOrDetailView 
+            ? 'pb-[calc(112px+env(safe-area-inset-bottom))] md:pb-8 print:pb-0' 
+            : 'pb-[calc(92px+env(safe-area-inset-bottom))] md:pb-8 print:pb-0'
+        }`}>
+          <div className="w-full min-w-0">
+            {children || <Outlet />}
+          </div>
+        </main>
+      </div>
     </div>
 
     {/* iOS Bottom Tab Navigation for Mobile */}

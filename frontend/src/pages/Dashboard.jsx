@@ -118,91 +118,92 @@ export default function Dashboard() {
   return (
     <div className="mx-auto w-full max-w-[1640px] space-y-6">
       
-      {/* Mobile iOS Greeting & Wallet Card */}
+      {/* Mobile Header & iOS Wallet Card */}
       <div className="md:hidden space-y-4 ios-card-fade-up">
-        <div>
-          <h2 className="text-[9px] font-black uppercase tracking-[0.16em] text-sky-500">
-            {LABELS?.welcomeBack || 'Welcome Back'}
-          </h2>
-          <h1 className="text-2xl font-black text-slate-900 mt-0.5">
-            {LABELS?.hi || 'Hi, '}{user.name || 'User'} 👋
-          </h1>
-          <p className="text-xs font-semibold text-slate-400">
-            {LABELS?.financialStatus || 'Here is your financial status today.'}
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-[9px] font-black uppercase tracking-[0.18em] text-sky-600">
+              {LABELS?.welcomeBack || 'Welcome Back'}
+            </h2>
+            <h1 className="text-xl font-black text-slate-900 mt-0.5">
+              {LABELS?.hi || 'Hi, '}{user.name || 'User'} 👋
+            </h1>
+          </div>
+          <button
+            type="button"
+            onClick={() => loadData(true)}
+            disabled={refreshing}
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-white border border-sky-100 text-sky-600 shadow-xs active:scale-95 transition-all"
+            aria-label="Refresh"
+          >
+            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+          </button>
         </div>
 
-        {/* Stacked iOS Wallet Cards Visual Container */}
-        <div className="relative pt-4 pb-2">
-          {/* Back stacked card decoration */}
-          <div className="absolute top-0 inset-x-4 h-24 rounded-[24px] bg-slate-800/40 border border-white/5 shadow-sm translate-y-1 scale-[0.94] pointer-events-none transform origin-bottom z-0" />
-          <div className="absolute top-0 inset-x-2 h-24 rounded-[24px] bg-sky-950/60 border border-white/5 shadow-md translate-y-2 scale-[0.97] pointer-events-none transform origin-bottom z-10" />
-
-          {/* Main Apple Wallet Style Card */}
-          <div className="relative z-20 ios-wallet-card text-white p-5 shadow-xl shadow-sky-950/20">
+        {/* Apple Wallet Style Wealth Card */}
+        <div className="relative pt-2 pb-1">
+          <div className="relative z-10 ios-wallet-card text-white p-5 shadow-xl shadow-sky-950/20 border border-amber-400/20">
             <div className="ios-glossy-shine" />
             <div className="flex justify-between items-start">
               <div>
-                <span className="text-[9px] font-black uppercase tracking-[0.14em] text-white/50">
-                  {LABELS?.skyAriana || 'Sky Ariana Account'}
+                <span className="text-[9px] font-black uppercase tracking-[0.16em] text-amber-300">
+                  {LABELS?.skyAriana || 'SKY ARIANA GROUP'}
                 </span>
-                <div className="ios-card-chip my-2.5">
-                  <div className="ios-card-chip-lines" />
-                </div>
-                <h2 className="text-3xl font-black mt-1 leading-none tracking-tight">
+                <h2 className="text-3xl font-black mt-2 leading-none tracking-tight">
                   {formatCurrency(summary?.total_balance || 0, 'USD')}
                 </h2>
-                <span className="text-[9px] text-emerald-400 font-extrabold mt-1 block uppercase tracking-wider">
-                  {LABELS?.netAccountBalance || 'Net Account Balance'}
+                <span className="text-[9px] text-emerald-400 font-extrabold mt-1.5 inline-flex items-center gap-1 uppercase tracking-wider">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  {LABELS?.netAccountBalance || 'Net Consolidated Balance'}
                 </span>
               </div>
-              <div className="h-10 w-10 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10 backdrop-blur-md">
-                <Scale size={20} className="text-sky-300" />
+              <div className="h-11 w-11 bg-white/10 rounded-2xl flex items-center justify-center border border-white/15 backdrop-blur-md">
+                <Scale size={22} className="text-amber-300" />
               </div>
             </div>
 
-            <div className="mt-8 pt-4 border-t border-white/10 flex justify-between text-xs font-bold text-white/70">
+            <div className="mt-6 pt-3.5 border-t border-white/10 flex justify-between text-xs font-bold text-white/80">
               <div>
-                <span className="block text-[8px] uppercase tracking-wider text-white/40">
+                <span className="block text-[8px] uppercase tracking-wider text-white/50">
                   {LABELS?.todaysTx || "Today's Tx"}
                 </span>
-                <span>{summary?.todays_transactions || 0} Records</span>
+                <span className="font-extrabold">{summary?.todays_transactions || 0} Records</span>
               </div>
               <div className="text-right">
-                <span className="block text-[8px] uppercase tracking-wider text-white/40">
+                <span className="block text-[8px] uppercase tracking-wider text-white/50">
                   {LABELS?.thisMonth || 'This Month'}
                 </span>
-                <span>{summary?.monthly_transactions || 0} Records</span>
+                <span className="font-extrabold">{summary?.monthly_transactions || 0} Records</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Small stats row */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 bg-white border border-sky-100/70 rounded-2xl flex items-center gap-3 shadow-sm shadow-sky-950/[0.02] active:bg-sky-50 transition-colors">
-            <div className="h-9 w-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/10">
-              <TrendingUp size={16} />
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="p-3 bg-white border border-emerald-100 rounded-2xl flex items-center gap-2.5 shadow-xs">
+            <div className="h-8 w-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <TrendingUp size={15} />
             </div>
             <div className="min-w-0">
-              <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 block">
+              <span className="text-[8px] font-black uppercase tracking-wider text-slate-400 block">
                 {LABELS?.received || 'Received'}
               </span>
-              <span className="text-xs font-black text-slate-800 truncate block">
+              <span className="text-xs font-black text-emerald-700 truncate block">
                 {formatCurrency(summary?.total_received || 0, 'USD')}
               </span>
             </div>
           </div>
 
-          <div className="p-3 bg-white border border-sky-100/70 rounded-2xl flex items-center gap-3 shadow-sm shadow-sky-950/[0.02] active:bg-sky-50 transition-colors">
-            <div className="h-9 w-9 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/10">
-              <TrendingDown size={16} />
+          <div className="p-3 bg-white border border-rose-100 rounded-2xl flex items-center gap-2.5 shadow-xs">
+            <div className="h-8 w-8 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <TrendingDown size={15} />
             </div>
             <div className="min-w-0">
-              <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 block">
+              <span className="text-[8px] font-black uppercase tracking-wider text-slate-400 block">
                 {LABELS?.paid || 'Paid'}
               </span>
-              <span className="text-xs font-black text-slate-800 truncate block">
+              <span className="text-xs font-black text-rose-700 truncate block">
                 {formatCurrency(summary?.total_paid || 0, 'USD')}
               </span>
             </div>
@@ -210,57 +211,57 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Actions Grid */}
-        <div className="space-y-2.5 pt-2">
-          <h3 className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500 pl-1">
+        <div className="space-y-2 pt-1">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400 pl-1">
             {LABELS?.quickActions || 'Quick Actions'}
           </h3>
-          <div className="grid grid-cols-4 gap-3 text-center">
-            <Link to="/add-transaction" className="flex flex-col items-center justify-center gap-2 p-2 bg-white border border-sky-100/70 rounded-2xl active:scale-95 transition-all shadow-sm min-h-[52px]">
-              <div className="h-11 w-11 bg-sky-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-sky-500/15">
-                <Plus size={20} />
+          <div className="grid grid-cols-4 gap-2 text-center">
+            <Link to="/add-transaction" className="flex flex-col items-center justify-center gap-1.5 p-2 bg-white border border-sky-100 rounded-2xl active:scale-95 transition-all shadow-xs">
+              <div className="h-10 w-10 bg-gradient-to-br from-sky-500 to-blue-600 text-white rounded-xl flex items-center justify-center shadow-md shadow-sky-500/20">
+                <Plus size={18} />
               </div>
-              <span className="text-[9px] font-black text-slate-700">{LABELS?.newTx || 'New Tx'}</span>
+              <span className="text-[9px] font-extrabold text-slate-700">{LABELS?.newTx || 'New Tx'}</span>
             </Link>
 
-            <Link to="/customer-ledger" className="flex flex-col items-center justify-center gap-2 p-2 bg-white border border-sky-100/70 rounded-2xl active:scale-95 transition-all shadow-sm min-h-[52px]">
-              <div className="h-11 w-11 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/15">
-                <Users size={20} />
+            <Link to="/customer-ledger" className="flex flex-col items-center justify-center gap-1.5 p-2 bg-white border border-emerald-100 rounded-2xl active:scale-95 transition-all shadow-xs">
+              <div className="h-10 w-10 bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-xl flex items-center justify-center shadow-md shadow-emerald-500/20">
+                <Users size={18} />
               </div>
-              <span className="text-[9px] font-black text-slate-700">{LABELS?.ledgers || 'Ledgers'}</span>
+              <span className="text-[9px] font-extrabold text-slate-700">{LABELS?.ledgers || 'Ledgers'}</span>
             </Link>
 
-            <Link to="/backup" className="flex flex-col items-center justify-center gap-2 p-2 bg-white border border-sky-100/70 rounded-2xl active:scale-95 transition-all shadow-sm min-h-[52px]">
-              <div className="h-11 w-11 bg-amber-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/15">
-                <Database size={20} />
+            <Link to="/sarafi-ledger" className="flex flex-col items-center justify-center gap-1.5 p-2 bg-white border border-amber-100 rounded-2xl active:scale-95 transition-all shadow-xs">
+              <div className="h-10 w-10 bg-gradient-to-br from-amber-500 to-orange-600 text-white rounded-xl flex items-center justify-center shadow-md shadow-amber-500/20">
+                <Scale size={18} />
               </div>
-              <span className="text-[9px] font-black text-slate-700">{LABELS?.backup || 'Backup'}</span>
+              <span className="text-[9px] font-extrabold text-slate-700">Sarafi</span>
             </Link>
 
-            <Link to="/bank-ledger" className="flex flex-col items-center justify-center gap-2 p-2 bg-white border border-sky-100/70 rounded-2xl active:scale-95 transition-all shadow-sm min-h-[52px]">
-              <div className="h-11 w-11 bg-indigo-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/15">
-                <Building size={20} />
+            <Link to="/bank-ledger" className="flex flex-col items-center justify-center gap-1.5 p-2 bg-white border border-indigo-100 rounded-2xl active:scale-95 transition-all shadow-xs">
+              <div className="h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-xl flex items-center justify-center shadow-md shadow-indigo-500/20">
+                <Building size={18} />
               </div>
-              <span className="text-[9px] font-black text-slate-700">{LABELS?.manage || 'Banks'}</span>
+              <span className="text-[9px] font-extrabold text-slate-700">{LABELS?.manage || 'Banks'}</span>
             </Link>
           </div>
         </div>
       </div>
 
-      {/* Desktop Header and Top Actions */}
+      {/* Desktop Executive Header */}
       <div className="hidden md:flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between print:hidden">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-black leading-tight text-slate-900 md:text-3xl">
-              {LABELS?.dashboardTitle || 'Financial Dashboard'}
+            <h1 className="text-2xl font-black leading-tight text-slate-900 md:text-3xl tracking-tight">
+              {LABELS?.dashboardTitle || 'Financial Command Center'}
             </h1>
             {user?.role && (
-              <span className="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-sky-700 border border-sky-200/60 shadow-2xs">
+              <span className="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-sky-700 border border-sky-200/80 shadow-2xs">
                 {user.role}
               </span>
             )}
           </div>
-          <p className="mt-1 text-sm font-semibold text-sky-600">
-            {LABELS?.dashboardSubtitle || 'Real-time Hawala and ledger transaction overview.'}
+          <p className="mt-1 text-xs font-semibold text-slate-500">
+            {LABELS?.dashboardSubtitle || 'Real-time Hawala, Sarafi, and money transaction management overview.'}
           </p>
         </div>
 
@@ -269,18 +270,18 @@ export default function Dashboard() {
             type="button"
             onClick={() => loadData(true)}
             disabled={refreshing}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-sky-100 bg-white/80 px-4 text-xs font-black uppercase tracking-wider text-sky-700 shadow-sm transition hover:bg-sky-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 print:hidden"
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-sky-100 bg-white/90 px-4 text-xs font-black uppercase tracking-wider text-sky-700 shadow-xs transition hover:bg-sky-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 print:hidden"
             aria-label="Refresh dashboard"
           >
-            <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
-            <span className="hidden sm:inline">Refresh</span>
+            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+            <span>Refresh</span>
           </button>
           <Link
             to="/add-transaction"
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-600 to-blue-600 px-5 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-sky-500/20 transition-all hover:-translate-y-0.5 hover:shadow-sky-500/30 active:scale-95 print:hidden"
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 px-5 text-xs font-black uppercase tracking-wider text-white shadow-md shadow-sky-500/20 transition-all hover:from-sky-700 hover:to-blue-700 active:scale-95 print:hidden"
           >
-            <Plus size={16} />
-            <span>{LABELS?.newTransactionBtn || 'New Transaction'}</span>
+            <Plus size={15} />
+            <span>{LABELS?.newTransactionBtn || '+ New Transaction'}</span>
           </Link>
         </div>
       </div>
@@ -310,51 +311,54 @@ export default function Dashboard() {
           value={formatCurrency(summary?.total_received || 0, 'USD')}
           icon={TrendingUp}
           colorClass="text-emerald-600"
-          bgClass="bg-gradient-to-br from-emerald-50/80 via-white to-emerald-100/30"
+          bgClass="bg-gradient-to-br from-emerald-50/90 via-white to-emerald-100/40"
         />
         <StatCard
           title={LABELS?.paid || 'Total Paid'}
           value={formatCurrency(summary?.total_paid || 0, 'USD')}
           icon={TrendingDown}
           colorClass="text-rose-600"
-          bgClass="bg-gradient-to-br from-rose-50/80 via-white to-rose-100/30"
+          bgClass="bg-gradient-to-br from-rose-50/90 via-white to-rose-100/40"
         />
         <StatCard
           title={LABELS?.netAccountBalance || 'Net Balance'}
           value={formatCurrency(summary?.total_balance || 0, 'USD')}
           icon={Scale}
           colorClass="text-sky-600"
-          bgClass="bg-gradient-to-br from-sky-50/80 via-white to-sky-100/30"
+          bgClass="bg-gradient-to-br from-sky-50/90 via-white to-sky-100/40"
         />
         <StatCard
           title={LABELS?.todaysTx || 'Today Transactions'}
           value={summary?.todays_transactions || 0}
           icon={Calendar}
           colorClass="text-indigo-600"
-          bgClass="bg-gradient-to-br from-indigo-50/80 via-white to-indigo-100/30"
+          bgClass="bg-gradient-to-br from-indigo-50/90 via-white to-indigo-100/40"
         />
         <StatCard
           title={LABELS?.thisMonth || 'This Month'}
           value={summary?.monthly_transactions || 0}
           icon={Clock}
           colorClass="text-amber-600"
-          bgClass="bg-gradient-to-br from-amber-50/80 via-white to-amber-100/30"
+          bgClass="bg-gradient-to-br from-amber-50/90 via-white to-amber-100/40"
         />
       </div>
 
-      {/* Currency Breakdown */}
+      {/* Multi-Currency Liquidity Vaults */}
       <GlassCard className="p-5 sm:p-6 shadow-xl shadow-sky-950/[0.04]">
         <div className="mb-5 flex flex-col gap-3 border-b border-sky-100/80 pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 text-sky-600 border border-sky-100">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-xs">
               <Coins size={18} />
             </div>
-            <h2 className="text-lg font-black text-slate-900">
-              {LABELS?.currencyBreakdown || 'Currency Breakdown'}
-            </h2>
+            <div>
+              <h2 className="text-base font-black text-slate-900 leading-tight">
+                {LABELS?.currencyBreakdown || 'Multi-Currency Liquidity Vaults'}
+              </h2>
+              <p className="text-[11px] font-semibold text-slate-400 mt-0.5">Real-time cash balances by trading currency</p>
+            </div>
           </div>
-          <span className="w-fit rounded-lg bg-sky-50 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.14em] text-sky-600 border border-sky-100">
-            {LABELS?.equivalentCash || 'Equivalent Cash Balance'}
+          <span className="w-fit rounded-lg bg-sky-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-sky-700 border border-sky-100">
+            {LABELS?.equivalentCash || 'Live Valuation'}
           </span>
         </div>
 
@@ -369,18 +373,18 @@ export default function Dashboard() {
             return (
               <div
                 key={curr}
-                className={`relative flex min-h-[130px] flex-col justify-between overflow-hidden rounded-[24px] p-5 shadow-lg border border-white/10 bg-gradient-to-br ${cardGrad} group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
+                className={`relative flex min-h-[135px] flex-col justify-between overflow-hidden rounded-[24px] p-5 shadow-lg border border-white/15 bg-gradient-to-br ${cardGrad} group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
               >
                 <div className="absolute top-0 right-0 h-28 w-28 translate-x-8 -translate-y-8 rounded-full bg-white/10 blur-2xl pointer-events-none group-hover:bg-white/20 transition-colors duration-500" />
                 <div className="ios-glossy-shine" />
                 
                 <div className="flex justify-between items-start gap-2">
                   <div className="min-w-0 flex-1">
-                    <span className="block text-[10px] font-black uppercase tracking-[0.16em] opacity-80">
+                    <span className="block text-[10px] font-black uppercase tracking-[0.18em] opacity-80">
                       {curr}
                     </span>
                     <span
-                      className="mt-2 block text-lg xl:text-xl font-black leading-tight tracking-tight text-white whitespace-nowrap overflow-hidden text-ellipsis"
+                      className="mt-2 block text-xl xl:text-2xl font-black leading-tight tracking-tight text-white whitespace-nowrap overflow-hidden text-ellipsis"
                       title={formatCurrency(amount, curr)}
                     >
                       {formatCurrency(amount, curr)}
@@ -393,7 +397,7 @@ export default function Dashboard() {
 
                 <div className="mt-4">
                   <div className="flex justify-between text-[9px] font-extrabold uppercase tracking-wider opacity-80 mb-1.5">
-                    <span>Cash Level</span>
+                    <span>Vault Capacity</span>
                     <span>{Math.round(percentage)}%</span>
                   </div>
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/20">
@@ -418,16 +422,16 @@ export default function Dashboard() {
           <GlassCard className="p-5 sm:p-6 shadow-xl shadow-sky-950/[0.04]">
             <div className="mb-4 flex items-center justify-between border-b border-sky-100/80 pb-4">
               <div className="flex items-center gap-2">
-                <Activity size={18} className="text-sky-500" />
-                <h2 className="text-lg font-black text-slate-900">
-                  {LABELS?.latestRecords || 'Latest Transaction Records'}
+                <Activity size={18} className="text-sky-600" />
+                <h2 className="text-base font-black text-slate-900">
+                  {LABELS?.latestRecords || 'Recent Transactions Feed'}
                 </h2>
               </div>
               <Link
                 to="/transactions"
-                className="inline-flex items-center gap-1 text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors"
+                className="inline-flex items-center gap-1 text-xs font-black text-sky-600 hover:text-sky-700 transition-colors"
               >
-                <span>{LABELS?.viewAll || 'View All Records'}</span>
+                <span>{LABELS?.viewAll || 'View All Archive'}</span>
                 <ChevronRight size={14} />
               </Link>
             </div>
@@ -435,10 +439,10 @@ export default function Dashboard() {
             {/* Mobile Cards View */}
             <div className="block md:hidden space-y-3">
               {recent.map((tx) => (
-                <div key={tx.id} className="p-4 bg-white border border-sky-100/70 rounded-2xl flex items-center justify-between gap-3 shadow-2xs active:bg-sky-50/40 active:scale-[0.98] transition-all">
+                <div key={tx.id} className="p-4 bg-white border border-sky-100/80 rounded-2xl flex items-center justify-between gap-3 shadow-2xs active:bg-sky-50/40 active:scale-[0.98] transition-all">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className={`h-10 w-10 shrink-0 rounded-xl flex items-center justify-center font-black text-[10px] ${
-                      isInflow(tx.type) ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'
+                      isInflow(tx.type) ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'
                     }`}>
                       {isInflow(tx.type) ? 'IN' : 'OUT'}
                     </div>
@@ -477,39 +481,39 @@ export default function Dashboard() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b-2 border-sky-100/70 text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
-                    <th className="py-4 pr-3">{LABELS?.receiptNo || 'Receipt No'}</th>
-                    <th className="px-3 py-4">{LABELS?.date || 'Date'}</th>
-                    <th className="px-3 py-4">{LABELS?.customer || 'Customer'}</th>
-                    <th className="px-3 py-4 text-right">{LABELS?.amount || 'Amount'}</th>
-                    <th className="px-3 py-4">{LABELS?.method || 'Method'}</th>
-                    <th className="py-4 pl-3">{LABELS?.status || 'Status'}</th>
+                    <th className="py-3.5 pr-3">{LABELS?.receiptNo || 'Receipt No'}</th>
+                    <th className="px-3 py-3.5">{LABELS?.date || 'Date'}</th>
+                    <th className="px-3 py-3.5">{LABELS?.customer || 'Customer'}</th>
+                    <th className="px-3 py-3.5 text-right">{LABELS?.amount || 'Amount'}</th>
+                    <th className="px-3 py-3.5">{LABELS?.method || 'Method'}</th>
+                    <th className="py-3.5 pl-3">{LABELS?.status || 'Status'}</th>
                   </tr>
                 </thead>
                 <tbody className="text-sm font-semibold text-slate-600">
                   {recent.map((tx) => (
-                    <tr key={tx.id} className="transition-all hover:bg-sky-50/40 border-b border-sky-100/40 last:border-0 group">
-                      <td className="py-4 pr-3 font-black text-slate-800 group-hover:text-sky-600 transition-colors">{tx.receipt_no}</td>
-                      <td className="px-3 py-4 text-slate-500 font-bold text-xs">{tx.date}</td>
-                      <td className="px-3 py-4">
-                        <span className="block max-w-[180px] truncate text-slate-700 font-bold">{tx.customer_name}</span>
+                    <tr key={tx.id} className="transition-all hover:bg-sky-50/50 border-b border-sky-100/50 last:border-0 group">
+                      <td className="py-3.5 pr-3 font-black text-slate-800 group-hover:text-sky-600 transition-colors">{tx.receipt_no}</td>
+                      <td className="px-3 py-3.5 text-slate-500 font-bold text-xs">{tx.date}</td>
+                      <td className="px-3 py-3.5">
+                        <span className="block max-w-[180px] truncate text-slate-800 font-bold">{tx.customer_name}</span>
                       </td>
                       <td
-                        className={`px-3 py-4 text-right font-black ${
+                        className={`px-3 py-3.5 text-right font-black ${
                           isInflow(tx.type) ? 'text-emerald-600' : 'text-rose-600'
                         }`}
                       >
                         {isInflow(tx.type) ? '+' : '-'}
                         {formatCurrency(tx.amount, tx.currency)}
                       </td>
-                      <td className="px-3 py-4 font-semibold text-slate-400 text-xs">{tx.payment_method}</td>
-                      <td className="py-4 pl-3">
+                      <td className="px-3 py-3.5 font-semibold text-slate-500 text-xs">{tx.payment_method}</td>
+                      <td className="py-3.5 pl-3">
                         <span
                           className={`inline-flex items-center rounded-lg px-2.5 py-1 text-[9px] font-black uppercase tracking-widest ${
                             tx.status === 'Completed'
-                              ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/60'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80'
                               : tx.status === 'Pending'
-                                ? 'bg-amber-50 text-amber-600 border border-amber-200/60'
-                                : 'bg-rose-50 text-rose-600 border border-rose-200/60'
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200/80'
+                                : 'bg-rose-50 text-rose-700 border border-rose-200/80'
                           }`}
                         >
                           {tx.status}
@@ -533,12 +537,12 @@ export default function Dashboard() {
           <GlassCard className="p-5 sm:p-6 shadow-xl shadow-sky-950/[0.04]">
             <div className="mb-5 flex items-center justify-between border-b border-sky-100/80 pb-4">
               <div className="flex items-center gap-2">
-                <TrendingUp size={18} className="text-sky-500" />
-                <h2 className="text-lg font-black text-slate-900">
-                  {LABELS?.cashFlowHistory || 'Cash Flow History'}
+                <TrendingUp size={18} className="text-sky-600" />
+                <h2 className="text-base font-black text-slate-900">
+                  {LABELS?.cashFlowHistory || 'Cash Flow Performance Chart'}
                 </h2>
               </div>
-              <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.12em] text-sky-600">
+              <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.12em] text-slate-500">
                 <span className="flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-2xs shadow-emerald-500/50" />
                   {LABELS?.received || 'Received'}
@@ -556,7 +560,7 @@ export default function Dashboard() {
                 <div className="pointer-events-none absolute inset-x-0 bottom-8 top-4 flex flex-col justify-between">
                   {[100, 75, 50, 25, 0].map((perc) => (
                     <div key={perc} className="flex w-full justify-end border-t border-sky-100/60">
-                      <span className="-mt-2 pr-1 text-[8px] font-black text-sky-300">
+                      <span className="-mt-2 pr-1 text-[8px] font-black text-sky-400">
                         {formatCurrency((maxChartVal * perc) / 100, 'USD')}
                       </span>
                     </div>
@@ -583,7 +587,7 @@ export default function Dashboard() {
                             title={`Paid: ${formatCurrency(item.paid, 'USD')}`}
                           />
                         </div>
-                        <span className="text-[10px] font-bold tracking-wider text-sky-600">
+                        <span className="text-[10px] font-extrabold tracking-wider text-slate-500">
                           {item.month.split('-')[1]}/{item.month.split('-')[0].substring(2)}
                         </span>
                       </div>
@@ -605,13 +609,13 @@ export default function Dashboard() {
           {/* Bank Accounts Widget */}
           <GlassCard className="p-5 sm:p-6 shadow-xl shadow-sky-950/[0.04]">
             <div className="mb-5 flex items-center justify-between border-b border-sky-100/80 pb-4">
-              <h2 className="flex items-center gap-2 text-lg font-black text-slate-900">
-                <Building size={18} className="text-sky-500" />
-                <span>{LABELS?.bankAccounts || 'Bank Accounts'}</span>
+              <h2 className="flex items-center gap-2 text-base font-black text-slate-900">
+                <Building size={18} className="text-sky-600" />
+                <span>{LABELS?.bankAccounts || 'Bank Vaults'}</span>
               </h2>
               <Link
                 to="/bank-ledger"
-                className="inline-flex items-center gap-1 text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors"
+                className="inline-flex items-center gap-1 text-xs font-black text-sky-600 hover:text-sky-700 transition-colors"
               >
                 <span>{LABELS?.manage || 'Manage'}</span>
                 <ChevronRight size={14} />
@@ -622,15 +626,15 @@ export default function Dashboard() {
               {banks.map((acc) => (
                 <div
                   key={acc.id}
-                  className="flex items-center justify-between gap-4 rounded-2xl border border-sky-100/80 bg-white/70 p-4 shadow-2xs hover:bg-sky-50/50 hover:border-sky-200 transition-all"
+                  className="flex items-center justify-between gap-4 rounded-2xl border border-sky-100/80 bg-white/80 p-3.5 shadow-2xs hover:bg-sky-50/50 hover:border-sky-200 transition-all"
                 >
                   <div className="min-w-0">
-                    <h4 className="truncate text-sm font-black text-slate-900">{acc.account_name}</h4>
-                    <p className="mt-0.5 truncate text-[10px] font-bold text-sky-600">
+                    <h4 className="truncate text-xs font-black text-slate-900">{acc.account_name}</h4>
+                    <p className="mt-0.5 truncate text-[10px] font-bold text-slate-500">
                       {acc.bank_name} • {acc.account_number}
                     </p>
                   </div>
-                  <span className="shrink-0 text-sm font-black text-slate-900">
+                  <span className="shrink-0 text-xs font-black text-slate-900">
                     {formatCurrency(acc.current_balance, acc.currency)}
                   </span>
                 </div>
@@ -646,26 +650,26 @@ export default function Dashboard() {
           {/* Activity Log Widget */}
           <GlassCard className="p-5 sm:p-6 shadow-xl shadow-sky-950/[0.04]">
             <div className="mb-5 flex items-center justify-between border-b border-sky-100/80 pb-4">
-              <h2 className="flex items-center gap-2 text-lg font-black text-slate-900">
-                <ShieldCheck size={18} className="text-sky-500" />
-                <span>{LABELS?.activityLog || 'Activity Log'}</span>
+              <h2 className="flex items-center gap-2 text-base font-black text-slate-900">
+                <ShieldCheck size={18} className="text-sky-600" />
+                <span>{LABELS?.activityLog || 'Security & Audit Stream'}</span>
               </h2>
               <Link
                 to="/backup"
-                className="inline-flex items-center gap-1 text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors"
+                className="inline-flex items-center gap-1 text-xs font-black text-sky-600 hover:text-sky-700 transition-colors"
               >
                 <span>{LABELS?.fullLog || 'Full Log'}</span>
                 <ChevronRight size={14} />
               </Link>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3.5">
               {logs.map((log) => (
                 <div key={log.id} className="flex items-start gap-3 text-xs font-semibold text-slate-700 group">
                   <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-sky-500 ring-4 ring-sky-100 transition-all group-hover:scale-125" />
                   <div className="min-w-0">
-                    <p className="leading-snug text-slate-800 font-bold">{log.description}</p>
-                    <span className="mt-1 block text-[9px] font-bold text-sky-600">
+                    <p className="leading-snug text-slate-800 font-bold text-xs">{log.description}</p>
+                    <span className="mt-1 block text-[9px] font-bold text-slate-400">
                       {formatDate(log.created_at)} • User {log.user_id || 'System'}
                     </span>
                   </div>
