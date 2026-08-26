@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building, Printer, FileSpreadsheet, Loader2, Save, Trash2, Edit2, X, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import { Building, Printer, FileSpreadsheet, Loader2, Save, Trash2, Edit2, X, TrendingDown, TrendingUp, Wallet, RotateCw } from 'lucide-react';
 import { bankAPI } from '../api/client';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency, safeGetStoredUser } from '../utils/formatters';
@@ -390,11 +390,22 @@ export default function BankLedger() {
           <h1 className="text-2xl font-black tracking-tight text-sky-950 leading-tight font-sans">{t('bankLedger.title')}</h1>
           <p className="text-sm text-sky-600/80 font-medium mt-1">{t('bankLedger.subtitle')}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => {
+              setLedgerRetryKey((prev) => prev + 1);
+              fetchAccounts(false, selectedAccountId);
+            }}
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-white hover:bg-sky-50 border border-sky-200/80 font-bold text-xs text-sky-700 rounded-xl shadow-xs transition-all active:scale-95"
+            title="Refresh bank ledger data"
+          >
+            <RotateCw size={14} className={loadingLedger ? 'animate-spin text-sky-500' : 'text-sky-600'} />
+            <span>Refresh</span>
+          </button>
           <button
             onClick={handlePrint}
             disabled={ledgerRows.length === 0}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white/60 hover:bg-sky-50 border border-sky-100 font-bold text-xs text-sky-800 rounded-xl shadow-md transition-all disabled:opacity-50"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-white hover:bg-sky-50 border border-sky-200/80 font-bold text-xs text-sky-800 rounded-xl shadow-xs transition-all disabled:opacity-50 active:scale-95"
           >
             <Printer size={14} />
             <span>{t('bankLedger.print')}</span>
@@ -402,7 +413,7 @@ export default function BankLedger() {
           <button
             onClick={handleExportCSV}
             disabled={ledgerRows.length === 0}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-tr from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/15 transition-all text-xs disabled:opacity-50"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-gradient-to-tr from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold rounded-xl shadow-md shadow-emerald-500/15 transition-all text-xs disabled:opacity-50 active:scale-95"
           >
             <FileSpreadsheet size={14} />
             <span>{t('bankLedger.export')}</span>

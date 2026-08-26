@@ -94,21 +94,27 @@ export const authAPI = {
 };
 
 export const customerAPI = {
-  list: () => client.get('/customers'),
+  list: () => client.get('/customers', { params: { _t: Date.now() } }),
   get: (id) => client.get(`/customers/${id}`),
   create: (data) => client.post('/customers', data),
   update: (id, data) => client.put(`/customers/${id}`, data),
   delete: (id) => client.delete(`/customers/${id}`),
-  getLedger: (id, currency) => client.get(`/ledger/customer/${id}`, { params: currency ? { currency } : {} }),
+  getLedger: (id, currency) =>
+    client.get(`/ledger/customer/${id}`, {
+      params: {
+        ...(currency ? { currency } : {}),
+        _t: Date.now(),
+      },
+    }),
 };
 
 export const bankAPI = {
-  list: () => client.get('/bank-accounts'),
+  list: () => client.get('/bank-accounts', { params: { _t: Date.now() } }),
   get: (id) => client.get(`/bank-accounts/${id}`),
   create: (data) => client.post('/bank-accounts', data),
   update: (id, data) => client.put(`/bank-accounts/${id}`, data),
   delete: (id) => client.delete(`/bank-accounts/${id}`),
-  getLedger: (id) => client.get(`/ledger/bank/${id}`),
+  getLedger: (id) => client.get(`/ledger/bank/${id}`, { params: { _t: Date.now() } }),
 };
 
 export const transactionAPI = {
