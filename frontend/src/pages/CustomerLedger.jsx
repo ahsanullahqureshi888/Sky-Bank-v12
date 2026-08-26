@@ -13,6 +13,7 @@ import {
   Users,
   Wallet,
   X,
+  RotateCw,
 } from 'lucide-react';
 import { customerAPI } from '../api/client';
 import { useTranslation } from 'react-i18next';
@@ -483,6 +484,17 @@ export default function CustomerLedger() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={() => {
+              loadLedger(selectedCustomerId, selectedCurrency);
+              fetchCustomers(false);
+            }}
+            className="h-10 inline-flex items-center justify-center gap-2 px-4 bg-white hover:bg-sky-50 border border-sky-200/80 font-black text-xs text-sky-700 rounded-xl shadow-xs transition-all active:scale-95"
+            title="Refresh customer ledger data"
+          >
+            <RotateCw size={14} className={loadingLedger ? 'animate-spin text-sky-500' : 'text-sky-600'} />
+            <span>Refresh</span>
+          </button>
           <button
             onClick={handlePrint}
             disabled={!selectedCustomer}

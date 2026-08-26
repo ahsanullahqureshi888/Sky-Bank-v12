@@ -836,9 +836,9 @@ def _attach_receipt_numbers(db: Session, rows: list):
 
 @router.get("/ledger/customer/{customer_id}", response_model=list[schemas.LedgerRead])
 def customer_ledger(customer_id: int, currency: Optional[str] = None, db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
-    # Check if rows exist, if not recalculate
-    existing = db.scalars(select(models.CustomerLedger).where(models.CustomerLedger.customer_id == customer_id)).first()
-    if not existing:
+    tx_count = db.scalar(select(func.count(models.Transaction.id)).where(models.Transaction.customer_id == customer_id)) or 0
+    ledger_count = db.scalar(select(func.count(models.CustomerLedger.id)).where(models.CustomerLedger.customer_id == customer_id)) or 0
+    if tx_count != ledger_count or ledger_count == 0:
         recalculate_customer_ledger(db, customer_id)
         db.commit()
         
