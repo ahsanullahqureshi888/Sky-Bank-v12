@@ -181,22 +181,22 @@
 }
 .receipt-logo-shell { 
   display: flex; 
-  width: 28mm; 
-  height: 22mm; 
+  width: 32mm; 
+  height: 24mm; 
   flex: 0 0 auto; 
   align-items: center; 
   justify-content: center; 
   overflow: hidden; 
-  border: 1px solid #dbeafe; 
-  border-radius: 10px; 
-  background: #fff; 
-  box-shadow: 0 2px 8px rgba(15,42,74,0.06); 
+  border: 1.5px solid #bfdbfe; 
+  border-radius: 12px; 
+  background: #ffffff; 
+  box-shadow: 0 4px 12px rgba(15,42,74,0.08); 
 }
 .receipt-logo-shell img { 
   width: 100%; 
   height: 100%; 
   object-fit: contain; 
-  padding: 0.5mm; 
+  padding: 1mm; 
 }
 .receipt-logo-fallback { 
   display: flex; 
@@ -213,20 +213,21 @@
 .receipt-brand-identity h1 { 
   margin: 0; 
   color: var(--receipt-navy); 
-  font-size: 15pt; 
+  font-size: 14pt; 
   font-weight: 900; 
-  line-height: 1.15; 
-  white-space: nowrap; 
+  line-height: 1.2; 
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 .receipt-brand-identity p { 
-  max-width: 90mm; 
-  margin: 0.8mm 0 0; 
-  color: var(--receipt-blue); 
-  font-size: 7.2pt; 
+  max-width: 100mm; 
+  margin: 1mm 0 0; 
+  color: #1d4ed8; 
+  font-size: 7.5pt; 
   font-weight: 800; 
-  line-height: 1.25; 
+  line-height: 1.3; 
   text-transform: uppercase; 
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
 }
 .receipt-brand-contact {
   display: flex;

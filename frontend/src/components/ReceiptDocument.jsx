@@ -178,12 +178,20 @@ function DirectionIcon({ inflow }) {
 
 function ReceiptNumberBar({ receiptNo }) {
   if (!receiptNo || receiptNo === '—') return <span className="font-mono text-xs font-bold text-slate-400">DRAFT-TX</span>;
-  const digits = receiptNo.replace(/[^0-9]/g, '');
-  const letters = receiptNo.replace(/[^A-Za-z]/g, '');
+  const parts = String(receiptNo).split('-');
+  if (parts.length > 1) {
+    const last = parts[parts.length - 1];
+    const prefix = parts.slice(0, -1).join('-');
+    return (
+      <div className="receipt-number-bar">
+        <span className="receipt-number-prefix">{prefix}</span>
+        <span className="receipt-number-digits">#{last}</span>
+      </div>
+    );
+  }
   return (
     <div className="receipt-number-bar">
-      {letters && <span className="receipt-number-prefix">{letters}</span>}
-      <span className="receipt-number-digits">{digits || receiptNo}</span>
+      <span className="receipt-number-digits">{receiptNo}</span>
     </div>
   );
 }

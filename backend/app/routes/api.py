@@ -1003,14 +1003,50 @@ def get_next_receipt_no(
     _: models.User = Depends(get_current_user),
 ):
     settings = db.scalar(select(models.Settings).limit(1))
+    curr_raw = (currency or "").strip().upper()
     
-    # Check if USD currency or customer with USD account
-    if currency and currency.upper() == "USD":
-        query = select(models.Transaction.receipt_no).where(models.Transaction.currency == "USD")
+    # 1. Toman sequence -> e.g. SKY-TOMMAN-011
+    if curr_raw in ["TOMAN", "TOMMAN", "TMN"]:
+        query = select(models.Transaction.receipt_no).where(
+            (models.Transaction.currency.ilike("%toman%")) | 
+            (models.Transaction.receipt_no.ilike("SKY-TOM%"))
+        )
         if customer_id:
             query = query.where(models.Transaction.customer_id == customer_id)
         existing = db.scalars(query).all()
-        max_usd_num = 11  # Starts at 012 after 011
+        max_num = 0
+        for rn in existing:
+            if not rn:
+                continue
+            digits = re.findall(r"\d+", rn)
+            if digits:
+                try:
+                    val = int(digits[-1])
+                    if val > max_num:
+                        max_num = val
+                except ValueError:
+                    pass
+        # Start at 11 as requested (SKY-TOMMAN-011) or increment
+        next_val = max(11, max_num + 1) if max_num >= 11 else (11 if max_num == 0 else max_num + 1)
+        receipt_no = f"SKY-TOMMAN-{next_val:03d}"
+        return {
+            "receipt_no": receipt_no,
+            "prefix": "SKY-TOMMAN",
+            "next_number": next_val,
+            "simple_number": next_val,
+        }
+
+    # 2. USD sequence -> e.g. SKY-USD-012
+    elif curr_raw == "USD":
+        query = select(models.Transaction.receipt_no).where(
+            (models.Transaction.currency == "USD") | 
+            (models.Transaction.receipt_no.ilike("SKY-USD%")) |
+            (models.Transaction.receipt_no.ilike("SKY-TX%"))
+        )
+        if customer_id:
+            query = query.where(models.Transaction.customer_id == customer_id)
+        existing = db.scalars(query).all()
+        max_usd_num = 11  # Starts at 012 after 11 existing export receipts
         for rn in existing:
             if not rn:
                 continue
@@ -1026,6 +1062,66 @@ def get_next_receipt_no(
         return {
             "receipt_no": f"SKY-USD-{next_val:03d}",
             "prefix": "SKY-USD",
+            "next_number": next_val,
+            "simple_number": next_val,
+        }
+
+    # 3. Afghani sequence -> e.g. SKY-AFN-001
+    elif curr_raw in ["AFN", "AFGHANI"]:
+        query = select(models.Transaction.receipt_no).where(
+            (models.Transaction.currency.ilike("%afn%")) | 
+            (models.Transaction.currency.ilike("%afghani%")) |
+            (models.Transaction.receipt_no.ilike("SKY-AFN%"))
+        )
+        if customer_id:
+            query = query.where(models.Transaction.customer_id == customer_id)
+        existing = db.scalars(query).all()
+        max_num = 0
+        for rn in existing:
+            if not rn:
+                continue
+            digits = re.findall(r"\d+", rn)
+            if digits:
+                try:
+                    val = int(digits[-1])
+                    if val > max_num:
+                        max_num = val
+                except ValueError:
+                    pass
+        next_val = max_num + 1
+        return {
+            "receipt_no": f"SKY-AFN-{next_val:03d}",
+            "prefix": "SKY-AFN",
+            "next_number": next_val,
+            "simple_number": next_val,
+        }
+
+    # 4. Dirham / AED sequence -> e.g. SKY-AED-001
+    elif curr_raw in ["AED", "DIRHAM", "DRM"]:
+        query = select(models.Transaction.receipt_no).where(
+            (models.Transaction.currency.ilike("%dirham%")) | 
+            (models.Transaction.currency.ilike("%aed%")) |
+            (models.Transaction.receipt_no.ilike("SKY-AED%"))
+        )
+        if customer_id:
+            query = query.where(models.Transaction.customer_id == customer_id)
+        existing = db.scalars(query).all()
+        max_num = 0
+        for rn in existing:
+            if not rn:
+                continue
+            digits = re.findall(r"\d+", rn)
+            if digits:
+                try:
+                    val = int(digits[-1])
+                    if val > max_num:
+                        max_num = val
+                except ValueError:
+                    pass
+        next_val = max_num + 1
+        return {
+            "receipt_no": f"SKY-AED-{next_val:03d}",
+            "prefix": "SKY-AED",
             "next_number": next_val,
             "simple_number": next_val,
         }
