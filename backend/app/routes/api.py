@@ -340,12 +340,12 @@ def delete_user(user_id: int, db: Session = Depends(get_db), user: models.User =
 
 @router.get("/customers", response_model=list[schemas.CustomerRead])
 def list_customers(
-    entity_type: Optional[str] = Query(None),
+    entity_type: Optional[str] = None,
     db: Session = Depends(get_db),
     _: models.User = Depends(get_current_user)
 ):
     query = select(models.Customer)
-    if entity_type:
+    if entity_type and not isinstance(entity_type, type(Query(None))):
         query = query.where(models.Customer.entity_type == entity_type)
     return db.scalars(query.order_by(models.Customer.name)).all()
 
