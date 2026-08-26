@@ -696,6 +696,15 @@
       "opening_balance": 25000.0,
       "current_balance": 40000.0,
       "created_at": "2026-08-21T23:10:20.327023"
+    },
+    {
+      "id": 7,
+      "bank_name": "HAWALA",
+      "account_name": "Balam Bar Baran USD",
+      "account_number": "88374",
+      "currency": "USD",
+      "opening_balance": 0.0,
+      "current_balance": 222785.0
     }
   ],
   "transactions": [
@@ -1438,7 +1447,7 @@
       "equivalent_amount": 700000000.0,
       "equivalent_currency": "Toman",
       "payment_method": "Hawala",
-      "bank_account_id": null,
+      "bank_account_id": 7,
       "receiver_name": "Mrs Khanam Tokali Bolambar",
       "description": "۱/۵/۱۴۰۵\nنقد برایت جمع میشه\nتوسط امید احسان صرافی \nبه حساب عبدالمنان کرکیچ \n700,000,000/ تومان \n3784$ دالره \n@Mrs Khanam Tokali Bolambar\nحساب بلم بار باران\nد دالرو حساب",
       "status": "Completed",
@@ -1460,7 +1469,7 @@
       "equivalent_amount": 15000.0,
       "equivalent_currency": "USD",
       "payment_method": "Cash",
-      "bank_account_id": 5,
+      "bank_account_id": 7,
       "receiver_name": "Mrs Khanam Tokali Bolambar",
       "description": "exports -of containers",
       "status": "Completed",
@@ -5731,7 +5740,8 @@
       "description": "EXPORTS",
       "status": "Completed",
       "created_at": "2026-08-25T15:50:53.338016",
-      "updated_at": "2026-08-25T15:50:53.338025"
+      "updated_at": "2026-08-25T15:50:53.338025",
+      "bank_account_id": 7
     },
     {
       "id": 230,
@@ -5749,7 +5759,8 @@
       "description": "for 14X40'FT EXPORT Containers",
       "status": "Completed",
       "created_at": "2026-08-25T15:50:53.338059",
-      "updated_at": "2026-08-25T15:50:53.338061"
+      "updated_at": "2026-08-25T15:50:53.338061",
+      "bank_account_id": 7
     },
     {
       "id": 231,
@@ -5767,7 +5778,8 @@
       "description": "for 14X40'FT EXPORT Containers",
       "status": "Completed",
       "created_at": "2026-08-25T15:50:53.338083",
-      "updated_at": "2026-08-25T15:50:53.338085"
+      "updated_at": "2026-08-25T15:50:53.338085",
+      "bank_account_id": 7
     },
     {
       "id": 232,
@@ -5785,7 +5797,8 @@
       "description": "Export Containers",
       "status": "Completed",
       "created_at": "2026-08-25T15:50:53.338109",
-      "updated_at": "2026-08-25T15:50:53.338110"
+      "updated_at": "2026-08-25T15:50:53.338110",
+      "bank_account_id": 7
     },
     {
       "id": 233,
@@ -5803,7 +5816,8 @@
       "description": "Export Containers",
       "status": "Completed",
       "created_at": "2026-08-25T15:50:53.338134",
-      "updated_at": "2026-08-25T15:50:53.338136"
+      "updated_at": "2026-08-25T15:50:53.338136",
+      "bank_account_id": 7
     },
     {
       "id": 234,
@@ -5821,7 +5835,8 @@
       "description": "Export Containers",
       "status": "Completed",
       "created_at": "2026-08-25T15:50:53.338161",
-      "updated_at": "2026-08-25T15:50:53.338163"
+      "updated_at": "2026-08-25T15:50:53.338163",
+      "bank_account_id": 7
     },
     {
       "id": 235,
@@ -5839,7 +5854,8 @@
       "description": "exports -of containers",
       "status": "Completed",
       "created_at": "2026-08-25T15:50:53.338185",
-      "updated_at": "2026-08-25T15:50:53.338187"
+      "updated_at": "2026-08-25T15:50:53.338187",
+      "bank_account_id": 7
     },
     {
       "id": 236,
@@ -5857,7 +5873,8 @@
       "description": "exports -of containers",
       "status": "Completed",
       "created_at": "2026-08-25T15:50:53.338210",
-      "updated_at": "2026-08-25T15:50:53.338211"
+      "updated_at": "2026-08-25T15:50:53.338211",
+      "bank_account_id": 7
     },
     {
       "id": 237,
@@ -5875,7 +5892,8 @@
       "description": "exports -of containers",
       "status": "Completed",
       "created_at": "2026-08-25T15:50:53.338234",
-      "updated_at": "2026-08-25T15:50:53.338236"
+      "updated_at": "2026-08-25T15:50:53.338236",
+      "bank_account_id": 7
     },
     {
       "id": 238,
@@ -5893,7 +5911,8 @@
       "description": "exports -of containers",
       "status": "Completed",
       "created_at": "2026-08-25T15:50:53.338259",
-      "updated_at": "2026-08-25T15:50:53.338260"
+      "updated_at": "2026-08-25T15:50:53.338260",
+      "bank_account_id": 7
     }
   ],
   "customer_ledger": [
