@@ -169,7 +169,13 @@ export const settingsAPI = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
-  getNextReceiptNo: (currency) => client.get('/settings/next-receipt-no', { params: currency ? { currency } : {} }),
+  getNextReceiptNo: (currency, customerId) =>
+    client.get('/settings/next-receipt-no', {
+      params: {
+        ...(currency ? { currency } : {}),
+        ...(customerId ? { customer_id: customerId } : {}),
+      },
+    }),
 };
 
 

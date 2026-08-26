@@ -260,10 +260,10 @@ export default function AddTransaction() {
     loadPrerequisites();
   }, [id, location.state]);
 
-  const refreshReceiptNo = async () => {
+  const refreshReceiptNo = async (curr = form.currency, custId = form.customer_id) => {
     setRefreshingReceiptNo(true);
     try {
-      const nextRes = await settingsAPI.getNextReceiptNo();
+      const nextRes = await settingsAPI.getNextReceiptNo(curr, custId);
       if (nextRes.data?.receipt_no) {
         setForm((prev) => ({ ...prev, receipt_no: nextRes.data.receipt_no }));
         setRefreshingReceiptNo(false);
@@ -299,6 +299,7 @@ export default function AddTransaction() {
       setNewCustomerName('');
       setNewCustomerPhone('');
       setShowCustomerModal(false);
+      refreshReceiptNo(form.currency, newCust.id);
     } catch (err) {
       console.error('Failed to create customer', err);
       alert('Failed to create customer. Ensure the name is unique.');
@@ -310,6 +311,11 @@ export default function AddTransaction() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    if (name === 'currency' && !id) {
+      refreshReceiptNo(value, form.customer_id);
+    } else if (name === 'customer_id' && !id) {
+      refreshReceiptNo(form.currency, value);
+    }
   };
 
   const handleFileChange = (e) => {

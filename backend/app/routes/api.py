@@ -981,10 +981,38 @@ CURRENCY_CODES = {
 @router.get("/settings/next-receipt-no")
 def get_next_receipt_no(
     currency: str | None = None,
+    customer_id: int | None = None,
     db: Session = Depends(get_db),
     _: models.User = Depends(get_current_user),
 ):
     settings = db.scalar(select(models.Settings).limit(1))
+    
+    # Check if USD currency or customer with USD account
+    if currency and currency.upper() == "USD":
+        query = select(models.Transaction.receipt_no).where(models.Transaction.currency == "USD")
+        if customer_id:
+            query = query.where(models.Transaction.customer_id == customer_id)
+        existing = db.scalars(query).all()
+        max_usd_num = 11  # Starts at 012 after 011
+        for rn in existing:
+            if not rn:
+                continue
+            digits = re.findall(r"\d+", rn)
+            if digits:
+                try:
+                    val = int(digits[-1])
+                    if val > max_usd_num:
+                        max_usd_num = val
+                except ValueError:
+                    pass
+        next_val = max_usd_num + 1
+        return {
+            "receipt_no": f"SKY-USD-{next_val:03d}",
+            "prefix": "SKY-USD",
+            "next_number": next_val,
+            "simple_number": next_val,
+        }
+
     prefix = (settings.receipt_prefix if settings and settings.receipt_prefix is not None else "TX").strip()
 
     # Find highest numeric value from all existing transaction receipts
