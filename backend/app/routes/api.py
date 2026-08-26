@@ -971,7 +971,19 @@ def export_pdf(db: Session = Depends(get_db), _: models.User = Depends(get_curre
 
 @router.get("/settings", response_model=schemas.SettingsRead)
 def get_settings(db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
-    return db.scalar(select(models.Settings).limit(1))
+    s = db.scalar(select(models.Settings).limit(1))
+    if not s:
+        s = models.Settings(
+            company_name="SKY ARIANA GROUP OF COMPANIES",
+            company_subtitle="Money Transaction & Hawala Receipt Management System",
+            logo_path="/logo.png",
+            receipt_prefix="SKY-TX-",
+            next_receipt_seq=12,
+        )
+        db.add(s)
+        db.commit()
+        db.refresh(s)
+    return s
 
 
 # Currency code mapping for receipt sequences

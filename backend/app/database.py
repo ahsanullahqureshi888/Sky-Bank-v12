@@ -27,16 +27,10 @@ DATABASE_URL = next(
     None,
 )
 
-# If still not found, set default SQLite DB
+DEFAULT_NEON_URL = "postgresql://neondb_owner:npg_gR8KSGOXbds6@ep-falling-cake-aip6g4pv-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require"
+
 if not DATABASE_URL:
-    if os.getenv("VERCEL") == "1":
-        DATABASE_URL = "sqlite:////tmp/sky_banking.db"
-    else:
-        DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    # Use /tmp directory which is always writable in container environments (Render, Vercel, Docker)
-    tmp_db_path = "/tmp/sky_banking.db" if os.name != "nt" else str(BASE_DIR / "sky_banking.db")
-    DATABASE_URL = f"sqlite:///{tmp_db_path}"
+    DATABASE_URL = DEFAULT_NEON_URL
 elif DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
