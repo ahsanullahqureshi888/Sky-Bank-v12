@@ -863,6 +863,11 @@ def customer_ledger(customer_id: int, currency: Optional[str] = None, db: Sessio
 
 @router.get("/ledger/bank/{bank_account_id}", response_model=list[schemas.LedgerRead])
 def bank_ledger(bank_account_id: int, db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
+    tx_count = db.scalar(select(func.count(models.Transaction.id)).where(models.Transaction.bank_account_id == bank_account_id)) or 0
+    ledger_count = db.scalar(select(func.count(models.BankLedger.id)).where(models.BankLedger.bank_account_id == bank_account_id)) or 0
+    if tx_count != ledger_count:
+        recalculate_bank_ledger(db, bank_account_id)
+        db.commit()
     rows = db.scalars(select(models.BankLedger).where(models.BankLedger.bank_account_id == bank_account_id).order_by(models.BankLedger.date, models.BankLedger.id)).all()
     return _attach_receipt_numbers(db, rows)
 

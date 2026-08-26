@@ -554,39 +554,53 @@ export default function BankLedger() {
                 ) : (
                   <div className="overflow-x-auto print:overflow-visible">
                     <table className="w-full min-w-[620px] text-left border-collapse print:min-w-0 print:text-[9px]">
-                      <thead className="bg-sky-50/60">
-                        <tr className="border-b border-sky-100/70 text-[10px] font-black text-sky-600 uppercase tracking-[0.1em]">
-                          <th className="pb-3 pr-2">{t('bankLedger.date')}</th>
-                          <th className="pb-3 px-2">{t('bankLedger.description')}</th>
-                          <th className="pb-3 px-2 text-right">{t('bankLedger.debit_out')}</th>
-                          <th className="pb-3 px-2 text-right">{t('bankLedger.credit_in')}</th>
-                          <th className="pb-3 pl-2 text-right">{t('bankLedger.balance')}</th>
+                      <thead className="bg-[#0f243e] text-white">
+                        <tr className="text-[10px] font-black uppercase tracking-[0.12em]">
+                          <th className="py-3 px-3">DATE</th>
+                          <th className="py-3 px-3">RECEIPT NO.</th>
+                          <th className="py-3 px-3">{t('bankLedger.description')}</th>
+                          <th className="py-3 px-3 text-right">{t('bankLedger.debit_out')}</th>
+                          <th className="py-3 px-3 text-right">{t('bankLedger.credit_in')}</th>
+                          <th className="py-3 px-3 text-right">{t('bankLedger.balance')}</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-sky-100/30 text-xs font-semibold text-sky-900/90">
+                      <tbody className="divide-y divide-sky-100/40 text-xs font-semibold text-slate-800">
                         {ledgerRows.map((row) => (
-                          <tr key={row.id} className="border-b border-sky-100/40 transition-colors odd:bg-white/35 even:bg-sky-50/25 hover:bg-sky-100/35">
-                            <td className="py-4 pr-2 text-[11px] font-bold text-sky-500/80">{row.date}</td>
-                            <td className="py-4 px-2 text-[11px]">{row.description}</td>
-                            <td className="py-3.5 px-2 text-right font-black text-rose-600">
+                          <tr key={row.id} className="border-b border-sky-100/40 transition-colors odd:bg-white even:bg-slate-50/50 hover:bg-sky-50/50">
+                            <td className="py-3.5 px-3 text-[11px] font-bold text-slate-500 whitespace-nowrap">{row.date}</td>
+                            <td className="py-3.5 px-3 whitespace-nowrap">
+                              <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-black text-slate-900">
+                                {row.receipt_no || 'OP'}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-3 text-[11px] font-bold text-slate-800">{row.description}</td>
+                            <td className="py-3.5 px-3 text-right font-black text-rose-600 whitespace-nowrap">
                               {row.debit ? formatCurrency(row.debit, currentCurrency) : '-'}
                             </td>
-                            <td className="py-3.5 px-2 text-right font-black text-emerald-600">
+                            <td className="py-3.5 px-3 text-right font-black text-emerald-600 whitespace-nowrap">
                               {row.credit ? formatCurrency(row.credit, currentCurrency) : '-'}
                             </td>
-                            <td className="py-3.5 pl-2 text-right font-black text-sky-900">
+                            <td className="py-3.5 px-3 text-right font-black text-slate-900 whitespace-nowrap">
                               {formatCurrency(row.balance, currentCurrency)}
                             </td>
                           </tr>
                         ))}
                         {ledgerRows.length === 0 && (
                           <tr>
-                            <td colSpan="5" className="py-12 text-center text-sky-400 font-semibold">
+                            <td colSpan="6" className="py-12 text-center text-sky-400 font-semibold">
                               No statement entries recorded for this account.
                             </td>
                           </tr>
                         )}
                       </tbody>
+                      <tfoot>
+                        <tr className="border-t-2 border-slate-300 bg-slate-100/90 text-xs font-black text-slate-900">
+                          <td className="py-3.5 px-3 uppercase tracking-wider" colSpan="3">Total Statement</td>
+                          <td className="py-3.5 px-3 text-right text-rose-600 whitespace-nowrap">{formatCurrency(totalDebit, currentCurrency)}</td>
+                          <td className="py-3.5 px-3 text-right text-emerald-600 whitespace-nowrap">{formatCurrency(totalCredit, currentCurrency)}</td>
+                          <td className="py-3.5 px-3 text-right text-slate-900 whitespace-nowrap">{formatCurrency(finalBalance, currentCurrency)}</td>
+                        </tr>
+                      </tfoot>
                     </table>
                   </div>
                 )}
